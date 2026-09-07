@@ -1,0 +1,17 @@
+# Credentials and local configuration; retain blank documentation examples.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Local dependencies, diagnostics and one-shot live probe.
+node_modules/
+coverage/
+*.log
+.DS_Store
+Thumbs.db
+runtime/live-once.mjs
+runtime/.live-api-attempted

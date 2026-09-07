@@ -1,0 +1,702 @@
+{
+  "$defs": {
+    "RgcAdvisory": {
+      "description": "Non-binding advisory layer for consumer-defined review and interpretation policies.",
+      "properties": {
+        "review_recommendation": {
+          "description": "not_indicated | recommended | required",
+          "title": "Review Recommendation",
+          "type": "string"
+        },
+        "review_trigger": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Review Trigger",
+          "type": "array"
+        },
+        "recommended_review_type": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Recommended Review Type",
+          "type": "array"
+        },
+        "interpretation_policy": {
+          "$ref": "#/$defs/RgcInterpretationPolicy"
+        }
+      },
+      "required": [
+        "review_recommendation",
+        "interpretation_policy"
+      ],
+      "title": "RgcAdvisory",
+      "type": "object"
+    },
+    "RgcGovernance": {
+      "properties": {
+        "governance_boundary": {
+          "$ref": "#/$defs/RgcGovernanceBoundary"
+        },
+        "advisory": {
+          "$ref": "#/$defs/RgcAdvisory"
+        }
+      },
+      "required": [
+        "governance_boundary",
+        "advisory"
+      ],
+      "title": "RgcGovernance",
+      "type": "object"
+    },
+    "RgcGovernanceBoundary": {
+      "description": "Governance boundary defining the separation between NeoMundi measurement signals and consumer execution authority.",
+      "properties": {
+        "authorization_status": {
+          "default": "not_applicable",
+          "title": "Authorization Status",
+          "type": "string"
+        },
+        "execution_permission_changed": {
+          "const": false,
+          "default": false,
+          "description": "Always false — schema-enforced: a NeoMundi signal never grants or revokes execution permission.",
+          "title": "Execution Permission Changed",
+          "type": "boolean"
+        }
+      },
+      "title": "RgcGovernanceBoundary",
+      "type": "object"
+    },
+    "RgcIdentity": {
+      "description": "Who/when/what produced this contract.",
+      "properties": {
+        "schema_version": {
+          "const": "0.2.0",
+          "default": "0.2.0",
+          "description": "Version of the interoperability schema used to validate this contract.",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "request_id": {
+          "title": "Request Id",
+          "type": "string"
+        },
+        "trace_id": {
+          "description": "W3C Trace Context `traceparent`-shaped identifier, computed for this contract. Distinct from (and does not replace) the platform's internal audit.trace_id.",
+          "title": "Trace Id",
+          "type": "string"
+        },
+        "timestamp": {
+          "format": "date-time",
+          "title": "Timestamp",
+          "type": "string"
+        },
+        "system_id": {
+          "title": "System Id",
+          "type": "string"
+        },
+        "model": {
+          "description": "Pseudonymized model identifier, or the literal \"local\". Raw provider/model identifiers are not permitted. This constraint is schema-enforced.",
+          "pattern": "^(local|model-[0-9a-f]{12})$",
+          "title": "Model",
+          "type": "string"
+        },
+        "mode": {
+          "title": "Mode",
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "request_id",
+        "trace_id",
+        "timestamp",
+        "system_id",
+        "model",
+        "mode"
+      ],
+      "title": "RgcIdentity",
+      "type": "object"
+    },
+    "RgcIntegrity": {
+      "properties": {
+        "payload_hash": {
+          "description": "SHA-256 fingerprint, hex.",
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Payload Hash",
+          "type": "string"
+        },
+        "hash_algorithm": {
+          "default": "sha256",
+          "title": "Hash Algorithm",
+          "type": "string"
+        },
+        "canonicalization": {
+          "default": "sorted-json-utf8",
+          "title": "Canonicalization",
+          "type": "string"
+        },
+        "signature": {
+          "description": "Compact Ed25519 JWS (alg=EdDSA) over {payload_hash, hash_algorithm, schema_version, request_id, timestamp}. Always present — no fallback to hash-only.",
+          "pattern": "^[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+$",
+          "title": "Signature",
+          "type": "string"
+        },
+        "signer_identity": {
+          "title": "Signer Identity",
+          "type": "string"
+        },
+        "key_id": {
+          "description": "Identifies the key used for `signature`, for verification via GET /v1/rgc/jwks.",
+          "title": "Key Id",
+          "type": "string"
+        },
+        "confidentiality_class": {
+          "default": "controlled",
+          "title": "Confidentiality Class",
+          "type": "string"
+        },
+        "retention_reference": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Retention Reference"
+        }
+      },
+      "required": [
+        "payload_hash",
+        "signature",
+        "signer_identity",
+        "key_id"
+      ],
+      "title": "RgcIntegrity",
+      "type": "object"
+    },
+    "RgcInterpretationPolicy": {
+      "properties": {
+        "policy_id": {
+          "title": "Policy Id",
+          "type": "string"
+        },
+        "policy_version": {
+          "title": "Policy Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "policy_id",
+        "policy_version"
+      ],
+      "title": "RgcInterpretationPolicy",
+      "type": "object"
+    },
+    "RgcSignalStatus": {
+      "description": "Measurement state for an individual signal. `measured` means a valid numeric measurement was actually produced. `not_measured` means the signal was not measured. `insufficient_coverage` means available evidence was insufficient to produce a valid measurement.",
+      "enum": [
+        "measured",
+        "not_measured",
+        "insufficient_coverage"
+      ],
+      "title": "RgcSignalStatus",
+      "type": "string"
+    },
+    "RgcSignalStatuses": {
+      "description": "Per-signal measurement status. A signal with status `measured` must carry a numeric value. Any other status requires the corresponding value to be null.",
+      "properties": {
+        "stability_score": {
+          "$ref": "#/$defs/RgcSignalStatus"
+        },
+        "coherence_score": {
+          "$ref": "#/$defs/RgcSignalStatus"
+        },
+        "factual_hallucination_score": {
+          "$ref": "#/$defs/RgcSignalStatus"
+        },
+        "semantic_instability_score": {
+          "$ref": "#/$defs/RgcSignalStatus"
+        },
+        "semantic_risk": {
+          "$ref": "#/$defs/RgcSignalStatus"
+        }
+      },
+      "required": [
+        "stability_score",
+        "coherence_score",
+        "factual_hallucination_score",
+        "semantic_instability_score",
+        "semantic_risk"
+      ],
+      "title": "RgcSignalStatuses",
+      "type": "object"
+    },
+    "RgcObservation": {
+      "description": "Runtime measurement observation. All conclusions are bounded by the measured domain. Absence of evidence is only meaningful over the measured domain.",
+      "properties": {
+        "runtime_scope": {
+          "default": "single_request",
+          "description": "Scope of the observation. When `single_request`, this record describes one request only and cannot by itself establish frequency, persistence, recurrence, trend, or drift. Such temporal properties require a series of observations.",
+          "title": "Runtime Scope",
+          "type": "string"
+        },
+        "observation_window": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Observation Window"
+        },
+        "measurement_status": {
+          "description": "`complete` means measurement_coverage is exactly 1.0 for the declared measurement boundary. `partial` means measurement_coverage is less than 1.0. Status never extends conclusions beyond the measured domain.",
+          "enum": [
+            "complete",
+            "partial"
+          ],
+          "title": "Measurement Status",
+          "type": "string"
+        },
+        "measurement_coverage": {
+          "description": "Fraction of the declared measurement boundary actually covered by this observation, from 0.0 to 1.0.",
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Measurement Coverage",
+          "type": "number"
+        },
+        "observed_signals": {
+          "$ref": "#/$defs/RgcObservedSignals"
+        },
+        "limitations": {
+          "description": "Known limits of the observation. Limitations must preserve the distinction between measured and unmeasured domains.",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Limitations",
+          "type": "array"
+        },
+        "measurement_boundary": {
+          "description": "Explicit boundary of what was measured. Absence of evidence is only meaningful over the measured domain; no conclusion may be inferred about unmeasured dimensions.",
+          "minLength": 1,
+          "title": "Measurement Boundary",
+          "type": "string"
+        }
+      },
+      "required": [
+        "measurement_status",
+        "measurement_coverage",
+        "observed_signals",
+        "limitations",
+        "measurement_boundary"
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "measurement_status": {
+                "const": "complete"
+              }
+            },
+            "required": [
+              "measurement_status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "measurement_coverage": {
+                "const": 1.0
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "measurement_status": {
+                "const": "partial"
+              }
+            },
+            "required": [
+              "measurement_status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "measurement_coverage": {
+                "exclusiveMaximum": 1.0
+              }
+            }
+          }
+        }
+      ],
+      "title": "RgcObservation",
+      "type": "object"
+    },
+    "RgcObservedSignals": {
+      "description": "Observed NeoMundi measurement signals. Numeric values are permitted only when the corresponding per-signal status is `measured`. Null means no valid numeric measurement was produced and MUST NOT be interpreted as zero, safe, within bounds, or reassuring.",
+      "properties": {
+        "stability_score": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Stability Score"
+        },
+        "coherence_score": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Coherence Score"
+        },
+        "factual_hallucination_score": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Raw factual hallucination risk score when actually measured. Null means no valid measurement was produced and MUST NOT be interpreted as 0.0.",
+          "title": "Factual Hallucination Score"
+        },
+        "semantic_instability_score": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Semantic Instability Score"
+        },
+        "semantic_risk": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Semantic Risk"
+        },
+        "signal_status": {
+          "$ref": "#/$defs/RgcSignalStatuses"
+        },
+        "observation_class": {
+          "description": "`within_bounds` means only that no threshold-crossing signal was detected within the measured domain. It makes no claim about unmeasured dimensions. `flagged` means measured evidence supports a flagged classification within the measured domain. `not_assessed` means the available measured evidence is insufficient to support either classification. Classification has no effect on execution permission.",
+          "enum": [
+            "within_bounds",
+            "flagged",
+            "not_assessed"
+          ],
+          "title": "Observation Class",
+          "type": "string"
+        },
+        "confidence": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Confidence",
+          "type": "number"
+        }
+      },
+      "required": [
+        "stability_score",
+        "coherence_score",
+        "factual_hallucination_score",
+        "semantic_instability_score",
+        "semantic_risk",
+        "signal_status",
+        "observation_class",
+        "confidence"
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "signal_status": {
+                "properties": {
+                  "stability_score": {
+                    "const": "measured"
+                  }
+                },
+                "required": [
+                  "stability_score"
+                ]
+              }
+            },
+            "required": [
+              "signal_status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "stability_score": {
+                "maximum": 1.0,
+                "minimum": 0.0,
+                "type": "number"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "stability_score": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "signal_status": {
+                "properties": {
+                  "coherence_score": {
+                    "const": "measured"
+                  }
+                },
+                "required": [
+                  "coherence_score"
+                ]
+              }
+            },
+            "required": [
+              "signal_status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "coherence_score": {
+                "maximum": 1.0,
+                "minimum": 0.0,
+                "type": "number"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "coherence_score": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "signal_status": {
+                "properties": {
+                  "factual_hallucination_score": {
+                    "const": "measured"
+                  }
+                },
+                "required": [
+                  "factual_hallucination_score"
+                ]
+              }
+            },
+            "required": [
+              "signal_status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "factual_hallucination_score": {
+                "maximum": 1.0,
+                "minimum": 0.0,
+                "type": "number"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "factual_hallucination_score": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "signal_status": {
+                "properties": {
+                  "semantic_instability_score": {
+                    "const": "measured"
+                  }
+                },
+                "required": [
+                  "semantic_instability_score"
+                ]
+              }
+            },
+            "required": [
+              "signal_status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "semantic_instability_score": {
+                "maximum": 1.0,
+                "minimum": 0.0,
+                "type": "number"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "semantic_instability_score": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "signal_status": {
+                "properties": {
+                  "semantic_risk": {
+                    "const": "measured"
+                  }
+                },
+                "required": [
+                  "semantic_risk"
+                ]
+              }
+            },
+            "required": [
+              "signal_status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "semantic_risk": {
+                "maximum": 1.0,
+                "minimum": 0.0,
+                "type": "number"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "semantic_risk": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ],
+      "title": "RgcObservedSignals",
+      "type": "object"
+    },
+    "RgcProvenance": {
+      "properties": {
+        "measurement_version": {
+          "title": "Measurement Version",
+          "type": "string"
+        },
+        "normalizer_version": {
+          "title": "Normalizer Version",
+          "type": "string"
+        },
+        "checks_emitted": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Checks Emitted"
+        },
+        "source_batch_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Batch Id"
+        },
+        "canonicalization_method": {
+          "default": "sorted-json-utf8",
+          "title": "Canonicalization Method",
+          "type": "string"
+        }
+      },
+      "required": [
+        "measurement_version",
+        "normalizer_version"
+      ],
+      "title": "RgcProvenance",
+      "type": "object"
+    }
+  },
+  "description": "NeoMundi Measurement Interoperability Contract — technical schema RGC v0.2. The schema preserves epistemic boundaries for partial measurements and prevents unmeasured signals from being represented as reassuring numeric values.",
+  "properties": {
+    "identity": {
+      "$ref": "#/$defs/RgcIdentity"
+    },
+    "provenance": {
+      "$ref": "#/$defs/RgcProvenance"
+    },
+    "observation": {
+      "$ref": "#/$defs/RgcObservation"
+    },
+    "governance": {
+      "$ref": "#/$defs/RgcGovernance"
+    },
+    "integrity": {
+      "$ref": "#/$defs/RgcIntegrity"
+    }
+  },
+  "required": [
+    "identity",
+    "provenance",
+    "observation",
+    "governance",
+    "integrity"
+  ],
+  "title": "NeoMundi Measurement Interoperability Contract (RGC v0.2)",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.neomundi.io/rgc/0.2.0/contract.schema.json",
+  "version": "0.2.0"
+}

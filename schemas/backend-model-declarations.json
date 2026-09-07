@@ -1,0 +1,817 @@
+﻿[
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/requests.py",
+        "line":  19,
+        "declaration":  "class GovernanceMode(str, Enum):"
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/requests.py",
+        "line":  28,
+        "declaration":  "class RawMetrics(BaseModel):"
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/requests.py",
+        "line":  36,
+        "declaration":  "    token_count: int = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/requests.py",
+        "line":  41,
+        "declaration":  "    latency_ms: float = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/requests.py",
+        "line":  46,
+        "declaration":  "    cost: float = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/requests.py",
+        "line":  57,
+        "declaration":  "    semantic_risk: float = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/requests.py",
+        "line":  68,
+        "declaration":  "    prompt_length: int = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/requests.py",
+        "line":  73,
+        "declaration":  "    response_length: int = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/requests.py",
+        "line":  78,
+        "declaration":  "    model_name: str = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/requests.py",
+        "line":  93,
+        "declaration":  "class DocumentInput(BaseModel):"
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/requests.py",
+        "line":  104,
+        "declaration":  "    title: str = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/requests.py",
+        "line":  110,
+        "declaration":  "    text: str = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/requests.py",
+        "line":  118,
+        "declaration":  "class GovernRequest(BaseModel):"
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/requests.py",
+        "line":  129,
+        "declaration":  "    source_type: str = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/requests.py",
+        "line":  135,
+        "declaration":  "    raw_metrics: RawMetrics = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/requests.py",
+        "line":  142,
+        "declaration":  "    mode: GovernanceMode = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/requests.py",
+        "line":  146,
+        "declaration":  "    llm_response: Optional[str] = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/requests.py",
+        "line":  155,
+        "declaration":  "    llm_prompt: Optional[str] = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/requests.py",
+        "line":  163,
+        "declaration":  "    rag_context: Optional[List[str]] = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/requests.py",
+        "line":  172,
+        "declaration":  "    documents: Optional[List[DocumentInput]] = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/requests.py",
+        "line":  185,
+        "declaration":  "    metadata: Dict[str, Any] = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/requests.py",
+        "line":  215,
+        "declaration":  "class StreamRequest(BaseModel):"
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/requests.py",
+        "line":  224,
+        "declaration":  "    prompt: str = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/requests.py",
+        "line":  230,
+        "declaration":  "    system_prompt: str = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/requests.py",
+        "line":  235,
+        "declaration":  "    model: str = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/requests.py",
+        "line":  241,
+        "declaration":  "    provider_api_key: str = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/requests.py",
+        "line":  249,
+        "declaration":  "    provider: Optional[str] = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/requests.py",
+        "line":  258,
+        "declaration":  "    max_tokens: int = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/requests.py",
+        "line":  270,
+        "declaration":  "    temperature: float = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/requests.py",
+        "line":  276,
+        "declaration":  "    mode: GovernanceMode = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/requests.py",
+        "line":  280,
+        "declaration":  "    metadata: Dict[str, Any] = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/requests.py",
+        "line":  308,
+        "declaration":  "class ReportRequest(BaseModel):"
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/requests.py",
+        "line":  311,
+        "declaration":  "    client_id: str = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/requests.py",
+        "line":  317,
+        "declaration":  "    period: str = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  20,
+        "declaration":  "class GovernanceBlock(BaseModel):"
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  23,
+        "declaration":  "    decision: str = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  27,
+        "declaration":  "    confidence: float = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  33,
+        "declaration":  "    reasons: List[str] = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  39,
+        "declaration":  "class SuspectPhrase(BaseModel):"
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  48,
+        "declaration":  "    text: str = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  53,
+        "declaration":  "    severity: str = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  57,
+        "declaration":  "    category: str = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  61,
+        "declaration":  "    explanation: str = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  66,
+        "declaration":  "    offset: int = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  75,
+        "declaration":  "class QualityBlock(BaseModel):"
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  78,
+        "declaration":  "    g_score: float = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  89,
+        "declaration":  "    stability_score: float = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  100,
+        "declaration":  "    confidence: float = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  106,
+        "declaration":  "    coherence_score: float = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  112,
+        "declaration":  "    semantic_risk: float = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  118,
+        "declaration":  "    factual_hallucination_score: float = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  124,
+        "declaration":  "    semantic_instability_score: float = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  130,
+        "declaration":  "    information_density: Optional[float] = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  141,
+        "declaration":  "    suspect_phrases: Optional[List[SuspectPhrase]] = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  151,
+        "declaration":  "class RuntimeBlock(BaseModel):"
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  154,
+        "declaration":  "    r_score: float = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  160,
+        "declaration":  "    latency_score: float = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  166,
+        "declaration":  "    cost_score: float = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  172,
+        "declaration":  "    e_token: float = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  177,
+        "declaration":  "    energy_score: float = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  185,
+        "declaration":  "class MetricsBlock(BaseModel):"
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  188,
+        "declaration":  "    energy_score: float = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  192,
+        "declaration":  "    e_token: float = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  197,
+        "declaration":  "    cost_proxy: float = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  203,
+        "declaration":  "    latency_proxy: float = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  209,
+        "declaration":  "    stability_score: float = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  215,
+        "declaration":  "class BaselineBlock(BaseModel):"
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  218,
+        "declaration":  "    reference_energy: float = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  222,
+        "declaration":  "    observed_energy: float = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  226,
+        "declaration":  "    delta_E: float = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  230,
+        "declaration":  "    calibration_status: Optional[str] = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  238,
+        "declaration":  "    esi_q: Optional[float] = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  249,
+        "declaration":  "    esi_bootstrap: Optional[bool] = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  259,
+        "declaration":  "class ESIBlock(BaseModel):"
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  265,
+        "declaration":  "    Visibility: TIER_02 and TIER_03 see the full block; TIER_01 and"
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  270,
+        "declaration":  "    g_final: float = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  276,
+        "declaration":  "    s_component: float = Field(..., ge=0.0, le=1.0)"
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  277,
+        "declaration":  "    p_component: float = Field(..., ge=0.0, le=1.0)"
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  278,
+        "declaration":  "    q_component: float = Field(..., ge=0.0, le=1.0)"
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  279,
+        "declaration":  "    c_component: float = Field(..., ge=0.0, le=1.0)"
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  280,
+        "declaration":  "    s_value: float = Field(..., ge=0.0, le=1.0)"
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  281,
+        "declaration":  "    p_value: float = Field(..., ge=0.0, le=1.0)"
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  282,
+        "declaration":  "    q_value: float = Field(..., ge=0.0, le=1.0)"
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  283,
+        "declaration":  "    c_value: float = Field(..., ge=0.0, le=1.0)"
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  284,
+        "declaration":  "    betas: Dict[str, float] = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  294,
+        "declaration":  "class DensityBlock(BaseModel):"
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  302,
+        "declaration":  "    Visibility: TIER_02 and TIER_03 see the full block; TIER_01 and"
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  306,
+        "declaration":  "    volumetric_density: float = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  315,
+        "declaration":  "    informational_energy: float = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  323,
+        "declaration":  "    informational_density: float = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  333,
+        "declaration":  "    risk_coefficient: int = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  345,
+        "declaration":  "class CohereJudgeCitation(BaseModel):"
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  353,
+        "declaration":  "    text: str = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  358,
+        "declaration":  "    document_title: str = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  365,
+        "declaration":  "class UngroundedSnippet(BaseModel):"
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  374,
+        "declaration":  "    quote: str = Field(..., max_length=400)"
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  375,
+        "declaration":  "    max_similarity: float = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  386,
+        "declaration":  "class RagGroundingBlock(BaseModel):"
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  394,
+        "declaration":  "    grounding_score: float = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  404,
+        "declaration":  "    is_grounded: bool = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  411,
+        "declaration":  "    best_doc_index: int = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  418,
+        "declaration":  "    best_doc_snippet: str = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  423,
+        "declaration":  "    per_doc_scores: List[float] = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  427,
+        "declaration":  "    model_used: str = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  431,
+        "declaration":  "    ungrounded: List[UngroundedSnippet] = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  441,
+        "declaration":  "    citations: List[CohereJudgeCitation] = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  450,
+        "declaration":  "    ungrounded_claims: List[str] = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  458,
+        "declaration":  "    judge_mode: str = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  467,
+        "declaration":  "class AuditBlock(BaseModel):"
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  470,
+        "declaration":  "    measurement_version: str = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  474,
+        "declaration":  "    normalizer_version: str = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  478,
+        "declaration":  "    trace_id: str = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  488,
+        "declaration":  "class GovernResponse(BaseModel):"
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  495,
+        "declaration":  "    request_id: str = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  499,
+        "declaration":  "    timestamp: datetime = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  503,
+        "declaration":  "    system_id: str = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  507,
+        "declaration":  "    mode: str = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  517,
+        "declaration":  "    g_score: Optional[float] = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  528,
+        "declaration":  "    g_final: Optional[float] = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  543,
+        "declaration":  "    v_score: Optional[float] = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  554,
+        "declaration":  "    delta_g: Optional[float] = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  563,
+        "declaration":  "    checks_emitted: Optional[int] = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  573,
+        "declaration":  "    measured_signals: Optional[List[str]] = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  587,
+        "declaration":  "    processing_time_ms: Optional[float] = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  596,
+        "declaration":  "    latency_ms: Optional[float] = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  605,
+        "declaration":  "    model: Optional[str] = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  613,
+        "declaration":  "    governance: GovernanceBlock"
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  614,
+        "declaration":  "    quality: Optional[QualityBlock] = None"
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  615,
+        "declaration":  "    runtime: Optional[RuntimeBlock] = None"
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  616,
+        "declaration":  "    metrics: MetricsBlock"
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  617,
+        "declaration":  "    baseline: BaselineBlock"
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  618,
+        "declaration":  "    audit: AuditBlock"
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  619,
+        "declaration":  "    density: Optional[DensityBlock] = None"
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  620,
+        "declaration":  "    esi: Optional[ESIBlock] = None"
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  621,
+        "declaration":  "    rag_grounding: Optional[RagGroundingBlock] = None"
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  661,
+        "declaration":  "class ReportResponse(BaseModel):"
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  664,
+        "declaration":  "    client_id: str"
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  665,
+        "declaration":  "    period: str"
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  666,
+        "declaration":  "    generated_at: datetime = Field(default_factory=datetime.utcnow)"
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  667,
+        "declaration":  "    summary: Dict[str, Any] = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  677,
+        "declaration":  "class ComponentHealth(BaseModel):"
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  680,
+        "declaration":  "    name: str"
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  681,
+        "declaration":  "    status: str = Field(description=\"healthy | degraded | unhealthy\")"
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  682,
+        "declaration":  "    latency_ms: Optional[float] = None"
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  683,
+        "declaration":  "    message: Optional[str] = None"
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  686,
+        "declaration":  "class HealthResponse(BaseModel):"
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  689,
+        "declaration":  "    status: str = Field("
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  692,
+        "declaration":  "    version: str"
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  693,
+        "declaration":  "    uptime_seconds: float"
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  694,
+        "declaration":  "    environment: str"
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  695,
+        "declaration":  "    components: List[ComponentHealth] = Field(default_factory=list)"
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  696,
+        "declaration":  "    timestamp: datetime = Field(default_factory=datetime.utcnow)"
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  703,
+        "declaration":  "class ErrorResponse(BaseModel):"
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  706,
+        "declaration":  "    error: str"
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  707,
+        "declaration":  "    detail: str"
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  708,
+        "declaration":  "    request_id: Optional[str] = None"
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  709,
+        "declaration":  "    timestamp: datetime = Field(default_factory=datetime.utcnow)"
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  712,
+        "declaration":  "class PaginatedResponse(BaseModel):"
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  715,
+        "declaration":  "    items: List[Any]"
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  716,
+        "declaration":  "    total: int"
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  717,
+        "declaration":  "    page: int"
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  718,
+        "declaration":  "    page_size: int"
+    },
+    {
+        "source":  "Backend_plateforme_v2-main/govern-v3/app/models/responses.py",
+        "line":  719,
+        "declaration":  "    has_more: bool"
+    }
+]

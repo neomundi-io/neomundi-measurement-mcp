@@ -1,0 +1,388 @@
+{
+  "$defs": {
+    "RgcAdvisory": {
+      "description": "Non-binding advisory layer for consumer-defined review and interpretation policies.",
+      "properties": {
+        "review_recommendation": {
+          "description": "not_indicated | recommended | required",
+          "title": "Review Recommendation",
+          "type": "string"
+        },
+        "review_trigger": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Review Trigger",
+          "type": "array"
+        },
+        "recommended_review_type": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Recommended Review Type",
+          "type": "array"
+        },
+        "interpretation_policy": {
+          "$ref": "#/$defs/RgcInterpretationPolicy"
+        }
+      },
+      "required": [
+        "review_recommendation",
+        "interpretation_policy"
+      ],
+      "title": "RgcAdvisory",
+      "type": "object"
+    },
+    "RgcGovernance": {
+      "properties": {
+        "governance_boundary": {
+          "$ref": "#/$defs/RgcGovernanceBoundary"
+        },
+        "advisory": {
+          "$ref": "#/$defs/RgcAdvisory"
+        }
+      },
+      "required": [
+        "governance_boundary",
+        "advisory"
+      ],
+      "title": "RgcGovernance",
+      "type": "object"
+    },
+    "RgcGovernanceBoundary": {
+      "description": "Governance boundary defining the separation between NeoMundi measurement signals and consumer execution authority.",
+      "properties": {
+        "authorization_status": {
+          "default": "not_applicable",
+          "title": "Authorization Status",
+          "type": "string"
+        },
+        "execution_permission_changed": {
+          "const": false,
+          "default": false,
+          "description": "Always false — schema-enforced: a NeoMundi signal never grants or revokes execution permission.",
+          "title": "Execution Permission Changed",
+          "type": "boolean"
+        }
+      },
+      "title": "RgcGovernanceBoundary",
+      "type": "object"
+    },
+    "RgcIdentity": {
+      "description": "Who/when/what produced this contract.",
+      "properties": {
+        "schema_version": {
+          "default": "0.1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "request_id": {
+          "title": "Request Id",
+          "type": "string"
+        },
+        "trace_id": {
+          "description": "W3C Trace Context `traceparent`-shaped identifier, computed for this contract. Distinct from (and does not replace) the platform's internal audit.trace_id.",
+          "title": "Trace Id",
+          "type": "string"
+        },
+        "timestamp": {
+          "format": "date-time",
+          "title": "Timestamp",
+          "type": "string"
+        },
+        "system_id": {
+          "title": "System Id",
+          "type": "string"
+        },
+        "model": {
+          "description": "Pseudonymized model identifier, or the literal \"local\". Raw provider/model identifiers are not permitted. This constraint is schema-enforced.",
+          "pattern": "^(local|model-[0-9a-f]{12})$",
+          "title": "Model",
+          "type": "string"
+        },
+        "mode": {
+          "title": "Mode",
+          "type": "string"
+        }
+      },
+      "required": [
+        "request_id",
+        "trace_id",
+        "timestamp",
+        "system_id",
+        "model",
+        "mode"
+      ],
+      "title": "RgcIdentity",
+      "type": "object"
+    },
+    "RgcIntegrity": {
+      "properties": {
+        "payload_hash": {
+          "description": "SHA-256 fingerprint, hex.",
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Payload Hash",
+          "type": "string"
+        },
+        "hash_algorithm": {
+          "default": "sha256",
+          "title": "Hash Algorithm",
+          "type": "string"
+        },
+        "canonicalization": {
+          "default": "sorted-json-utf8",
+          "title": "Canonicalization",
+          "type": "string"
+        },
+        "signature": {
+          "description": "Compact Ed25519 JWS (alg=EdDSA) over {payload_hash, hash_algorithm, schema_version, request_id, timestamp}. Always present — no fallback to hash-only.",
+          "pattern": "^[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+$",
+          "title": "Signature",
+          "type": "string"
+        },
+        "signer_identity": {
+          "title": "Signer Identity",
+          "type": "string"
+        },
+        "key_id": {
+          "description": "Identifies the key used for `signature`, for verification via GET /v1/rgc/jwks.",
+          "title": "Key Id",
+          "type": "string"
+        },
+        "confidentiality_class": {
+          "default": "controlled",
+          "title": "Confidentiality Class",
+          "type": "string"
+        },
+        "retention_reference": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Retention Reference"
+        }
+      },
+      "required": [
+        "payload_hash",
+        "signature",
+        "signer_identity",
+        "key_id"
+      ],
+      "title": "RgcIntegrity",
+      "type": "object"
+    },
+    "RgcInterpretationPolicy": {
+      "properties": {
+        "policy_id": {
+          "title": "Policy Id",
+          "type": "string"
+        },
+        "policy_version": {
+          "title": "Policy Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "policy_id",
+        "policy_version"
+      ],
+      "title": "RgcInterpretationPolicy",
+      "type": "object"
+    },
+    "RgcObservation": {
+      "properties": {
+        "runtime_scope": {
+          "default": "single_request",
+          "title": "Runtime Scope",
+          "type": "string"
+        },
+        "observation_window": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Observation Window"
+        },
+        "measurement_status": {
+          "description": "complete | partial",
+          "title": "Measurement Status",
+          "type": "string"
+        },
+        "measurement_coverage": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Measurement Coverage",
+          "type": "number"
+        },
+        "observed_signals": {
+          "$ref": "#/$defs/RgcObservedSignals"
+        },
+        "limitations": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Limitations",
+          "type": "array"
+        },
+        "measurement_boundary": {
+          "minLength": 1,
+          "title": "Measurement Boundary",
+          "type": "string"
+        }
+      },
+      "required": [
+        "measurement_status",
+        "measurement_coverage",
+        "observed_signals",
+        "limitations",
+        "measurement_boundary"
+      ],
+      "title": "RgcObservation",
+      "type": "object"
+    },
+    "RgcObservedSignals": {
+      "properties": {
+        "stability_score": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Stability Score",
+          "type": "number"
+        },
+        "coherence_score": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Coherence Score",
+          "type": "number"
+        },
+        "factual_hallucination_score": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Factual Hallucination Score",
+          "type": "number"
+        },
+        "semantic_instability_score": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Semantic Instability Score",
+          "type": "number"
+        },
+        "semantic_risk": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Semantic Risk",
+          "type": "number"
+        },
+        "observation_class": {
+          "description": "within_bounds | flagged — measurement classification, no effect on permission.",
+          "title": "Observation Class",
+          "type": "string"
+        },
+        "confidence": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Confidence",
+          "type": "number"
+        }
+      },
+      "required": [
+        "stability_score",
+        "coherence_score",
+        "factual_hallucination_score",
+        "semantic_instability_score",
+        "semantic_risk",
+        "observation_class",
+        "confidence"
+      ],
+      "title": "RgcObservedSignals",
+      "type": "object"
+    },
+    "RgcProvenance": {
+      "properties": {
+        "measurement_version": {
+          "title": "Measurement Version",
+          "type": "string"
+        },
+        "normalizer_version": {
+          "title": "Normalizer Version",
+          "type": "string"
+        },
+        "checks_emitted": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Checks Emitted"
+        },
+        "source_batch_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Batch Id"
+        },
+        "canonicalization_method": {
+          "default": "sorted-json-utf8",
+          "title": "Canonicalization Method",
+          "type": "string"
+        }
+      },
+      "required": [
+        "measurement_version",
+        "normalizer_version"
+      ],
+      "title": "RgcProvenance",
+      "type": "object"
+    }
+  },
+  "description": "NeoMundi Measurement Interoperability Contract — technical schema RGC v0.1.",
+  "properties": {
+    "identity": {
+      "$ref": "#/$defs/RgcIdentity"
+    },
+    "provenance": {
+      "$ref": "#/$defs/RgcProvenance"
+    },
+    "observation": {
+      "$ref": "#/$defs/RgcObservation"
+    },
+    "governance": {
+      "$ref": "#/$defs/RgcGovernance"
+    },
+    "integrity": {
+      "$ref": "#/$defs/RgcIntegrity"
+    }
+  },
+  "required": [
+    "identity",
+    "provenance",
+    "observation",
+    "governance",
+    "integrity"
+  ],
+  "title": "NeoMundi Measurement Interoperability Contract (RGC v0.1)",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.neomundi.io/rgc/0.1.0/contract.schema.json",
+  "version": "0.1.0"
+}

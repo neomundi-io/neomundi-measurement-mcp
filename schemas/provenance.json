@@ -1,0 +1,20 @@
+﻿[
+    {
+        "archive":  "Backend_plateforme_v2-main.zip",
+        "entry":  "Backend_plateforme_v2-main/govern-v3/app/rgc/schemas/rgc-contract-0.1.0.schema.json",
+        "copy":  "schemas/backend-v2-rgc-0.1.0.schema.json",
+        "sha256":  "f3df447e7b55d20b49c0243d75b96e51b5e6975e9ce86669ad9cbb0b2da960e4"
+    },
+    {
+        "archive":  "neomundi-runtime-measurement-main.zip",
+        "entry":  "neomundi-runtime-measurement-main/schema/contract-v0.1.schema.json",
+        "copy":  "schemas/runtime-contract-v0.1.schema.json",
+        "sha256":  "b3804bf98ba9dbdd16a2beb56567e4d4ca46ebee06b06b18734938db7a1177dd"
+    },
+    {
+        "archive":  "neomundi-runtime-measurement-main.zip",
+        "entry":  "neomundi-runtime-measurement-main/schema/contract-v0.2.schema.json",
+        "copy":  "schemas/runtime-contract-v0.2.schema.json",
+        "sha256":  "e7a25ea10877ac15a7ebac1959b95769d63e72085e4eb9c02899db482ec37818"
+    }
+]

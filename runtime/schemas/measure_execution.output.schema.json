@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "description": "Adapter transport envelope, not a new measurement contract. response and SSE event data retain raw NeoMundi values without interpretation. No measurement status is invented, mapped, or corrected.",
+  "additionalProperties": false,
+  "required": ["transport", "response", "raw_response", "sse", "adapter_error", "contract_version", "token_count_source", "validation"],
+  "properties": {
+    "transport": { "enum": ["json", "sse", null] },
+    "response": {
+      "type": ["object", "null"],
+      "description": "Unmodified API JSON object, or data of a named SSE done event. Null when the API did not explicitly provide that object. No RGC schema is imposed.",
+      "properties": { "contract_version": { "description": "Kept exactly as supplied, including null. No inference from schema_version." } },
+      "additionalProperties": true
+    },
+    "raw_response": { "type": ["string", "null"], "description": "Original JSON text for response, preserving number spelling and precision." },
+    "contract_version": { "description": "Verbatim alias of the API's top-level contract_version: JSON response, or last SSE JSON object that explicitly supplied it. Null when absent. Full event history retains earlier advertised values." },
+    "token_count_source": { "type": "string", "description": "Explicit nonempty token_count_source from the final response, verbatim; otherwise unknown. No inference from provider, counts, cost or chunks. Raw payload remains untouched." },
+    "validation": {
+      "type": "object", "additionalProperties": false,
+      "required": ["transport", "contract", "metadata_gaps"],
+      "properties": {
+        "transport": { "enum": ["validated", "not_validated"] },
+        "contract": { "enum": ["not_validated", "not_assessed"], "description": "Missing envelope metadata prevents validation. Otherwise not assessed: no authoritative backend schema is selected. This is not a server measurement classification or a prompt compliance check." },
+        "metadata_gaps": { "type": "array", "items": { "enum": ["contract_version_missing", "token_count_source_unknown"] } }
+      }
+    },
+    "sse": {
+      "type": ["object", "null"], "additionalProperties": false,
+      "required": ["events", "termination", "raw_stream"],
+      "properties": {
+        "termination": { "enum": ["done", "[DONE]", null], "description": "Transport terminator only; never a complete/partial measurement classification." },
+        "raw_stream": { "type": "string", "description": "Decoded UTF-8 bytes actually received before this client stopped reading; no synthetic event or heartbeat is added." },
+        "events": {
+          "type": "array",
+          "items": {
+            "type": "object", "additionalProperties": false,
+            "required": ["event", "data", "raw_data"],
+            "properties": {
+              "event": { "type": "string" },
+              "data": { "description": "Verbatim parsed API JSON data, or literal [DONE]. Unknown fields, states and null are retained." },
+              "raw_data": { "type": "string" },
+              "id": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "adapter_error": {
+      "type": ["object", "null"], "additionalProperties": false,
+      "required": ["code", "message"],
+      "properties": {
+        "code": { "type": "string" },
+        "message": { "type": "string" },
+        "http_status": { "type": "integer" }
+      }
+    }
+  }
+}

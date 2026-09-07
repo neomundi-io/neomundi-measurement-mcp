@@ -1,0 +1,168 @@
+{
+  "status": "LIVE_API_NOT_VALIDATED",
+  "presence": {
+    "NEOMUNDI_API_KEY": true,
+    "NEOMUNDI_MCP_API_KEY": true,
+    "NEOMUNDI_PROVIDER_API_KEY": true
+  },
+  "request": {
+    "endpoint": "/v1/govern/stream",
+    "provider": "openai",
+    "model": "gpt-4o-mini",
+    "prompt": "Réponds uniquement : Bonjour",
+    "max_tokens": 8
+  },
+  "upstream_calls": 1,
+  "gateway_http_status": 200,
+  "mcp_http_status": 200,
+  "latency_local_ms": 42431.46,
+  "sse_termination": "done",
+  "events": [
+    {
+      "event": "provider_info",
+      "data": {
+        "provider": "openai",
+        "model": "gpt-4o-mini"
+      }
+    },
+    {
+      "event": "chunk",
+      "data": {
+        "content": "Bonjour",
+        "tokens_so_far": 1
+      }
+    },
+    {
+      "event": "chunk",
+      "data": {
+        "content": " !",
+        "tokens_so_far": 2
+      }
+    },
+    {
+      "event": "hallucination_check",
+      "data": {
+        "factual_hallucination_score": 0,
+        "semantic_instability_score": 0,
+        "hallucination_score": 0,
+        "is_hallucinated": false,
+        "is_unstable": false,
+        "confidence": 1,
+        "flagged_claims": [],
+        "unstable_elements": [],
+        "reasoning": "Response matches prompt exactly.",
+        "model_used": "mistral24b",
+        "latency_ms": 264.4
+      }
+    },
+    {
+      "event": "density",
+      "data": {
+        "volumetric_density": 0.071429,
+        "informational_energy": 2,
+        "informational_density": 1,
+        "risk_coefficient": 3
+      }
+    },
+    {
+      "event": "done",
+      "data": {
+        "decision": "ALLOW",
+        "provider": "openai",
+        "stability_score": 0.9231,
+        "r_score": 0.5976,
+        "regime": "STABLE",
+        "total_tokens": 25,
+        "latency_ms": 21888,
+        "cost": 0.000005,
+        "stream_interrupted": false,
+        "reasons": [
+          "stability_score=0.923, regime=STABLE -- all metrics within bounds"
+        ],
+        "response_text": "Bonjour !",
+        "is_long_form_safe": false,
+        "delta_g": {
+          "profile": "FLAT",
+          "series": [
+            {
+              "token_position": 25,
+              "stability_score": 0.9231,
+              "delta_g": 0
+            }
+          ],
+          "min_stability": 0.9231,
+          "max_stability": 0.9231,
+          "total_variation": 0,
+          "flagged_by_profile": false
+        },
+        "moderation": {
+          "flagged": false,
+          "risk_score": 0,
+          "categories": {}
+        },
+        "hallucination": {
+          "score": 0,
+          "is_hallucinated": false,
+          "flagged_claims": []
+        }
+      }
+    }
+  ],
+  "result": {
+    "decision": "ALLOW",
+    "provider": "openai",
+    "stability_score": 0.9231,
+    "r_score": 0.5976,
+    "regime": "STABLE",
+    "total_tokens": 25,
+    "latency_ms": 21888,
+    "cost": 0.000005,
+    "stream_interrupted": false,
+    "reasons": [
+      "stability_score=0.923, regime=STABLE -- all metrics within bounds"
+    ],
+    "response_text": "Bonjour !",
+    "is_long_form_safe": false,
+    "delta_g": {
+      "profile": "FLAT",
+      "series": [
+        {
+          "token_position": 25,
+          "stability_score": 0.9231,
+          "delta_g": 0
+        }
+      ],
+      "min_stability": 0.9231,
+      "max_stability": 0.9231,
+      "total_variation": 0,
+      "flagged_by_profile": false
+    },
+    "moderation": {
+      "flagged": false,
+      "risk_score": 0,
+      "categories": {}
+    },
+    "hallucination": {
+      "score": 0,
+      "is_hallucinated": false,
+      "flagged_claims": []
+    }
+  },
+  "adapter_error": null,
+  "gateway_content_type": "text/event-stream; charset=utf-8",
+  "mcp_is_error": false,
+  "contract_version": null,
+  "prompt_match": false,
+  "review": {
+    "transport_chain_success": true,
+    "exact_prompt_success": false,
+    "token_provenance": "25 reported by NeoMundi done.total_tokens; no explicit usage provenance or input/output split in SSE. Local archive streaming.py:432 prefers provider usage, otherwise chunk count; deployed revision unverified.",
+    "contract_deviations": [
+      "Response Bonjour ! differs from required Bonjour.",
+      "hallucination_check reasoning claims exact prompt match despite extra punctuation.",
+      "Token provenance and input/output breakdown absent; provider usage cannot be independently certified.",
+      "contract_version absent; named done matches local backend, differs from documentary [DONE]."
+    ],
+    "latency_scope": "Local MCP tools/call round trip 42431.46 ms; server done.latency_ms 21888 ms; scopes differ."
+  }
+}

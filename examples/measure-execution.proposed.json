@@ -1,0 +1,19 @@
+{
+  "status": "proposal_only_no_server_implemented",
+  "description": "Exemple synthetique post-appel. Les metriques sont fictives et ne doivent pas etre envoyees comme observation reelle. La forme finale des arguments reste a confirmer.",
+  "proposed_jsonrpc_request": {
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "tools/call",
+    "params": {
+      "name": "measure_execution",
+      "arguments": {
+        "source_type": "llm",
+        "mode": "OBS",
+        "llm_prompt": "Quel est le resultat de 2 + 2 ?",
+        "llm_response": "4",
+        "raw_metrics": { "token_count": 1, "latency_ms": 123.5 }
+      }
+    }
+  }
+}

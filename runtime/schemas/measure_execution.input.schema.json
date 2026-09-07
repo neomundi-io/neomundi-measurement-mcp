@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "description": "Exactly one NeoMundi call: existing execution (POST /v1/govern) or provider generation (POST /v1/govern/stream). No credentials in arguments. Only explicitly supplied fields are forwarded; no local metric defaults or estimates.",
+  "additionalProperties": false,
+  "properties": {
+    "execution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["raw_metrics"],
+      "properties": {
+        "source_type": { "type": "string", "minLength": 1, "maxLength": 50 },
+        "mode": { "type": "string", "enum": ["OBS"] },
+        "llm_prompt": { "type": ["string", "null"], "maxLength": 10000 },
+        "llm_response": { "type": ["string", "null"], "maxLength": 50000 },
+        "rag_context": { "type": ["array", "null"], "maxItems": 50, "items": { "type": "string" } },
+        "documents": {
+          "type": ["array", "null"], "maxItems": 10,
+          "items": {
+            "type": "object", "additionalProperties": false, "required": ["title", "text"],
+            "properties": {
+              "title": { "type": "string", "minLength": 1, "maxLength": 200 },
+              "text": { "type": "string", "minLength": 1, "maxLength": 10000 }
+            }
+          }
+        },
+        "metadata": { "type": "object", "additionalProperties": true },
+        "raw_metrics": {
+          "type": "object", "additionalProperties": false,
+          "required": ["token_count", "latency_ms"],
+          "properties": {
+            "token_count": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+            "latency_ms": { "type": "number", "minimum": 0 },
+            "cost": { "type": "number", "minimum": 0 },
+            "semantic_risk": { "type": "number", "minimum": 0, "maximum": 1 },
+            "prompt_length": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+            "response_length": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+            "model_name": { "type": "string", "minLength": 1, "maxLength": 255 }
+          }
+        }
+      }
+    },
+    "generation": {
+      "type": "object", "additionalProperties": false, "required": ["prompt"],
+      "description": "Provider credential is injected exclusively from server environment. A generation may consume provider resources. No second post-call measurement is triggered.",
+      "properties": {
+        "prompt": { "type": "string", "minLength": 1, "maxLength": 50000 },
+        "system_prompt": { "type": "string", "maxLength": 10000 },
+        "model": { "type": "string", "minLength": 1, "maxLength": 100 },
+        "provider": { "type": ["string", "null"], "maxLength": 50 },
+        "max_tokens": { "type": "integer", "minimum": 1, "maximum": 16384 },
+        "temperature": { "type": "number", "minimum": 0, "maximum": 2 },
+        "mode": { "type": "string", "enum": ["OBS"] },
+        "metadata": { "type": "object", "additionalProperties": true }
+      }
+    }
+  },
+  "oneOf": [
+    { "required": ["execution"], "not": { "required": ["generation"] } },
+    { "required": ["generation"], "not": { "required": ["execution"] } }
+  ]
+}
