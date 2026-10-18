@@ -231,6 +231,11 @@ async function main() {
     app = createMcpServer({ config });
     const address = await app.listen();
     process.stdout.write(`Private NeoMundi MCP listening on ${address}\n`);
+    if (config.plaintextLoopback) {
+      // Told once, on stderr, so a verification run against a disposable local
+      // instance is never mistaken for a call to a real deployment.
+      process.stderr.write(`Upstream transport is plain HTTP on loopback (${config.baseUrl}). Verification only.\n`);
+    }
     for (const event of ['SIGINT', 'SIGTERM']) process.once(event, () => { void app.close(); });
   } catch {
     await app?.close();
