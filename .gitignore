@@ -15,3 +15,22 @@ coverage/
 Thumbs.db
 runtime/live-once.mjs
 runtime/.live-api-attempted
+# Its guard tests go with it: they execute the script as a child process and
+# read its source, so publishing them without it would ship a broken suite.
+runtime/tests/live-once.test.mjs
+
+# Internal reports. They carry the defect diagnosis, the correction
+# priorities and the publication arbitration; the public register of what
+# does and does not work is KNOWN_LIMITATIONS.md, which IS published.
+runtime/REFERENCE_AND_LOOPBACK_REPORT.md
+runtime/FINALISATION_REPORT.md
+runtime/PUBLICATION_READINESS_REPORT.md
+
+# Recorded API responses. Execution data, not source: they are produced by a
+# capture run against a test instance and reviewed before being shared.
+# tests/captured-rest.test.mjs skips, with a stated reason, when absent.
+runtime/tests/fixtures/captured/
+**/fixtures/captured/
+*.captured.json
+observation.json
+report_*.json
