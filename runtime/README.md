@@ -16,10 +16,10 @@ Le processus réel doit recevoir deux clés déjà provisionnées par votre méc
 
 Ces clés ne font jamais partie du schéma d'arguments de l'outil. Le serveur n'en crée aucune, ne charge aucun fichier `.env` et ne journalise ni headers, ni arguments, ni mesures. [.env.example](.env.example) décrit les variables sans contenir de secret. Les tests et la démonstration ne consultent pas les clés de l'environnement.
 
-Depuis `C:\Users\Danielle\Documents\DATASET\CONNECTEUR1` :
+Depuis la racine du dépôt :
 
 ```powershell
-node .\neomundi-measurement-mcp\runtime\server.mjs
+node runtime/server.mjs
 ```
 
 Depuis ce dossier `runtime` : `node server.mjs`.
@@ -28,7 +28,7 @@ Adresse par défaut : **`http://127.0.0.1:8787/mcp`**. Le démarrage n'appelle a
 
 | Variable facultative | Défaut | Contrainte |
 |---|---|---|
-| `NEOMUNDI_API_BASE_URL` | `https://api.neomundi.io` | origine HTTPS seule, sans identifiants, chemin, query ou fragment |
+| `NEOMUNDI_API_BASE_URL` | `https://api.neomundi.io` | origine seule, sans identifiants, chemin, query ou fragment. HTTPS partout ; **HTTP accepté uniquement pour `127.0.0.1`, `localhost` et `[::1]`** — voir « Vérification contre une instance locale » |
 | `NEOMUNDI_MCP_PORT` | 8787 | entier 1–65535 ; écoute toujours sur loopback |
 | `NEOMUNDI_TIMEOUT_MS` | 120000 | délai global, entier positif ≤ 3600000 |
 | `NEOMUNDI_IDLE_TIMEOUT_MS` | 30000 | inactivité réseau, entier positif ≤ 3600000 |
@@ -108,6 +108,7 @@ Le [schéma de sortie](schemas/measure_execution.output.schema.json) valide uniq
 | `raw_response` | texte JSON original correspondant, sans changement de précision numérique ; sinon null |
 | `contract_version` | alias du champ racine fourni par la réponse API ou du dernier événement JSON qui l'a explicitement fourni ; null lorsqu'il est absent |
 | `token_count_source` | provenance explicite non vide de la réponse finale ; `unknown` lorsqu'elle manque, sans déduction à partir des compteurs |
+| `measurement_reference` | provenance de version : ce que **ce code** attend, à côté de ce que l'instance a **déclaré**. Jamais fusionnés |
 | `validation` | validation du transport distincte de la conformité du contrat ; lacunes de métadonnées dans `metadata_gaps` |
 | `sse.events` | tous les événements de données décodés jusqu'au terminal, avec nom, JSON, texte `raw_data` et `id` lorsqu'il était explicitement présent |
 | `sse.raw_stream` | texte UTF-8 effectivement reçu, commentaires et champs SSE compris |
@@ -120,13 +121,137 @@ Ces valeurs de repli appartiennent uniquement à l'enveloppe MCP : aucun champ n
 
 `validation.transport` vaut `validated` après une réponse JSON valide ou une terminaison SSE `done` ou `[DONE]` sans erreur adaptateur. Sinon il vaut `not_validated`. La conformité du prompt, dont la ponctuation, n'intervient pas dans `isError`. Après transport réussi, `validation.contract` vaut `not_validated` lorsque la version manque ou la provenance est inconnue, sinon `not_assessed` : aucune conformité à un schéma backend autoritatif n'est certifiée par la seule présence de métadonnées. En cas d'erreur de transport, le contrat reste `not_assessed`.
 
-La consolidation utilise [LIVE_API_RESULT.json](LIVE_API_RESULT.json) comme fixture historique anonymisée. Les tests reconstruisent son cadrage SSE, sans prétendre disposer des octets originaux, et ignorent son ancienne appréciation de conformité au prompt pour décider du succès du connecteur. Voir [CONSOLIDATION_REPORT.md](CONSOLIDATION_REPORT.md) pour le statut actuel et les corrections backend restantes.
+La consolidation utilise [LIVE_API_RESULT.json](LIVE_API_RESULT.json) comme fixture historique anonymisée. Les tests reconstruisent son cadrage SSE, sans prétendre disposer des octets originaux, et ignorent son ancienne appréciation de conformité au prompt pour décider du succès du connecteur. Voir [CONSOLIDATION_REPORT.md](CONSOLIDATION_REPORT.md) pour le statut actuel et les corrections backend restantes. La révision épinglée et le rejeu des réponses enregistrées sont décrits plus bas ; le registre public des limites est [KNOWN_LIMITATIONS.md](../KNOWN_LIMITATIONS.md).
 
 Avec `[DONE]` sans événement nommé `done`, `response` reste null : le connecteur ne devine pas quel événement serait une mesure finale. Les données restent accessibles dans `sse.events`, y compris un éventuel objet de mesure avant le marqueur. `isError: false` signifie seulement que le transport s'est achevé correctement ; il ne signifie ni mesure complète ni résultat favorable.
 
 Les nombres de sortie sont sérialisés avec leurs tokens JSON d'origine grâce à `JSON.rawJSON`. Les grands entiers, décimales précises et `-0` ne sont pas arrondis par le serveur. Un autre client peut néanmoins avoir son propre parseur numérique : `raw_response` et `raw_data` permettent alors une lecture exacte. L'ordre original et les doublons éventuels de clés JSON restent observables dans le texte brut ; une vue objet JSON ne peut pas représenter plusieurs occurrences d'une même clé.
 
 Le connecteur conserve distincts `measured`, `not_measured`, `insufficient_coverage`, `complete`, `partial`, `within_bounds`, `not_assessed` et `not_determinable`, ainsi que tout état inconnu. Aucun null ne devient zéro, false, string vide ou champ absent. Les zéros de masquage par tier renvoyés par NeoMundi ne sont pas corrigés ; leur contexte, notamment `measured_signals`, est conservé.
+
+### Révision de référence et version déclarée
+
+`API_CONTRACT_AUDIT.md` s'était arrêté avant implémentation pour une raison précise : *« Révision cible faisant autorité : archive/commit identifié […] Une URL seule ne suffit pas à identifier la révision. »* [reference.mjs](reference.mjs) est cette identification, et rien de plus :
+
+| Valeur épinglée | |
+|---|---|
+| `backend_commit` | `68d6057cf620e430e6488da3cfcec9c471c75ed6` |
+| `measurement_version` | `3.3.0` |
+| `normalizer_version` | `1.0.0` |
+| `openapi_frozen` | `false` |
+
+**Épingler un commit ne valide aucun déploiement.** Aucune spécification OpenAPI figée n'existe côté serveur : ce commit et cette chaîne de version sont les seules choses auxquelles une mesure puisse être rattachée. La preuve derrière ces valeurs est la campagne du SDK Python NeoMundi v0.1.0 du 2026-10-17 contre une instance locale construite depuis ce commit — 11 réponses REST enregistrées, toutes déclarant `measurement_version 3.3.0`. C'est une preuve **locale, sur une instance**, pas sur un déploiement hébergé.
+
+L'enveloppe rapporte les deux faces séparément, et ne les fusionne jamais :
+
+| Champ de `measurement_reference` | Signification |
+|---|---|
+| `expected_measurement_version`, `expected_backend_commit` | propriété de **ce code**. Toujours connus, y compris avant le premier octet reçu |
+| `received_measurement_version`, `received_normalizer_version` | valeurs **verbatim** déclarées par l'instance, lues à `audit.measurement_version` ; null si elle n'en déclare pas |
+| `version_path` | chemin de lecture quand le champ était présent, sinon null. Distingue un champ **absent** d'un champ présent mais inutilisable |
+| `agreement` | `match`, `divergent`, `declared_unusable`, `not_declared` |
+
+**`divergent` est le signal qui compte** : les résultats ne sont pas comparables à une série produite sous la version attendue, et des champs peuvent avoir changé de sens. Ce n'est **pas** une erreur adaptateur, `isError` reste faux, et la charge serveur n'est jamais réécrite pour s'accorder avec l'attente. Un agent doit lire `agreement` avant de comparer deux chiffres entre appels.
+
+`declared_unusable` couvre un champ présent dont la valeur n'est pas une chaîne non vide — un nombre, par exemple. Il n'est **pas** converti : fabriquer `"3.3"` depuis `3.3` inventerait une déclaration que le serveur n'a pas faite. La valeur d'origine reste intacte sous `response.audit`.
+
+`not_declared` est le cas **attendu sur le chemin SSE** : l'événement nommé `done` observé depuis la passerelle ne porte aucun bloc `audit`, donc aucune version n'y est publiée. C'est une absence du contrat amont, pas une défaillance du connecteur.
+
+Ce champ est rapporté **à côté de `validation`, jamais dedans** : la signification publiée des trois états de `validation` est inchangée, et un accord de version n'est pas un verdict de conformité de contrat. De même, l'alias `contract_version` garde son sens propre — copie verbatim d'un `contract_version` **racine** — et n'est pas alimenté par le bloc `audit`. Aucune révision backend inspectée n'émet ce champ racine ; lire l'un ne remplace pas l'autre.
+
+### Vérification contre une instance locale
+
+Une instance NeoMundi jetable construite pour vérification sert du HTTP en clair sur un port loopback. Exiger HTTPS la rendait inatteignable : le chemin REST ne pouvait donc être exercé que contre des charges écrites à la main.
+
+`NEOMUNDI_API_BASE_URL` accepte désormais `http://` **pour `127.0.0.1`, `localhost` et `[::1]` exclusivement**, par égalité exacte du nom d'hôte. `http://127.0.0.1.attacker.example` reste refusé, comme tout hôte non loopback : le texte en clair ne quitte jamais la machine, et HTTPS reste obligatoire partout ailleurs. Aucune autre contrainte n'est relâchée — identifiants intégrés, chemin, query et fragment restent refusés. Quand ce mode est actif, `config.plaintextLoopback` vaut `true` et le serveur l'annonce une fois sur stderr au démarrage, pour qu'une vérification locale ne soit jamais prise pour un appel à un déploiement réel.
+
+**Rejeu des 11 réponses enregistrées** — [tests/captured-rest.test.mjs](tests/captured-rest.test.mjs) :
+
+```powershell
+# Sur un poste qui dispose des enregistrements, à leur emplacement par défaut :
+node --test tests/captured-rest.test.mjs
+
+# Ailleurs :
+$env:NEOMUNDI_CAPTURED_FIXTURES = 'C:\chemin\vers\captured'; node --test tests/captured-rest.test.mjs
+```
+
+Les enregistrements **ne sont pas dans ce dépôt** : ce sont des données d'exécution, pas du code source. Les tests s'ignorent alors avec un motif affiché, et chaque **famille** de contrôle non exécutée est nommée dans la sortie — un poste sans enregistrements est informé de ce qu'il n'a pas pu vérifier, au lieu de ne rien voir.
+
+Cinq familles sont vérifiées sur chaque réponse réelle : passage sans altération (clés, valeurs et ordre identiques), conservation de la graphie numérique (`1.0` ne doit pas revenir en `1`), provenance de version, et deux invariants du contrat **amont** — un agrégat retenu est toujours déclaré, un signal non mesuré porte toujours une cause nommée.
+
+**Un échec ici est une observation sur le contrat amont, à remonter.** Ce n'est jamais une autorisation d'assouplir une assertion ni de modifier une charge serveur pour faire passer un test.
+
+### Aide de lecture pour l'agent
+
+Une réponse REST complète porte 27 champs racine et environ 160 valeurs dans 11 blocs. **Cinq noms de champs y apparaissent deux fois**, dont deux sur des **échelles inversées**. Un agent qui reçoit cela brut peut conclure l'inverse de la mesure en toute bonne foi : `metrics.stability_score` à 0,06 signifie *très stable*, et se lit comme une catastrophe.
+
+`reading_aid` répond à ce problème, et à lui seul. **Trois règles qu'il ne viole jamais :**
+
+1. **Il ne touche pas `response`.** Ni une clé, ni une valeur, ni l'ordre. Il lit, et rapporte ce qu'il a trouvé par chemin.
+2. **Il ne tranche aucune ambiguïté.** Là où deux champs partagent un nom, **les deux** sont rapportés avec leur sens propre. Il n'en choisit jamais un, et ne dérive jamais une troisième valeur « corrigée ».
+3. **Il n'affirme rien qu'il n'ait observé.** Chaque entrée porte sur un champ réellement présent dans *cette* réponse. Un bloc absent ne produit aucune entrée, plutôt qu'une entrée disant null.
+
+| Champ de `reading_aid` | Contenu |
+|---|---|
+| `statement` | la phrase la plus souvent mal comprise : une mesure n'est ni une permission, ni un verdict de conformité, ni une preuve de vérité ou d'absence d'hallucination |
+| `homonyms` | les champs homonymes **présents ici**, chaque lecture avec sa formule et son échelle |
+| `aggregates` | agrégats retenus, agrégats publiés, et **ce qui a déclaré la rétention**. `undeclared_withholding` à `true` est une anomalie à remonter |
+| `signal_derived` | valeurs dérivées d'**un seul signal**, dont la nullité est déclarée autrement — voir ci-dessous |
+| `decision_basis` | la valeur, et ce qu'elle signifie. Une valeur hors des trois documentées est signalée comme telle |
+| `unmeasured_signals` | un signal, sa cause **verbatim**, et si cette cause est ambiguë en amont |
+| `nulls` | les chemins explicitement `null` : une absence **déclarée**, jamais remplacée par zéro, `false` ou un champ absent |
+| `known_limitations` | BL-001, BL-002, BL-003, avec si chacune est observable dans *cette* réponse |
+
+#### Les cinq homonymes
+
+| Nom | Lectures | Nature du piège |
+|---|---|---|
+| `stability_score` | `quality.stability_score` (`G/0.60`, **1 = stable**) et `metrics.stability_score` (`1 − G/0.60`, **0 = stable**) | **échelles inversées**. Lire le mauvais champ inverse la conclusion. Plage effective de la lecture `quality` : `[0.60 ; 1.00]` — 0,67 est près du plancher, pas une valeur moyenne |
+| `Q` | `esi.q_value` (`min(1, N/E)`) et `baseline.esi_q` (variabilité en fenêtre glissante, mémoire du processus serveur) | deux grandeurs sans rapport. La seconde dépend d'un historique local au processus, donc non reproductible après redémarrage |
+| densité | `quality.information_density` (n'entre dans aucun agrégat) et `density.informational_density` (alimente le terme `P` de `g_final`) | l'une est informative, l'autre change l'agrégat |
+| `delta_E` | `baseline.delta_E` | **signe ambigu** : documenté `observed − reference`, implémenté `reference − observed`. Rapporté, non tranché. `baseline.observed_energy` et `baseline.reference_energy` sont publiés dans le même bloc : recalculez depuis eux |
+| `delta_g` | `delta_g` | **nom trompeur** : ce n'est pas une dérive, mais l'écart de `G` avec l'**appel précédent du même compte**, y compris un appel sans rapport. La référence est écrasée à chaque appel et n'est pas publiée. Voir BL-003 |
+
+#### Agrégat retenu contre valeur dérivée d'un signal
+
+Deux mécanismes distincts produisent un `null`, et les confondre produit de faux signalements.
+
+Un **agrégat** retenu l'est parce qu'un signal requis n'a pas été mesuré, et la rétention est déclarée par `measurement.aggregates_publishable`, `measurement.missing_required_signals` ou `governance.decision_basis`.
+
+Une **valeur dérivée d'un signal** est nulle parce que *ce signal* n'a pas été mesuré. `v_score` en est le cas : son contrat le déclare null « whenever the factuality signal was not measured ». Sa nullité est déclarée par `measured_signals`, `unmeasured_signals` ou `measurement.status` — **pas** par `aggregates_publishable`.
+
+Ce n'est pas une distinction théorique : sur les deux réponses enregistrées dont la base de décision est `no_check_attempted`, `v_score` est `null` alors que `aggregates_publishable` vaut `true` et que tous les agrégats sont publiés. Les classer ensemble signalait ces réponses comme des rétentions non déclarées, ce qu'elles ne sont pas.
+
+#### Ce que l'aide ne fait pas
+
+Elle ne calcule aucune valeur, ne corrige aucun signe, ne choisit aucune échelle, et ne porte aucune décision. `isError` continue de n'exprimer que les erreurs adaptateur. Un agent qui ignore `reading_aid` reçoit exactement la même réponse qu'avant.
+
+### Statuts HTTP amont : ce qu'ils disent, ce qu'ils n'autorisent pas
+
+Un statut HTTP est un **résultat de transport**. Ce n'est jamais une décision, un score, ni une absence de risque. Sur une erreur amont, `adapter_error.upstream` classe le statut sans rien inventer sur la mesure.
+
+`adapter_error.code` **ne change pas de sens** : il reste la taxonomie des échecs de cet adaptateur. Le statut amont est un fait distinct, rapporté à côté — la même discipline que `measurement_reference` à côté de `validation`. Le **corps** d'erreur amont n'est jamais exposé : il peut renvoyer en écho le contenu soumis.
+
+| Statut | `class` | `billing` | `retry` |
+|---|---|---|---|
+| 401 | `authentication` | `no_measurement_billed` | refusé à l'identique |
+| 402 | `quota_or_payment` | `no_measurement_billed` | refusé à l'identique |
+| 403 | `authorization` | `no_measurement_billed` | refusé à l'identique |
+| 404 | `route_not_found` | `no_measurement_billed` | refusé à l'identique |
+| 413 | `request_too_large` | `no_measurement_billed` | refusé à l'identique |
+| 422 | `invalid_request` | `no_measurement_billed` | refusé à l'identique |
+| 429 | `rate_limited` | `no_measurement_billed` | **peut réussir après un délai** |
+| 500, 502, 504 | `server_error` | **`billing_unknown`** | **pas sans garantie d'idempotence** |
+| 503 | `service_unavailable` | `no_measurement_billed` | **peut réussir après un délai** |
+| autre 4xx / 5xx | `client_error` / `server_error` | selon la famille | selon la famille |
+
+**D'où vient `billing`.** Établi contre la révision de référence épinglée, pas supposé : l'authentification, la limitation de débit et la validation de requête refusent toutes l'appel **avant** qu'une mesure soit produite ; un 402 signifie que le quota l'a refusé ; un 5xx, en revanche, peut survenir alors que l'appel était **déjà engagé**. Dans ce dernier cas la mesure a pu être produite et facturée, et un remboursement amont n'est pas garanti sur un compte d'essai — voir **BL-001** dans [KNOWN_LIMITATIONS.md](../KNOWN_LIMITATIONS.md). D'où `billing_unknown` : inconnu veut dire inconnu, donc réconciliez plutôt que de réessayer.
+
+**Deux réserves, énoncées plutôt que masquées.** Ce connecteur ne peut pas prouver qu'une réponse vient de l'application plutôt que d'une infrastructure placée devant elle, et une révision déployée peut différer de la révision épinglée. `no_measurement_billed` signifie donc « déclaré et cohérent avec la révision de référence », **jamais « prouvé sur votre déploiement »**.
+
+**Aucun réessai automatique, en aucun cas.** `POST /v1/govern` n'est pas idempotent et ne porte pas d'`Idempotency-Key` : un appel accepté crée une observation, débite un quota ou un portefeuille, écrit un événement d'usage et écrase la référence `delta_g` côté serveur. Le champ `retry` dit ce qu'un **appelant** peut faire ; cet adaptateur, lui, n'en fait rien. Un test vérifie qu'aucun statut, y compris 503, ne produit plus d'une requête amont.
+
+Le `Retry-After` amont n'est pas exposé : choisissez votre propre délai sur un 429.
 
 ## Erreurs, interruptions et limites de conservation
 
@@ -175,6 +300,137 @@ try {
 ```
 
 Le client doit pouvoir transmettre le header Bearer configuré. Aucun branchement spécifique à ChatGPT ou Codex n'a été testé. Un service hébergé à distance ne peut pas joindre cette adresse loopback : ce MVP local n'est pas un connecteur ChatGPT cloud déployé.
+
+## Installation et configuration d'un client MCP
+
+### Ce qu'il faut savoir avant de brancher quoi que ce soit
+
+Ce serveur parle **Streamable HTTP**, pas **stdio**. Beaucoup d'hôtes MCP attendent par défaut un processus stdio ; celui-ci est un serveur HTTP sur loopback. Vérifiez que votre hôte accepte un transport HTTP distant avant d'écrire une configuration.
+
+Trois propriétés qui conditionnent la configuration :
+
+- il écoute **uniquement sur `127.0.0.1`**, et vérifie l'en-tête `Host` et l'origine. Un hôte qui s'y connecte par un autre nom recevra un 403 ;
+- l'authentification est **obligatoire sur chaque requête**, en `Authorization: Bearer <NEOMUNDI_MCP_API_KEY>`. Cette clé est **distincte** de la clé NeoMundi et n'est pas un secret partagé avec l'API ;
+- `GET /mcp` renvoie délibérément **405**. Aucun canal SSE initié par le serveur MCP n'est annoncé ; cela n'empêche pas la consommation du SSE NeoMundi en amont.
+
+### Démarrage
+
+```powershell
+# Les clés viennent de votre mécanisme d'environnement habituel. Ce serveur ne
+# lit aucun fichier .env et n'en crée aucune.
+$env:NEOMUNDI_API_KEY = '<cle NeoMundi>'
+$env:NEOMUNDI_MCP_API_KEY = '<secret local pour le client MCP>'
+node runtime/server.mjs
+# Private NeoMundi MCP listening on http://127.0.0.1:8787/mcp
+```
+
+Vérifiez d'abord sans aucune clé et sans appel distant :
+
+```powershell
+node runtime/demo.mjs
+# PASS: local MCP initialization, tools/list, observation, SSE done, SSE [DONE].
+# NeoMundi API: 3 mocked requests; 0 remote calls; no environment credentials read.
+```
+
+### Exemple de configuration client
+
+Forme générique d'un hôte MCP acceptant un transport HTTP. **Ne mettez pas la clé dans ce fichier** : référencez une variable d'environnement si votre hôte le permet, sinon utilisez son magasin de secrets.
+
+```json
+{
+  "mcpServers": {
+    "neomundi-measurement": {
+      "type": "http",
+      "url": "http://127.0.0.1:8787/mcp",
+      "headers": {
+        "Authorization": "Bearer ${NEOMUNDI_MCP_API_KEY}"
+      }
+    }
+  }
+}
+```
+
+Les noms de champs varient d'un hôte à l'autre (`type`, `transport`, `serverUrl`…) : reportez-vous à la documentation du vôtre. **Ce bloc n'est pas une configuration vérifiée contre un hôte précis** — aucun hôte MCP réel n'a été branché sur ce serveur à ce jour, et cela n'est pas affirmé.
+
+Le serveur doit être démarré séparément : cette configuration ne le lance pas.
+
+Pour un agent écrit en JavaScript, [`examples/agent-client.mjs`](examples/agent-client.mjs) fournit un client réutilisable qui gère l'initialisation, la session et l'annulation.
+
+### Outils MCP disponibles
+
+**Un seul outil**, et c'est délibéré.
+
+| | |
+|---|---|
+| Nom | `measure_execution` |
+| Effet | **une seule** requête API par invocation |
+| `readOnlyHint` | `false` — l'appel crée une observation côté serveur |
+| `destructiveHint` | `false` |
+| `idempotentHint` | **`false`** — ne jamais rejouer automatiquement |
+| `openWorldHint` | `true` |
+
+Deux parcours mutuellement exclusifs, exactement un par appel :
+
+| Argument | Route appelée | Coût |
+|---|---|---|
+| `execution` | `POST /v1/govern` | quota NeoMundi |
+| `generation` | `POST /v1/govern/stream` | quota NeoMundi **et** ressources fournisseur |
+
+`execution.raw_metrics` exige `token_count` et `latency_ms` ; `cost`, `model_name`, `prompt_length`, `response_length` et `semantic_risk` sont facultatifs. Seuls les champs explicitement fournis sont transmis : **aucune valeur par défaut ni estimation locale**. Aucun identifiant ne figure dans le schéma d'arguments.
+
+Ni ressources, ni prompts, ni abonnements, ni batches MCP ne sont implémentés. `tools/list` annonce exactement un outil et n'est pas paginé.
+
+### Un appel réel, reproductible — hors dépôt
+
+Un script `runtime/live-once.mjs` effectue **un** appel réel, à travers un vrai serveur MCP local, avec tous les identifiants pris dans l'environnement du processus et aucun dans le fichier. Il rétablit ce que le projet avait perdu : la seule preuve de transport réel existait sous forme de résultat, mais le script qui l'avait produite n'était plus là, donc l'observation n'était pas rejouable.
+
+**Il n'est pas distribué dans ce dépôt.** `.gitignore` l'exclut, avec `runtime/.live-api-attempted`, comme toute sonde locale : son objet est de contacter un endpoint réel et de consommer du quota, et un dépôt public n'est pas l'endroit pour en proposer un. Il figure dans la copie de travail de l'équipe.
+
+Ses garde-fous sont vérifiés **sans aucun appel réel** par `runtime/tests/live-once.test.mjs`, lui-même exclu du dépôt avec lui : refus sans `--yes` avec un code de sortie distinct, annonce préalable de la destination exacte, du transport, de la facturation et de la charge complète, refus de la génération sans clé fournisseur, annonce du transport en clair sur loopback, aucun artefact écrit sur un refus, et aucune valeur d'identifiant dans la sortie. Le texte envoyé est **synthétique et fixe** : jamais un prompt réel, jamais une donnée client.
+
+Pour effectuer un appel réel sans ce script, démarrez `server.mjs` et invoquez `measure_execution` depuis votre client : l'effet est le même, et la [frontière de consommation](#frontière-de-consommation) s'applique à l'identique.
+
+## Limites du chemin SSE
+
+Le chemin `generation` fonctionne et a été observé en réel une fois. Il porte néanmoins des limites qu'il faut connaître avant de s'appuyer sur un chiffre qui en sort.
+
+**BL-002 — la décision dépend du découpage réseau.** Les fenêtres de mesure intermédiaires se déclenchent tous les N **chunks**, pas tous les N tokens ni caractères. Le même texte livré en 100 fragments produit 5 fenêtres ; livré en 15 fragments, aucune. La série `delta_g`, sa variation totale, son profil et donc les règles qui peuvent transformer un `ALLOW` en `FLAG` varient avec cette fragmentation. **Tant que BL-002 est ouverte, aucune mesure SSE ne doit fonder une affirmation chiffrée, une publication ou une comparaison entre modèles.** Le chemin REST n'est pas concerné.
+
+**Aucune version de mesure n'est publiée.** L'événement nommé `done` observé depuis la passerelle ne porte **aucun bloc `audit`**. `measurement_reference.agreement` y vaut donc toujours `not_declared` — une absence du contrat amont, pas une défaillance du connecteur. Une mesure SSE n'est par conséquent **pas rattachable à une révision**, et n'est pas comparable à une mesure REST.
+
+**La forme du `done` SSE diffère de celle de `/v1/govern`.** Le `done` observé est plat (`decision`, `stability_score`, `r_score`, `regime`, `total_tokens`, `delta_g`, `moderation`, `hallucination`…) là où la réponse REST est structurée en blocs (`governance`, `quality`, `metrics`, `baseline`, `audit`, `esi`…). Ce sont **deux contrats différents**. Aucun schéma amont ne fait autorité pour le SSE, et l'aide de lecture, construite sur les chemins REST, n'y produit donc presque aucune entrée.
+
+**Aucune charge SSE enregistrée n'existe.** Les 11 enregistrements réels portent sur REST. Le SSE reste adossé à la fixture historique [`LIVE_API_RESULT.json`](LIVE_API_RESULT.json) et à des charges écrites à la main : son cadrage est reconstruit, ce n'est pas une capture exacte des octets amont.
+
+**`[DONE]` sans `done` nommé laisse `response` à `null`.** Le connecteur ne devine pas quel événement serait une mesure finale. Les données restent dans `sse.events`.
+
+**La provenance du décompte de tokens est inconnue.** Aucun `token_count_source` n'est émis, et le compteur intermédiaire n'est pas un décompte fournisseur exact.
+
+## Comment l'API, le SDK et ce connecteur s'articulent
+
+Trois composants, trois rôles, **une seule source de vérité**.
+
+| | Rôle | Langage |
+|---|---|---|
+| **API NeoMundi** (`govern-v3`) | produit la mesure. Seule autorité sur les valeurs, les seuils et les décisions | Python |
+| **SDK Python v0.1** | client Python. Modélise le contrat REST, protège la lecture, refuse toute conversion | Python |
+| **Ce connecteur MCP** | expose la mesure à un agent IA, en REST et en SSE | **Node.js** |
+
+**Le SDK n'est pas importé ici, et ne peut pas l'être** : un module Python ne s'importe pas depuis Node.js. Ce qui a été reporté n'est pas son code mais **son savoir** — quels champs sont homonymes, quelles échelles sont inversées, quand un agrégat est retenu, quelle cause accompagne un signal non mesuré.
+
+**Ce que chacun a établi, et seulement cela :**
+
+| | SDK Python | Ce connecteur |
+|---|---|---|
+| REST `/v1/govern` | **validé en réel** : 11 réponses enregistrées, 0 écart de type, 0 champ non modélisé | **rejoue ces 11 mêmes réponses** |
+| SSE `/v1/govern/stream` | **non implémenté** | **observé en réel une fois**, limites ci-dessus |
+| Lecture des résultats | 11 modèles typés, parsing non coercitif | `reading_aid`, à côté de la réponse brute |
+
+Les deux sont donc **complémentaires**, et leur point d'accord est vérifiable : les **mêmes** enregistrements réels alimentent les deux suites de tests. Si le backend change, les deux le signalent — le SDK par un `parse_warning`, ce connecteur par un `agreement: divergent` ou un champ racine inconnu.
+
+**Risque assumé de ce découpage** : deux implémentations des mêmes règles peuvent dériver l'une de l'autre. La parade est ici que [`reference.mjs`](reference.mjs) épingle la même révision que le `API_CONTRACT` du SDK, et que les deux suites rejouent les mêmes enregistrements. Un désaccord devient un test rouge, pas une divergence silencieuse.
+
+**Ce qu'aucun des trois ne fournit** : une spécification OpenAPI figée côté serveur. C'est pourquoi un commit est épinglé, et pourquoi une capture réelle reste le seul moyen de détecter une dérive de contrat.
 
 ## Frontière de consommation
 
