@@ -3,55 +3,315 @@
   "type": "object",
   "description": "Adapter transport envelope, not a new measurement contract. response and SSE event data retain raw NeoMundi values without interpretation. No measurement status is invented, mapped, or corrected.",
   "additionalProperties": false,
-  "required": ["transport", "response", "raw_response", "sse", "adapter_error", "contract_version", "token_count_source", "validation"],
+  "required": [
+    "transport",
+    "response",
+    "raw_response",
+    "sse",
+    "adapter_error",
+    "contract_version",
+    "token_count_source",
+    "measurement_reference",
+    "reading_aid",
+    "validation"
+  ],
   "properties": {
-    "transport": { "enum": ["json", "sse", null] },
+    "transport": {
+      "enum": [
+        "json",
+        "sse",
+        null
+      ]
+    },
     "response": {
-      "type": ["object", "null"],
+      "type": [
+        "object",
+        "null"
+      ],
       "description": "Unmodified API JSON object, or data of a named SSE done event. Null when the API did not explicitly provide that object. No RGC schema is imposed.",
-      "properties": { "contract_version": { "description": "Kept exactly as supplied, including null. No inference from schema_version." } },
+      "properties": {
+        "contract_version": {
+          "description": "Kept exactly as supplied, including null. No inference from schema_version."
+        }
+      },
       "additionalProperties": true
     },
-    "raw_response": { "type": ["string", "null"], "description": "Original JSON text for response, preserving number spelling and precision." },
-    "contract_version": { "description": "Verbatim alias of the API's top-level contract_version: JSON response, or last SSE JSON object that explicitly supplied it. Null when absent. Full event history retains earlier advertised values." },
-    "token_count_source": { "type": "string", "description": "Explicit nonempty token_count_source from the final response, verbatim; otherwise unknown. No inference from provider, counts, cost or chunks. Raw payload remains untouched." },
-    "validation": {
-      "type": "object", "additionalProperties": false,
-      "required": ["transport", "contract", "metadata_gaps"],
+    "raw_response": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Original JSON text for response, preserving number spelling and precision."
+    },
+    "contract_version": {
+      "description": "Verbatim alias of the API's top-level contract_version: JSON response, or last SSE JSON object that explicitly supplied it. Null when absent. Full event history retains earlier advertised values."
+    },
+    "token_count_source": {
+      "type": "string",
+      "description": "Explicit nonempty token_count_source from the final response, verbatim; otherwise unknown. No inference from provider, counts, cost or chunks. Raw payload remains untouched."
+    },
+    "measurement_reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "received_measurement_version",
+        "received_normalizer_version",
+        "expected_measurement_version",
+        "expected_backend_commit",
+        "agreement",
+        "version_path"
+      ],
+      "description": "Version provenance, reported separately from the measurement itself. expected_* describe the backend revision THIS CODE was built against; received_* are verbatim values the answering instance declared at audit.measurement_version, or null when it declared none. The two are never merged. A divergent agreement is not an adapter error and alters nothing in response: it states that results are not comparable with a series produced under the expected version. Distinct from the contract_version alias, which copies a TOP-LEVEL contract_version.",
       "properties": {
-        "transport": { "enum": ["validated", "not_validated"] },
-        "contract": { "enum": ["not_validated", "not_assessed"], "description": "Missing envelope metadata prevents validation. Otherwise not assessed: no authoritative backend schema is selected. This is not a server measurement classification or a prompt compliance check." },
-        "metadata_gaps": { "type": "array", "items": { "enum": ["contract_version_missing", "token_count_source_unknown"] } }
+        "received_measurement_version": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Verbatim nonempty audit.measurement_version from the response; null when absent, empty or not a string. Never converted."
+        },
+        "received_normalizer_version": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Verbatim nonempty audit.normalizer_version. Reported for the reader; it does not take part in agreement."
+        },
+        "expected_measurement_version": {
+          "type": "string",
+          "description": "Measurement version this code's reading of the contract was established against."
+        },
+        "expected_backend_commit": {
+          "type": "string",
+          "description": "Backend commit identifying that revision. No frozen OpenAPI document exists server-side, so this identification is the only attribution available."
+        },
+        "agreement": {
+          "type": "string",
+          "enum": [
+            "match",
+            "divergent",
+            "declared_unusable",
+            "not_declared"
+          ],
+          "description": "match: equal. divergent: a different version was declared. declared_unusable: the field exists but is not a nonempty string. not_declared: absent, which is the expected case on SSE, whose named done event carries no audit block."
+        },
+        "version_path": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Response path the version was read from when the field was present, otherwise null. Distinguishes an absent field from a present but unusable one."
+        }
+      }
+    },
+    "reading_aid": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": true,
+      "description": "Reading aid built BESIDE the response and never inside it: homonym fields with their scales, which aggregates are withheld and what declared it, the cause of each unmeasured signal, the paths that are explicitly null, and the known backend limitations. It resolves no ambiguity and derives no corrected value. Null when no response object was received. It is not a measurement and carries no decision.",
+      "required": [
+        "schema",
+        "homonyms",
+        "aggregates",
+        "unmeasured_signals",
+        "nulls",
+        "known_limitations"
+      ],
+      "properties": {
+        "schema": {
+          "type": "string",
+          "description": "Identifier of the aid's own shape, so a consumer can pin it."
+        },
+        "homonyms": {
+          "type": "array",
+          "description": "Same-name fields actually present in THIS response, each reading reported with its own meaning. Never reduced to one."
+        },
+        "aggregates": {
+          "type": "object",
+          "description": "Which aggregate paths are withheld, which are published, and which fields declared the withholding. undeclared_withholding true is an anomaly to report."
+        },
+        "unmeasured_signals": {
+          "type": "array",
+          "description": "One entry per unmeasured signal, with its verbatim cause and whether that cause is ambiguous upstream."
+        },
+        "nulls": {
+          "type": "object",
+          "description": "Paths explicitly null in the response: a declared absence, never substituted."
+        },
+        "known_limitations": {
+          "type": "array",
+          "description": "BL-001, BL-002, BL-003, each with whether it is observable in this response."
+        }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "transport",
+        "contract",
+        "metadata_gaps"
+      ],
+      "properties": {
+        "transport": {
+          "enum": [
+            "validated",
+            "not_validated"
+          ]
+        },
+        "contract": {
+          "enum": [
+            "not_validated",
+            "not_assessed"
+          ],
+          "description": "Missing envelope metadata prevents validation. Otherwise not assessed: no authoritative backend schema is selected. This is not a server measurement classification or a prompt compliance check."
+        },
+        "metadata_gaps": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "contract_version_missing",
+              "token_count_source_unknown"
+            ]
+          }
+        }
       }
     },
     "sse": {
-      "type": ["object", "null"], "additionalProperties": false,
-      "required": ["events", "termination", "raw_stream"],
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": false,
+      "required": [
+        "events",
+        "termination",
+        "raw_stream"
+      ],
       "properties": {
-        "termination": { "enum": ["done", "[DONE]", null], "description": "Transport terminator only; never a complete/partial measurement classification." },
-        "raw_stream": { "type": "string", "description": "Decoded UTF-8 bytes actually received before this client stopped reading; no synthetic event or heartbeat is added." },
+        "termination": {
+          "enum": [
+            "done",
+            "[DONE]",
+            null
+          ],
+          "description": "Transport terminator only; never a complete/partial measurement classification."
+        },
+        "raw_stream": {
+          "type": "string",
+          "description": "Decoded UTF-8 bytes actually received before this client stopped reading; no synthetic event or heartbeat is added."
+        },
         "events": {
           "type": "array",
           "items": {
-            "type": "object", "additionalProperties": false,
-            "required": ["event", "data", "raw_data"],
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "event",
+              "data",
+              "raw_data"
+            ],
             "properties": {
-              "event": { "type": "string" },
-              "data": { "description": "Verbatim parsed API JSON data, or literal [DONE]. Unknown fields, states and null are retained." },
-              "raw_data": { "type": "string" },
-              "id": { "type": "string" }
+              "event": {
+                "type": "string"
+              },
+              "data": {
+                "description": "Verbatim parsed API JSON data, or literal [DONE]. Unknown fields, states and null are retained."
+              },
+              "raw_data": {
+                "type": "string"
+              },
+              "id": {
+                "type": "string"
+              }
             }
           }
         }
       }
     },
     "adapter_error": {
-      "type": ["object", "null"], "additionalProperties": false,
-      "required": ["code", "message"],
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": false,
+      "required": [
+        "code",
+        "message"
+      ],
       "properties": {
-        "code": { "type": "string" },
-        "message": { "type": "string" },
-        "http_status": { "type": "integer" }
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "http_status": {
+          "type": "integer"
+        },
+        "upstream": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "http_status",
+            "class",
+            "billing",
+            "retry",
+            "meaning",
+            "guidance"
+          ],
+          "description": "Present only for an upstream HTTP error, and only when a status was received. It classifies the STATUS, never the measurement: an HTTP error is a transport outcome, not a decision, a score, or an absence of risk. `code` keeps its own transport taxonomy. The upstream error body is never exposed, because it can echo submitted content.",
+          "properties": {
+            "http_status": {
+              "type": "integer",
+              "description": "Status preserved verbatim."
+            },
+            "class": {
+              "type": "string",
+              "enum": [
+                "authentication",
+                "authorization",
+                "quota_or_payment",
+                "route_not_found",
+                "request_too_large",
+                "invalid_request",
+                "rate_limited",
+                "server_error",
+                "service_unavailable",
+                "client_error",
+                "unexpected_status"
+              ],
+              "description": "Actionable family of the status."
+            },
+            "billing": {
+              "type": "string",
+              "enum": [
+                "no_measurement_billed",
+                "billing_unknown"
+              ],
+              "description": "no_measurement_billed means declared and consistent with the pinned reference revision, never proven on your deployment: this connector cannot prove the responder was the application rather than infrastructure in front of it."
+            },
+            "retry": {
+              "type": "string",
+              "enum": [
+                "identical_request_will_be_refused_identically",
+                "may_succeed_after_a_delay",
+                "not_without_idempotency_guarantee"
+              ],
+              "description": "What a CALLER may do. This adapter never retries a measurement call itself: POST /v1/govern is not idempotent and carries no Idempotency-Key."
+            },
+            "meaning": {
+              "type": "string",
+              "description": "What the status says about this exchange."
+            },
+            "guidance": {
+              "type": "string",
+              "description": "What to do next, including the known backend limitation that bears on this status when one does."
+            }
+          }
+        }
       }
     }
   }

@@ -1,4 +1,7 @@
 import { inputSchema, isObject, matches, owns, parseApiJson } from './contract.mjs';
+import { measurementReference } from './reference.mjs';
+import { readingAid } from './guidance.mjs';
+import { classifyUpstreamStatus } from './upstream.mjs';
 
 const messages = Object.freeze({
   INVALID_ARGUMENTS: 'Arguments do not match the declared tool schema. No API call was made.',
@@ -30,12 +33,28 @@ export class AdapterFailure extends Error {
 export function emptyOutput() {
   return { transport: null, response: null, raw_response: null, sse: null, adapter_error: null,
     contract_version: null, token_count_source: 'unknown',
+    // The expected revision is a property of this code, so it is always
+    // knowable, including before any byte has been received.
+    measurement_reference: measurementReference(null),
+    // No response, nothing to read. An aid describing an absent response
+    // would be a statement about nothing.
+    reading_aid: null,
     validation: { transport: 'not_validated', contract: 'not_assessed', metadata_gaps: [] } };
 }
 export function failedOutput(code, output = emptyOutput(), httpStatus) {
   output.adapter_error = { code, message: messages[code] };
   output.validation.transport = 'not_validated';
   if (httpStatus !== undefined) output.adapter_error.http_status = httpStatus;
+  // A response parsed before a later failure may already declare a divergent
+  // version. That is worth reporting even on a failed call; after a credential
+  // disclosure the output was reset first, so this reads the empty response.
+  output.measurement_reference = measurementReference(output.response);
+  // The upstream status carries its own distinct meaning: what it says about
+  // billing, and what a caller may do next. `code` keeps its transport
+  // taxonomy unchanged, and the upstream error BODY is still never exposed.
+  const upstream = classifyUpstreamStatus(httpStatus);
+  if (upstream) output.adapter_error.upstream = upstream;
+  output.reading_aid = readingAid(output.response, output.transport);
   return output;
 }
 
@@ -86,6 +105,12 @@ function completedOutput(output) {
   ];
   // A version label alone cannot validate an opaque, unversioned SSE schema.
   output.validation.contract = output.validation.metadata_gaps.length ? 'not_validated' : 'not_assessed';
+  // Reported beside, never inside, `validation`: the published meaning of those
+  // three states is unchanged by this addition, and a version agreement is not
+  // a contract conformance verdict.
+  output.measurement_reference = measurementReference(output.response);
+  // Built beside the response, from the response, and changing nothing in it.
+  output.reading_aid = readingAid(output.response, output.transport);
   return output;
 }
 
