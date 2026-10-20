@@ -36,9 +36,9 @@ re-measured on 2026-10-20, with `npm test` from the repository root:
 
 | Scope | Result |
 |---|---|
-| **This repository, recordings absent** | **142 passed, 9 skipped** (151 tests) |
-| **This repository, recordings present beside it** | **211 passed, 0 skipped** |
-| Full working copy, including a local probe excluded from here | 211 + the probe's guard suite |
+| **This repository, recordings absent** | **156 passed, 17 skipped** (173 tests) |
+| **This repository, recordings present beside it** | **233 passed, 0 skipped** |
+| Full working copy, including a local probe excluded from here | 233 + the probe's guard suite |
 
 The skipped tests are the replay of recorded API responses. Those recordings
 are **not in this repository** — they are execution data, not source — so the
@@ -92,7 +92,10 @@ Session lifecycle and protocol negotiation; authentication on every request;
 `Host` and `Origin` validation; content negotiation; body and response size
 limits; concurrency and session limits; cancellation propagation; SSE framing
 for both `done` and `[DONE]` terminations; the credential-disclosure guard; the
-upstream status classification; and the reading aid.
+upstream status classification; the reading aid; and the faithful projection —
+its round trip against every source path, its handling of absence and of a
+published null, and the pair of recordings that both decide ALLOW while only
+one was ever evaluated.
 
 The guards of the live-call probe are covered too, but in the working copy
 only: both the probe and its tests are excluded from here (ML-010).
@@ -331,6 +334,35 @@ silently replaced by a discovered one, and that an existing-but-empty candidate
 does not mask a populated one. Verified: the repository suite runs **211
 passed, 0 skipped** where it previously reported 118 passed and 9 skipped.
 
+### ML-013 — The faithful projection is REST-shaped, and a subset in two places
+
+`By design`, added 2026-10-20 with the `presentation` field.
+
+The projection copies named fields from declared paths so a reader can take in
+a result without walking the document. Three limits are stated here rather than
+discovered later:
+
+1. **It is shaped for the REST contract.** On the streaming path the named
+   `done` event publishes no `audit` block and few of these paths, so most
+   fields come out `null`. That is an absence in the upstream contract
+   (ML-003), not a defect of the projection — and `measurement_status` being
+   `null` there must not be read as "not measured".
+2. **`evaluators` is a named subset** — `evaluator`, `model_used`, `status`,
+   `reason`. The full record stays at `response.evaluators[<signal>]`, and
+   `field_sources.evaluators` says so in the projection itself.
+3. **`published_values` lists only the paths the reading aid watches** — the
+   aggregate paths and `v_score`. `rag_grounding`, `density`, `esi` and
+   `baseline` are not projected field by field; they remain in `response`.
+
+**What it does NOT do, and is tested not to do:** compute, rescale, round,
+rank, truncate, label an unmodelled field, substitute a default for an absence,
+or render `not_attempted` as a performed measurement. Its only derived field,
+`decision_is_measured`, restates an equality on `decision_basis`.
+
+**The projection is not a reason to stop reading `response`.** It is a reading
+convenience with a declared contract, and the raw measurement sits beside it,
+unchanged.
+
 ### ML-012 — The container image does not listen on loopback
 
 `By design`, with a consequence. Inside a container a listener on `127.0.0.1`
@@ -483,6 +515,7 @@ renumbered; a resolved entry keeps its identifier and changes status.
 **ML-010** | One-shot live-call probe not distributed | `By design` | connector `0.1.0` | repository scope |
 **ML-011** | Recorded-response replay skipped where the recordings existed | `Fixed — verified` 2026-10-20 | connector `0.1.0` | test evidence |
 **ML-012** | The container image does not listen on loopback | `By design` | connector `0.1.0` | packaging |
+**ML-013** | The faithful projection is REST-shaped, and a subset in two places | `By design` | connector `0.1.0` | presentation |
 
 **Internal tracking.** Each `BL-*` entry maps to an item in an internal
 backend correction plan holding reproduction steps, source locations,

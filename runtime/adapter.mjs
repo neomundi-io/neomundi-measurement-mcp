@@ -1,6 +1,7 @@
 import { inputSchema, isObject, matches, owns, parseApiJson } from './contract.mjs';
 import { measurementReference } from './reference.mjs';
-import { readingAid } from './guidance.mjs';
+import { AID_REFERENCE, readingAid } from './guidance.mjs';
+import { presentation } from './presentation.mjs';
 import { classifyUpstreamStatus } from './upstream.mjs';
 
 const messages = Object.freeze({
@@ -37,8 +38,9 @@ export function emptyOutput() {
     // knowable, including before any byte has been received.
     measurement_reference: measurementReference(null),
     // No response, nothing to read. An aid describing an absent response
-    // would be a statement about nothing.
+    // would be a statement about nothing, and so would a projection of it.
     reading_aid: null,
+    presentation: null,
     validation: { transport: 'not_validated', contract: 'not_assessed', metadata_gaps: [] } };
 }
 export function failedOutput(code, output = emptyOutput(), httpStatus) {
@@ -55,6 +57,12 @@ export function failedOutput(code, output = emptyOutput(), httpStatus) {
   const upstream = classifyUpstreamStatus(httpStatus);
   if (upstream) output.adapter_error.upstream = upstream;
   output.reading_aid = readingAid(output.response, output.transport);
+  // Built from the response that survived, beside it, changing nothing in it.
+  // On a failed call the response is usually null, and the projection is null
+  // with it rather than a shape full of nulls pretending to be a measurement.
+  output.presentation = presentation(output.response, {
+    aid: output.reading_aid, reference: output.measurement_reference, aidReference: AID_REFERENCE,
+  });
   return output;
 }
 
@@ -111,6 +119,12 @@ function completedOutput(output) {
   output.measurement_reference = measurementReference(output.response);
   // Built beside the response, from the response, and changing nothing in it.
   output.reading_aid = readingAid(output.response, output.transport);
+  // Same discipline, one layer further: a flat projection for a reader, copied
+  // field by field from declared paths. It never alters `response`, and it is
+  // never a substitute for reading it.
+  output.presentation = presentation(output.response, {
+    aid: output.reading_aid, reference: output.measurement_reference, aidReference: AID_REFERENCE,
+  });
   return output;
 }
 
