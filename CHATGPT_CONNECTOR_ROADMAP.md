@@ -72,6 +72,113 @@ built here must be reviewed as a measurement surface, not as copy.
 
 ---
 
+## 2.1 Framing of the faithful presentation layer
+
+**Scope of this section: framing only. Nothing below is implemented, and
+nothing below should be implemented without a separate instruction.**
+
+### The rule it exists to serve
+
+Make a NeoMundi result readable by a person or an agent **without changing what
+it means**. Every line below follows from that single sentence.
+
+### Ten constraints, and what each forbids concretely
+
+| # | Constraint | What it forbids |
+|---|---|---|
+1 | The raw measurement stays available | a presentation that replaces `response`; it sits beside it, like `reading_aid` |
+2 | No value is recomputed without an explicit contract | deriving a percentage, an average, a rounding, a rescaling |
+3 | No new judgement is invented | any adjective, severity, colour or score the server did not publish |
+4 | `FLAG` is never rendered as "dangerous answer" | translating a decision into a risk statement about the content |
+5 | An unperformed measurement is never shown as a successful one | rendering `not_attempted` and `complete` the same way |
+6 | Coverage limits stay visible | dropping `coverage`, `checks_attempted` or `missing_required_signals` |
+7 | Versions and provenance stay reachable | omitting `measurement_reference`, its `agreement` or its `divergence_scope` |
+8 | Unknown fields stay unknown | mapping an unmodelled root field to a label, or silently dropping it |
+9 | Version disagreements are not masked | showing a `divergent` result as comparable with an earlier one |
+10 | The presentation gains no decision authority | wording that reads as advice, approval or clearance |
+
+### Why this is not cosmetic — two real recordings
+
+Both of these are **recorded responses from a real instance**, replayed by the
+existing suite. Both decide **`ALLOW`**. They are not the same statement:
+
+| | `tier02_01_complete_nominale` | `tier02_04_aucun_controle` |
+|---|---|---|
+`governance.decision` | **`ALLOW`** | **`ALLOW`** |
+`governance.decision_basis` | `measured_thresholds` | **`no_check_attempted`** |
+`measurement.status` | `complete` | **`not_attempted`** |
+`checks_emitted` | 3 | **0** |
+`measurement.confidence_basis` | `measurement_coverage` | **`no_server_check`** |
+`v_score` | 1 | **null** |
+
+The second answer was **not evaluated**. A presentation that renders both as
+"ALLOW" has destroyed the distinction the measurement exists to make — and it
+would do so while displaying only values the server really published. **That is
+the failure mode to design against**, and the pair above is the first fidelity
+test.
+
+### Proposed shape
+
+One object, beside `response`, never inside it. A flat set of **named,
+nullable** fields — no prose, no template sentence, no severity scale:
+
+| Field | Source, verbatim | `null` when |
+|---|---|---|
+`decision` | `governance.decision` | absent |
+`decision_basis` | `governance.decision_basis` | absent |
+`decision_is_measured` | **derived, boolean**: `decision_basis == "measured_thresholds"` | `decision_basis` absent |
+`measurement_status` | `measurement.status` | absent |
+`checks_attempted` / `checks_succeeded` | `measurement.*` | absent |
+`coverage` | `measurement.coverage` | absent |
+`aggregates_publishable` | `measurement.aggregates_publishable` | absent |
+`missing_required_signals` | `measurement.missing_required_signals` | absent |
+`unmeasured` | one entry per unmeasured signal, **each with its named cause** | nothing unmeasured |
+`version_agreement` | `measurement_reference.agreement` | never — always present |
+`version_scope` | `measurement_reference.divergence_scope` | no established scope |
+`unmodelled_root_fields` | the root keys the connector does not model, **listed by name** | none |
+`caveats` | the `BL-*` entries `reading_aid` reports as observable **in this response** | none observable |
+
+`decision_is_measured` is the **only** derived field proposed, and it is a
+restatement of an equality, not a new judgement. Every other field is a copy.
+
+**Nothing is rendered as a sentence.** A caller that wants prose writes its own
+from these fields and owns what it wrote.
+
+### Fidelity tests this layer would need
+
+1. **Round trip** — every presented value is `deepEqual` to its source path in
+   `response`. No rounding, no coercion, no reordering of a list.
+2. **The ALLOW pair** — the two recordings above produce presentations that
+   differ on `decision_basis`, `measurement_status`, `checks_attempted` and
+   `decision_is_measured`. A change that makes them equal fails.
+3. **Absence is absence** — for each field, a response lacking the source path
+   yields `null`, never a default, never an empty string.
+4. **No invention** — every string the layer can emit is drawn from a frozen
+   vocabulary, asserted test-side, and that vocabulary contains no severity,
+   no risk word and no recommendation.
+5. **Unmodelled fields survive** — an unknown root key appears by name in
+   `unmodelled_root_fields` and is neither labelled nor dropped.
+6. **Divergence is carried** — a `divergent` agreement is present in the
+   presentation, with its scope when one exists, and nothing marks the result
+   as comparable.
+7. **All eleven recordings** — the layer runs over each without throwing and
+   without emitting a field absent from its own contract.
+
+Tests 1, 2 and 7 run on the existing recordings, so they cost no network, no
+quota and no decision.
+
+### Open questions, to settle before any code
+
+- Where does it live: beside `reading_aid` in the envelope, or a second MCP
+  tool? A second tool is discoverable but doubles the surface.
+- Does a `null` field appear in the output, or is it omitted? The rest of this
+  connector always publishes the key with an explicit `null`, and consistency
+  argues for the same here.
+- Does it ever shorten a long list (`reasons`, citations), and if so how is the
+  truncation declared? Silent truncation would breach constraint 1.
+
+---
+
 ## 3. Adaptations the platform would require
 
 These are gaps in **our** work, stated independently of any platform rule.

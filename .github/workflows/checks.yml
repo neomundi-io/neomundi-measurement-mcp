@@ -1,0 +1,102 @@
+# The two checks this repository already runs locally, run on every change.
+#
+# Until now there was no CI at all — zero workflow, zero run — so a pull
+# request carried no required green check and a merge rested entirely on
+# whoever happened to run the suite on their machine.
+#
+# Deliberately small. No install step, no cache, no matrix, no publication, no
+# deployment, and no secret: the connector has NO runtime dependencies and no
+# lockfile, so `npm ci` would fail on a missing lockfile and `npm install`
+# would resolve nothing. Checking out the source and running Node is the whole
+# of what is needed, and it is also the most reproducible thing available.
+#
+# NO REAL CALL IS MADE. The suite drives the adapter with injected mocks; it
+# reads no environment credential and contacts no endpoint. The one-shot
+# live-call probe is excluded from this repository (ML-010), so no workflow can
+# reach it.
+name: checks
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+# Only the contents need reading. Nothing here writes to the repository.
+permissions:
+  contents: read
+
+concurrency:
+  group: checks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      # v7 rather than v4: the runner forces v4 onto Node 24 and warns about it
+      # on every run. A workflow that warns on every run trains people to stop
+      # reading its output.
+      - name: Check out the repository
+        uses: actions/checkout@v7
+
+      # Node 24 is required, not preferred: the adapter uses JSON.rawJSON and
+      # the JSON.parse source context to keep API numbers byte-exact. On an
+      # older runtime the connector does not degrade — it fails outright.
+      # `engines` in package.json says >=24; this pins the major the project
+      # is tested on.
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+
+      - name: Report the runtime actually used
+        run: node --version
+
+      # No dependencies to install, and no lockfile to install them from.
+      # Asserted rather than assumed: if a dependency or a lockfile ever
+      # appears, this step fails and the workflow must be revisited on
+      # purpose instead of silently running an un-installed tree.
+      - name: Assert the project still has no dependencies to install
+        run: |
+          for manifest in package.json runtime/package.json; do
+            node -e '
+              const m = process.argv[1];
+              const pkg = JSON.parse(require("fs").readFileSync(m, "utf8"));
+              const counts = ["dependencies", "devDependencies", "peerDependencies", "optionalDependencies"]
+                .map((field) => Object.keys(pkg[field] ?? {}).length)
+                .reduce((a, b) => a + b, 0);
+              if (counts !== 0) {
+                console.error(`${m} declares ${counts} dependencies. This workflow installs none; add an install step deliberately.`);
+                process.exit(1);
+              }
+              console.log(`${m}: no dependencies declared`);
+            ' "$manifest"
+          done
+          for lock in package-lock.json npm-shrinkwrap.json yarn.lock pnpm-lock.yaml; do
+            if [ -f "$lock" ]; then
+              echo "$lock appeared. Use npm ci and revisit this workflow." >&2
+              exit 1
+            fi
+          done
+          echo "no lockfile present: nothing to install reproducibly, because there is nothing to install"
+
+      # `npm test` at the repository root runs BOTH suites — the connector's
+      # and the repository-level schema audit. Running it inside runtime/
+      # reports a lower count; see KNOWN_LIMITATIONS.md section 1.
+      #
+      # Expected here: 151 tests, 142 passed, 9 skipped. The 9 are the replay
+      # of responses recorded from a real instance. Those recordings are
+      # execution data kept OUTSIDE this repository on purpose, so they are
+      # absent on a runner and the replay skips with a stated reason. That is
+      # the documented state, not a weakening — and publishing them to turn
+      # the number green is exactly what must not be done.
+      - name: Run the full test suite
+        run: npm test
+
+      # What may leave the repository. Fails on a forbidden path, a known
+      # secret pattern, a local machine trace, a changed archived schema hash,
+      # or a link to an excluded file. It sets a non-zero exit code on FAIL.
+      - name: Run the publication gate
+        run: node check-publication.mjs

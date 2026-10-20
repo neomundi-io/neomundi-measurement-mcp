@@ -2,10 +2,27 @@
 
 **Status: `LIVE_TRANSPORT_VALIDATED_CONTRACT_PENDING` — experimental.**
 
-A private MCP server exposing one tool, **`measure_execution`**, over Streamable
-HTTP. It transmits a request to the NeoMundi measurement API and relays the
-server's values verbatim. It recomputes nothing, corrects nothing, and decides
-nothing.
+An MCP server exposing one tool, **`measure_execution`**, over Streamable HTTP.
+It transmits a request to the NeoMundi measurement API and relays the server's
+values verbatim. It recomputes nothing, corrects nothing, and decides nothing.
+
+### "Private" here means the deployment posture, not this repository
+
+**This repository is public.** The word *private* appears in the package name,
+in `serverInfo.name` and in several document titles, and it has never meant the
+repository. Five different things are easy to conflate, so they are separated
+once, here:
+
+| | |
+|---|---|
+| **Repository visibility** | **public.** Anyone can read this source |
+| **Software distribution** | **none.** No npm publish, no container registry, no release. The image in `Dockerfile` is built and run locally |
+| **Authentication** | **required.** Every MCP request needs `Authorization: Bearer`, compared in constant time, behind a `Host` allow-list and an `Origin` check |
+| **Data confidentiality** | **nothing is stored or logged here.** No `.env` is read, no header, argument, body or measurement is logged, and a payload containing a configured credential is withheld whole rather than rewritten |
+| **Internal resources** | **not published.** The one-shot live-call probe (ML-010), the recorded API responses, and the internal reports are excluded from this repository, and `check-publication.mjs` fails the build if one of them appears |
+
+What *private* does describe: the server listens on loopback by default and is
+not meant to face the public internet. See ML-001 and ML-012.
 
 > ### Read this before relying on any figure
 >

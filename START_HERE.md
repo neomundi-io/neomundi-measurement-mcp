@@ -10,23 +10,31 @@ revérifier par commande avant toute modification.
 
 | | |
 |---|---|
-**Branche de travail** | `chantier/mcp-consolidation-20261020`. **Son dernier commit n'est pas recopié ici** : un document ne peut pas porter l'empreinte du commit qui le contient, et chaque rectification creuserait l'écart qu'elle prétend combler. La commande du §7 le lit |
-**Base** | `main` = `ad173e0` |
-**PR** | **[#2](https://github.com/neomundi-io/neomundi-measurement-mcp/pull/2) — OUVERTE, NON FUSIONNÉE.** Aucun conflit, fusion automatique possible |
-**CI** | **aucune.** Zéro workflow, zéro run, zéro check-run, zéro statut |
-**Tests** | **211 passés, 0 sauté** (`npm test` à la racine, enregistrements présents). Sans eux : 151 tests, 142 passés, 9 sautés |
+**`origin/main`** | **`50e1c96`** — *« Merge pull request #2 … »*, fusionnée le 2026-10-20T11:29:48Z. Les cinq commits de la PR #2 sont **ancêtres de `main`**, vérifié un par un |
+**Branche de travail** | `ci/mcp-tests-publication-20261020`. **Son dernier commit n'est pas recopié ici** : un document ne peut pas porter l'empreinte du commit qui le contient, et chaque rectification creuserait l'écart qu'elle prétend combler. La commande du §7 le lit |
+**PR** | **#2 — FUSIONNÉE.** La PR de CI est ouverte depuis cette branche ; son numéro et son résultat sont en §6 |
+**CI** | **ajoutée par cette branche** — `.github/workflows/checks.yml`. Avant elle : zéro workflow, zéro run, zéro check-run, zéro statut |
+**Tests** | **211 passés, 0 échec, 0 sauté** sur le code de `main` (`npm test` à la racine, enregistrements présents). **Sans eux — ce que voit la CI : 151 tests, 142 passés, 9 sautés** |
 **Statut du connecteur** | `LIVE_TRANSPORT_VALIDATED_CONTRACT_PENDING`. **`LIVE_API_VALIDATED` non accordé** |
 **Épinglage** | backend `68d6057`, mesure `3.3.0`. Le déploiement déclare **`3.3.1`** — écart borné (§6.1 de `KNOWN_LIMITATIONS.md`), épinglage **volontairement conservé** |
 **Conteneur** | image locale. **Publiée sur aucun registre** |
 **ML-009** | **clos le 2026-10-20** — §3 |
 
-> ⚠ **Ce dépôt est public.** Vérifié le 2026-10-20 par l'API GitHub anonyme :
-> `private: false`, `visibility: public`. Sa documentation le décrit pourtant
-> comme privé — le titre de `MVP_PRIVATE.md`, `serverInfo.name` et le nom de
-> paquet portent tous « private ». **Rien n'a fuité** : `check-publication.mjs`
-> passe, et les 53 fichiers publiés ne contiennent ni sonde d'appel réel, ni
-> enregistrement de réponse, ni rapport interne, ni `.env`. Mais l'écart entre
-> ce que les documents affirment et ce que le dépôt est **demande une décision**.
+> **Ce dépôt est public.** Vérifié le 2026-10-20 par l'API GitHub anonyme :
+> `private: false`, `visibility: public`.
+>
+> **Rectification du relevé précédent.** Il affirmait que « la documentation
+> décrit le dépôt comme privé ». **C'était inexact** : après relecture ligne à
+> ligne, **aucun document n'affirme que ce dépôt est privé**, et ML-010 le
+> traite déjà explicitement comme public. Ce qui existe est une **ambiguïté du
+> mot « privé »**, qui désigne la posture de déploiement — écoute loopback, non
+> exposée — et les noms de paquet et de serveur, jamais la visibilité du dépôt.
+> Les cinq axes sont désormais séparés une fois pour toutes dans le
+> [README racine](README.md).
+>
+> **Rien n'a fuité** : `check-publication.mjs` passe, et les fichiers publiés ne
+> contiennent ni sonde d'appel réel, ni enregistrement de réponse, ni rapport
+> interne, ni `.env` — revérifié sur l'arbre de `origin/main`.
 
 ---
 
@@ -99,7 +107,7 @@ Hygiène des secrets | **vérifiée** — aucun `.env` lu, rien journalisé, cha
 Image conteneur | **vérifiée** — démarrage, refus, 401, handshake, erreur amont, arrêt propre |
 Chemin SSE | **preuve strictement plus faible** que REST — ML-002, ML-003 |
 Conformité de contrat sur un déploiement | **non établie** |
-CI | **inexistante** |
+CI | **en place** — suite complète et garde-fou de publication, sur `pull_request` et `push` vers `main`. Elle exécute **151 tests, 142 passés, 9 sautés** : le rejeu des enregistrements ne tourne pas sur un runner (B-9) |
 
 ---
 
@@ -121,8 +129,22 @@ survivre à la réduction, systématiquement : la décision **et** son
 cause, et le fait qu'une mesure n'est **ni** une permission, **ni** un verdict
 de conformité, **ni** une preuve de vérité ou d'absence d'hallucination.
 
-Ensuite seulement, et chacune demandant une décision : la CI (§6), un appel réel
-autorisé, puis l'hébergement.
+**Son cadrage est écrit et prêt** : `CHATGPT_CONNECTOR_ROADMAP.md` §2.1 — les
+dix contraintes et ce que chacune interdit, la forme proposée champ par champ
+avec sa source verbatim, les sept tests de fidélité, et les trois questions à
+trancher avant la première ligne de code. **Rien n'est implémenté**, et rien ne
+doit l'être sans une instruction distincte.
+
+Le cas qui justifie tout l'exercice y est posé sur deux enregistrements réels :
+`tier02_01_complete_nominale` et `tier02_04_aucun_controle` décident **tous deux
+`ALLOW`** — le premier sous `measured_thresholds` avec 3 contrôles, le second
+sous `no_check_attempted` avec **zéro contrôle** et `measurement.status`
+`not_attempted`. Une présentation qui les rend identiques a détruit la
+distinction que la mesure existe pour produire, **en n'affichant que des valeurs
+réellement publiées par le serveur**.
+
+Ensuite seulement, et chacune demandant une décision : un appel réel autorisé,
+puis l'hébergement.
 
 ---
 
@@ -130,14 +152,15 @@ autorisé, puis l'hébergement.
 
 | # | Blocage | Qui le lève |
 |---|---|---|
-**B-1** | **Aucune CI.** Un workflow exécutant `npm test` est la correction évidente ; elle n'est pas dans la PR #2 | une session |
-**B-2** | **PR #2 non fusionnée.** Aucun contrôle requis vert n'existe pour l'adosser : la seule vérification est la suite locale | **Sébastien** |
+**B-1** | ~~Aucune CI~~ — **levé le 2026-10-20** : `.github/workflows/checks.yml` exécute la suite complète et le garde-fou de publication sur `pull_request` et `push` vers `main` | — |
+**B-2** | ~~PR #2 non fusionnée~~ — **fusionnée** le 2026-10-20T11:29:48Z en `50e1c96` | — |
 **B-3** | **Conformité de contrat non établie**, `LIVE_API_VALIDATED` non accordé. Demande un appel réel — donc **facturé** | **autorisation de Sébastien** |
 **B-4** | **Palier et quota de la clé inconnus.** `documents[]` exige **TIER_02+** | registre des clés |
 **B-5** | **Épinglage `3.3.0` face à `3.3.1`** — borné et documenté, décision ouverte | **Sébastien** |
 **B-6** | **Base Docker épinglée par tag, pas par digest.** La ligne est préparée, non renseignée | une session |
-**B-7** | **Dépôt public, documentation « privé »** — voir l'encadré du §1 | **Sébastien** |
-**B-8** | **Pas de couche de réduction** — §5 | une session, sans coût |
+**B-7** | ~~Dépôt public, documentation « privé »~~ — **levé** : aucun document n'affirmait le contraire ; l'ambiguïté du mot est tranchée par le tableau des cinq axes du [README racine](README.md), et le relevé qui l'affirmait est rectifié au §1 | — |
+**B-8** | **Pas de couche de présentation fidèle.** Cadrage écrit (`CHATGPT_CONNECTOR_ROADMAP.md` §2.1), **implémentation non commencée et à ne pas commencer sans instruction** | une session, sans coût |
+**B-9** | **Les 9 tests de rejeu sont sautés en CI**, les enregistrements étant hors dépôt par conception. La partie de la suite capable de voir une dérive de contrat ne tourne donc **pas** sur un runner. Publier les enregistrements pour verdir le chiffre est exactement ce qu'il ne faut pas faire | **Sébastien**, si une preuve en CI est voulue |
 
 ---
 
