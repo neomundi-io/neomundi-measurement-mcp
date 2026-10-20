@@ -327,7 +327,7 @@ Le client doit pouvoir transmettre le header Bearer configuré. Aucun branchemen
 
 ## Exécution en conteneur
 
-Une image locale existe depuis le 2026-10-20 : [`Dockerfile`](../Dockerfile) et [`compose.yaml`](../compose.yaml) à la racine du dépôt. **Elle n'est publiée sur aucun registre, et ne doit pas l'être sans décision explicite** : ce connecteur est privé, et une image est un canal de distribution.
+Une image locale existe depuis le 2026-10-20 : [`Dockerfile`](../Dockerfile) et [`compose.yaml`](../compose.yaml) à la racine du dépôt. **Elle n'est publiée sur aucun registre, et ne doit pas l'être sans décision explicite.** Le dépôt est public, mais le logiciel n'est **pas distribué** : aucun paquet npm, aucun registre d'images, aucune release. Une image publiée serait un canal de distribution, et c'est une décision distincte de la visibilité du dépôt — voir le tableau des cinq axes dans le [README racine](../README.md).
 
 L'image est reproductible par construction : le connecteur n'a **aucune dépendance d'exécution**, donc rien à installer, aucun verrou à résoudre et aucun accès réseau au moment du build. Elle vaut la base épinglée plus les sources du dépôt. La suite hors ligne tourne **pendant** le build : un build qui ne passe pas ses propres tests ne produit pas d'image.
 
