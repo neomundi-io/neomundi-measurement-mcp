@@ -10,10 +10,10 @@ revérifier par commande avant toute modification.
 
 | | |
 |---|---|
-**`origin/main`** | **`8a12bf3`** — *« Merge pull request #3 … »*. Avant lui, `50e1c96` portait la PR #2. Les commits des deux PR sont **ancêtres de `main`**, vérifié un par un |
+**`origin/main`** | **`920fdd6`** — *« Merge pull request #5 … »*. Avant lui : `28194cb` (PR #4), `8a12bf3` (PR #3), `50e1c96` (PR #2). Les commits des quatre PR sont **ancêtres de `main`** |
 **Branche de travail** | aucune en cours. Ce document est amené par une PR documentaire ; **son commit n'est pas recopié ici** — un document ne peut pas porter l'empreinte du commit qui le contient, et chaque rectification creuserait l'écart qu'elle prétend combler. La commande du §7 le lit |
-**PR** | **#2 FUSIONNÉE** (2026-10-20T11:29:48Z, `50e1c96`) · **#3 FUSIONNÉE** — CI et clarification de visibilité, `8a12bf3` |
-**CI** | **en place et verte.** `.github/workflows/checks.yml` — suite complète + garde-fou de publication, sur `pull_request` et `push` vers `main`. Vérifiée **sur la PR #3 et sur `main`**. Avant la PR #3 : zéro workflow, zéro run, zéro check-run, zéro statut |
+**PR** | **#2** `50e1c96` · **#3** `8a12bf3` CI et visibilité · **#4** `28194cb` reprise · **#5** `920fdd6` couche de présentation — **les cinq fusionnées, aucune ouverte** |
+**CI** | **en place et verte.** `.github/workflows/checks.yml` — suite complète + garde-fou de publication, sur `pull_request` et `push` vers `main`. **Trois runs verts sur `main`** : `8a12bf3`, `28194cb`, `920fdd6`. Avant la PR #3 : zéro workflow, zéro run |
 **Tests** | **233 passés, 0 échec, 0 sauté** (`npm test` à la racine, enregistrements présents). **Sans eux — ce que voit la CI : 173 tests, 156 passés, 0 échec, 17 sautés** |
 **Statut du connecteur** | `LIVE_TRANSPORT_VALIDATED_CONTRACT_PENDING`. **`LIVE_API_VALIDATED` non accordé** |
 **Épinglage** | backend `68d6057`, mesure `3.3.0`. Le déploiement déclare **`3.3.1`** — écart borné (§6.1 de `KNOWN_LIMITATIONS.md`), épinglage **volontairement conservé** |
