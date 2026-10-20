@@ -72,10 +72,19 @@ built here must be reviewed as a measurement surface, not as copy.
 
 ---
 
-## 2.1 Framing of the faithful presentation layer
+## 2.1 Framing of the faithful presentation layer — **IMPLEMENTED 2026-10-20**
 
-**Scope of this section: framing only. Nothing below is implemented, and
-nothing below should be implemented without a separate instruction.**
+> **This framing has been built.** It ships as the envelope's `presentation`
+> field: `runtime/presentation.mjs`, with 22 fidelity tests in
+> `runtime/tests/presentation.test.mjs` and the declared limits in **ML-013**.
+> The three open questions at the end of this section were settled before any
+> code — the answers are recorded there.
+>
+> The section is kept as written, because it is what the implementation is
+> accountable to. A change that makes the code diverge from it should change
+> both, deliberately.
+
+**Original scope of this section: framing only.**
 
 ### The rule it exists to serve
 
@@ -167,15 +176,27 @@ from these fields and owns what it wrote.
 Tests 1, 2 and 7 run on the existing recordings, so they cost no network, no
 quota and no decision.
 
-### Open questions, to settle before any code
+**All seven were implemented**, with eight further tests covering
+non-mutation, a published null that must not become zero, `not_attempted`,
+partial coverage, the envelope wiring, a failed call carrying no projection,
+list length, and the declared field-source map. Two of them caught genuine
+design errors in the tests themselves during the pass — an envelope-sourced
+field checked against the payload, and a forbidden-substring match that
+condemned the server's own `degraded_g_inputs`.
 
-- Where does it live: beside `reading_aid` in the envelope, or a second MCP
-  tool? A second tool is discoverable but doubles the surface.
-- Does a `null` field appear in the output, or is it omitted? The rest of this
-  connector always publishes the key with an explicit `null`, and consistency
-  argues for the same here.
-- Does it ever shorten a long list (`reasons`, citations), and if so how is the
-  truncation declared? Silent truncation would breach constraint 1.
+### Open questions — settled 2026-10-20, before any code
+
+- **Where does it live?** → **Beside `reading_aid` in the envelope**, as the
+  `presentation` field. A second MCP tool would be discoverable but would
+  double the tool surface, and ML-001 states the surface is one tool. The
+  envelope already has this exact pattern.
+- **Does a `null` field appear, or is it omitted?** → **It appears, explicitly
+  null.** Every declared field is always present, so a reader never has to
+  guess whether a missing key means absent data or an omitted field. This
+  matches the rest of the connector.
+- **Does it ever shorten a long list?** → **Never.** A list is copied whole or
+  reported absent. `field_sources.decision_reasons` says "copied whole, never
+  shortened", and a test projects a 200-entry list and asserts all 200 survive.
 
 ---
 

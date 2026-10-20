@@ -111,6 +111,7 @@ Le [schéma de sortie](schemas/measure_execution.output.schema.json) valide uniq
 | `token_count_source` | provenance explicite non vide de la réponse finale ; `unknown` lorsqu'elle manque, sans déduction à partir des compteurs |
 | `measurement_reference` | provenance de version : ce que **ce code** attend, à côté de ce que l'instance a **déclaré**. Jamais fusionnés |
 | `validation` | validation du transport distincte de la conformité du contrat ; lacunes de métadonnées dans `metadata_gaps` |
+| `presentation` | **projection plate pour un lecteur**, à côté de la réponse et jamais dedans. Chaque champ est copié du chemin nommé dans son propre `field_sources`, ou vaut `null`. `null` quand il n'y a pas de réponse à projeter — voir la section dédiée ci-dessous |
 | `sse.events` | tous les événements de données décodés jusqu'au terminal, avec nom, JSON, texte `raw_data` et `id` lorsqu'il était explicitement présent |
 | `sse.raw_stream` | texte UTF-8 effectivement reçu, commentaires et champs SSE compris |
 | `sse.termination` | `done`, `[DONE]`, ou null ; marqueur de transport, jamais un état métrologique |
@@ -204,6 +205,47 @@ Les enregistrements **ne sont pas dans ce dépôt** : ce sont des données d'ex�
 Cinq familles sont vérifiées sur chaque réponse réelle : passage sans altération (clés, valeurs et ordre identiques), conservation de la graphie numérique (`1.0` ne doit pas revenir en `1`), provenance de version, et deux invariants du contrat **amont** — un agrégat retenu est toujours déclaré, un signal non mesuré porte toujours une cause nommée.
 
 **Un échec ici est une observation sur le contrat amont, à remonter.** Ce n'est jamais une autorisation d'assouplir une assertion ni de modifier une charge serveur pour faire passer un test.
+
+### `presentation` — la projection fidèle
+
+**Ce que c'est.** Un objet plat, **à côté** de `response`, jamais dedans. Chaque champ est **copié verbatim** du chemin déclaré dans `presentation.field_sources`, ou vaut explicitement `null`. Il existe pour qu'une personne ou un agent lise un résultat sans parcourir un document profond — et sans que le parcours change ce que le résultat dit.
+
+**Ce que ce n'est pas.** Ni un résumé, ni un verdict, ni un score, ni de la prose. Rien n'est calculé, remis à l'échelle, arrondi, classé ou raccourci. Aucun adjectif que le serveur n'a pas publié n'est ajouté. **Ce n'est pas un substitut à la lecture de `response`**, qui reste intacte à côté.
+
+**Le cas contre lequel ce module est conçu.** Deux réponses réellement enregistrées décident toutes deux `ALLOW` :
+
+| | `tier02_01_complete_nominale` | `tier02_04_aucun_controle` |
+|---|---|---|
+`decision` | `ALLOW` | `ALLOW` |
+`decision_basis` | `measured_thresholds` | **`no_check_attempted`** |
+`decision_is_measured` | **`true`** | **`false`** |
+`measurement_status` | `complete` | **`not_attempted`** |
+`checks_attempted` · `checks_emitted` | 3 · 3 | **0 · 0** |
+`confidence_basis` | `measurement_coverage` | **`no_server_check`** |
+évaluateurs `not_attempted` | 0 | **4** |
+`v_score` dans `published_values` | `1` | **`null`** |
+
+La seconde réponse **n'a jamais été évaluée**. Une présentation qui les rend identiques détruit la distinction que la mesure existe pour produire — et le ferait en n'affichant que des valeurs réellement publiées. `tests/presentation.test.mjs` échoue si elles redeviennent équivalentes sur ce point.
+
+**Le seul champ dérivé** est `decision_is_measured` : la reformulation d'une égalité (`decision_basis === "measured_thresholds"`), pas un jugement. Tous les autres sont des copies.
+
+**Garanties tenues par les tests :**
+
+| Garantie | Ce qu'elle interdit |
+|---|---|
+Aller-retour | toute valeur qui différerait de son chemin source |
+Absence = absence | un défaut, un zéro, un `false` ou une chaîne vide à la place d'un champ absent |
+`null` publié reste `null` | un agrégat retenu présenté comme un zéro mesuré |
+`not_attempted` ≠ mesuré | un évaluateur qui n'a pas tourné, omis de la liste |
+Aucune invention | une chaîne qui ne vienne pas de la réponse, de l'enveloppe, ou d'un vocabulaire **gelé** (noms de champs, chemins de l'aide de lecture, identifiants `BL-*`) |
+Champs inconnus préservés | une clé racine non modélisée, étiquetée ou supprimée au lieu d'être **nommée** |
+Divergence portée | un résultat `divergent` présenté comme comparable |
+Aucune troncature | une liste raccourcie sans le dire |
+Non-mutation | la moindre modification de `response` |
+
+**Correspondance champ → source.** Elle est publiée **dans la projection elle-même**, sous `field_sources`, pour qu'un lecteur remonte toujours à la valeur brute sans consulter ce README — et pour qu'un sous-ensemble soit déclaré comme tel : `evaluators` porte `evaluator`, `model_used`, `status` et `reason`, et le dossier complet reste dans `response.evaluators[<signal>]`.
+
+**Limites, énoncées plutôt que corrigées.** La projection est **spécifique au chemin REST** : sur SSE, l'événement `done` ne publie ni bloc `audit` ni la plupart de ces chemins, donc la plupart des champs y valent `null` — c'est une absence du contrat amont (ML-003), pas une défaillance. Elle ne couvre pas `rag_grounding`, `density`, `esi` ni `baseline` autrement que par les chemins d'agrégats que l'aide de lecture surveille déjà. Voir **ML-013**.
 
 ### Aide de lecture pour l'agent
 

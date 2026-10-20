@@ -14,11 +14,12 @@ revérifier par commande avant toute modification.
 **Branche de travail** | aucune en cours. Ce document est amené par une PR documentaire ; **son commit n'est pas recopié ici** — un document ne peut pas porter l'empreinte du commit qui le contient, et chaque rectification creuserait l'écart qu'elle prétend combler. La commande du §7 le lit |
 **PR** | **#2 FUSIONNÉE** (2026-10-20T11:29:48Z, `50e1c96`) · **#3 FUSIONNÉE** — CI et clarification de visibilité, `8a12bf3` |
 **CI** | **en place et verte.** `.github/workflows/checks.yml` — suite complète + garde-fou de publication, sur `pull_request` et `push` vers `main`. Vérifiée **sur la PR #3 et sur `main`**. Avant la PR #3 : zéro workflow, zéro run, zéro check-run, zéro statut |
-**Tests** | **211 passés, 0 échec, 0 sauté** sur le code de `main` (`npm test` à la racine, enregistrements présents). **En CI, chiffres lus dans le journal du runner : 151 tests, 142 passés, 0 échec, 9 sautés** |
+**Tests** | **233 passés, 0 échec, 0 sauté** (`npm test` à la racine, enregistrements présents). **Sans eux — ce que voit la CI : 173 tests, 156 passés, 0 échec, 17 sautés** |
 **Statut du connecteur** | `LIVE_TRANSPORT_VALIDATED_CONTRACT_PENDING`. **`LIVE_API_VALIDATED` non accordé** |
 **Épinglage** | backend `68d6057`, mesure `3.3.0`. Le déploiement déclare **`3.3.1`** — écart borné (§6.1 de `KNOWN_LIMITATIONS.md`), épinglage **volontairement conservé** |
 **Conteneur** | image locale. **Publiée sur aucun registre** |
 **ML-009** | **clos le 2026-10-20** — §3 |
+**Couche de présentation** | **livrée** — champ `presentation` de l'enveloppe, `runtime/presentation.mjs`, 22 tests de fidélité. Limites déclarées : **ML-013** |
 
 > **Ce dépôt est public.** Vérifié le 2026-10-20 par l'API GitHub anonyme :
 > `private: false`, `visibility: public`.
@@ -105,7 +106,8 @@ Transport MCP, Streamable HTTP | **vérifié**, et maintenant depuis un hôte r�
 Classification des statuts amont, aucune relance automatique | **vérifié** par tests |
 Hygiène des secrets | **vérifiée** — aucun `.env` lu, rien journalisé, charge retenue entière si un credential y apparaît |
 Image conteneur | **vérifiée** — démarrage, refus, 401, handshake, erreur amont, arrêt propre |
-Chemin SSE | **preuve strictement plus faible** que REST — ML-002, ML-003 |
+Couche de présentation | **vérifiée** — aller-retour sur les 11 enregistrements, non-mutation, `null` jamais substitué, `not_attempted` jamais rendu comme mesuré |
+Chemin SSE | **preuve strictement plus faible** que REST — ML-002, ML-003. La projection y est **majoritairement nulle**, faute de chemins publiés (ML-013) |
 Conformité de contrat sur un déploiement | **non établie** |
 CI | **en place** — suite complète et garde-fou de publication, sur `pull_request` et `push` vers `main`. Elle exécute **151 tests, 142 passés, 9 sautés** : le rejeu des enregistrements ne tourne pas sur un runner (B-9) |
 
@@ -113,7 +115,10 @@ CI | **en place** — suite complète et garde-fou de publication, sur `pull_req
 
 ## 5. Prochaine tâche — une seule
 
-**Écrire la couche de réduction**, celle qui rend l'enveloppe lisible par une
+> **La couche de présentation est livrée.** Ce qui suit décrivait la tâche ;
+> elle est faite, et §5bis dit ce qui vient après.
+
+**~~Écrire la couche de réduction~~**, celle qui rend l'enveloppe lisible par une
 personne, et la relire **comme une surface de mesure, pas comme du texte**.
 
 Sans coût, sans réseau, sans décision : les onze enregistrements couvrent les
@@ -143,8 +148,30 @@ sous `no_check_attempted` avec **zéro contrôle** et `measurement.status`
 distinction que la mesure existe pour produire, **en n'affichant que des valeurs
 réellement publiées par le serveur**.
 
-Ensuite seulement, et chacune demandant une décision : un appel réel autorisé,
-puis l'hébergement.
+---
+
+## 5bis. Ce qui a été livré, et ce qui vient ensuite
+
+**Livré le 2026-10-20** — champ `presentation` de l'enveloppe. Projection plate,
+chaque champ copié du chemin déclaré dans son propre `field_sources` ou `null`.
+Un seul champ dérivé, `decision_is_measured`, reformulation d'une égalité.
+Rien n'est calculé, remis à l'échelle, arrondi, classé ni raccourci.
+`response` reste intacte à côté. Détail : `runtime/README.md`, section
+« `presentation` — la projection fidèle ». Limites : **ML-013**.
+
+**Prochaine tâche — aucune n'est gratuite.** Les trois qui restent demandent
+chacune une décision, et dans cet ordre de dépendance :
+
+1. **Un appel réel autorisé** contre le déploiement, avec le palier de clé
+   confirmé au préalable. **Facturé** — B-3, B-4. C'est ce qui ferme la
+   conformité de contrat et peut accorder `LIVE_API_VALIDATED`.
+2. **Épingler la base Docker par digest** — B-6. Sans décision produit, mais
+   sans elle un build ne vaut pas preuve.
+3. **L'hébergement HTTPS et l'authentification individuelle** — la pièce la
+   plus lourde, et la seule qui ouvre un connecteur multi-utilisateur.
+   `CHATGPT_CONNECTOR_ROADMAP.md` §3, P-1 à P-3.
+
+**Ne pas commencer l'intégration ChatGPT** avant que 1 et 3 soient tranchées.
 
 ---
 
@@ -160,7 +187,7 @@ puis l'hébergement.
 **B-5** | **Épinglage `3.3.0` face à `3.3.1`** — borné et documenté, décision ouverte | **Sébastien** |
 **B-6** | **Base Docker épinglée par tag, pas par digest.** La ligne est préparée, non renseignée | une session |
 **B-7** | ~~Dépôt public, documentation « privé »~~ — **levé** : aucun document n'affirmait le contraire ; l'ambiguïté du mot est tranchée par le tableau des cinq axes du [README racine](README.md), et le relevé qui l'affirmait est rectifié au §1 | — |
-**B-8** | **Pas de couche de présentation fidèle.** Cadrage écrit (`CHATGPT_CONNECTOR_ROADMAP.md` §2.1), **implémentation non commencée et à ne pas commencer sans instruction** | une session, sans coût |
+**B-8** | ~~Pas de couche de présentation fidèle~~ — **levée** : livrée le 2026-10-20, cadrage §2.1 respecté, limites en ML-013 | — |
 **B-9** | **Les 9 tests de rejeu sont sautés en CI**, les enregistrements étant hors dépôt par conception. La partie de la suite capable de voir une dérive de contrat ne tourne donc **pas** sur un runner. Publier les enregistrements pour verdir le chiffre est exactement ce qu'il ne faut pas faire | **Sébastien**, si une preuve en CI est voulue |
 
 ---
