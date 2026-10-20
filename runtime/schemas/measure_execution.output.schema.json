@@ -13,7 +13,8 @@
     "token_count_source",
     "measurement_reference",
     "reading_aid",
-    "validation"
+    "validation",
+    "presentation"
   ],
   "properties": {
     "transport": {
@@ -373,6 +374,99 @@
               "description": "What to do next, including the known backend limitation that bears on this status when one does."
             }
           }
+        }
+      }
+    },
+    "presentation": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "description": "A flat projection of the response for a reader, beside it and never inside it. Every field is copied from the path named in field_sources, or is null; nothing is computed, rescaled, rounded or shortened. The single derived field is decision_is_measured, the restatement of an equality on decision_basis. null when there is no response to project. It is not a summary, not a verdict and not a substitute for reading response.",
+      "additionalProperties": true,
+      "required": [
+        "schema",
+        "statement",
+        "decision",
+        "decision_basis",
+        "decision_is_measured",
+        "measurement_status",
+        "measured_signals",
+        "unmeasured",
+        "evaluators",
+        "published_values",
+        "unmodelled_root_fields",
+        "caveats",
+        "field_sources"
+      ],
+      "properties": {
+        "schema": {
+          "type": "string",
+          "description": "Identifier of this projection contract."
+        },
+        "statement": {
+          "type": "string",
+          "minLength": 1,
+          "description": "What the projection is and is not. Carried in the object a reader is looking at."
+        },
+        "decision": {
+          "description": "governance.decision, verbatim; null when absent."
+        },
+        "decision_basis": {
+          "description": "governance.decision_basis, verbatim; null when absent."
+        },
+        "decision_is_measured": {
+          "type": [
+            "boolean",
+            "null"
+          ],
+          "description": "DERIVED: decision_basis === \"measured_thresholds\". null when decision_basis is absent. It distinguishes an ALLOW decided on measured thresholds from an ALLOW decided with no check attempted; it is not a quality judgement."
+        },
+        "measurement_status": {
+          "description": "measurement.status, verbatim; null when absent. not_attempted is never rendered as a performed measurement."
+        },
+        "measured_signals": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "description": "measured_signals, copied whole; null when absent or not an array."
+        },
+        "unmeasured": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "description": "One entry per unmeasured signal with the cause the server named; null when the block is absent or null. Null here does not mean every signal was measured — measurement_status says that."
+        },
+        "evaluators": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "description": "One entry per declared evaluator, including those whose status is not_attempted. A NAMED SUBSET of each record; the full record stays in response.evaluators."
+        },
+        "published_values": {
+          "type": "array",
+          "description": "The aggregate and signal-derived paths present in this response, each with its value as published. A withheld aggregate stays null and is never shown as zero."
+        },
+        "unmodelled_root_fields": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Root keys this connector does not model, by name. Never labelled, never dropped."
+        },
+        "caveats": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Identifiers of the known backend limitations the reading aid reports as observable in THIS response."
+        },
+        "field_sources": {
+          "type": "object",
+          "description": "Every presented field and the exact source path it was copied from, so a reader can return to the raw value and so a subset is declared as a subset."
         }
       }
     }
