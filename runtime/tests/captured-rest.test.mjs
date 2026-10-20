@@ -17,34 +17,22 @@
 // to alter a server payload so a test turns green.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { createMcpServer } from '../server.mjs';
 import { AgentMcpClient } from '../examples/agent-client.mjs';
+import { resolveCaptures } from './captured-fixtures.mjs';
 import { measureExecution } from '../adapter.mjs';
 import { matches, outputSchema, parseApiJson } from '../contract.mjs';
 import { AGREEMENT, BACKEND_REFERENCE, VERSION_PATH } from '../reference.mjs';
 import { AID_REFERENCE } from '../guidance.mjs';
 import { apiMock, execution, jsonReply, testConfig, view } from './helpers.mjs';
 
-const DEFAULT_DIRECTORY = fileURLToPath(
-  new URL('../../../../SDK/neomundi-python-sdk/tests/fixtures/captured/', import.meta.url),
-);
-const DIRECTORY = process.env.NEOMUNDI_CAPTURED_FIXTURES || DEFAULT_DIRECTORY;
-
-function listCaptures() {
-  try {
-    if (!statSync(DIRECTORY).isDirectory()) return [];
-    return readdirSync(DIRECTORY).filter((name) => name.endsWith('.json')).sort();
-  } catch {
-    return [];
-  }
-}
-
-const CAPTURES = listCaptures();
+const resolved = resolveCaptures(process.env.NEOMUNDI_CAPTURED_FIXTURES);
+const DIRECTORY = resolved.directory;
+const CAPTURES = resolved.captures;
 const skip = CAPTURES.length === 0
-  ? `no recorded response available. These are execution data, kept outside the repository. Set NEOMUNDI_CAPTURED_FIXTURES to the directory holding them (looked in ${DIRECTORY}).`
+  ? `no recorded response available. These are execution data, kept outside the repository. Set NEOMUNDI_CAPTURED_FIXTURES to the directory holding them (looked in ${resolved.attempted.join(', ')}).`
   : false;
 
 /** Returns the recorded response exactly as the instance sent it.
