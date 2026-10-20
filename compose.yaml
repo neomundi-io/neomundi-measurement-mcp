@@ -1,0 +1,46 @@
+# Local run of the NeoMundi measurement MCP connector.
+#
+#   NEOMUNDI_API_KEY=... NEOMUNDI_MCP_API_KEY=... docker compose up --build
+#
+# Both credentials come from the shell that runs this file. They are NOT
+# written here, and no `env_file` is declared: the server reads no .env, and a
+# compose file committed to a repository is the wrong place for a secret.
+#
+# Nothing is pushed. No image name points at a registry.
+services:
+  mcp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: neomundi-measurement-mcp:local
+    # One-to-one, and bound to the host's loopback interface only. The left
+    # side keeps the connector unreachable from the network even though the
+    # listener inside the container is wider; the matching port numbers keep
+    # the forwarded Host header inside the server's allow-list.
+    ports:
+      - "127.0.0.1:8787:8787"
+    environment:
+      # Required. Absent or malformed, the server refuses to start.
+      NEOMUNDI_API_KEY: ${NEOMUNDI_API_KEY:?NEOMUNDI_API_KEY must be set in the environment}
+      NEOMUNDI_MCP_API_KEY: ${NEOMUNDI_MCP_API_KEY:?NEOMUNDI_MCP_API_KEY must be set in the environment}
+      # Optional. Only needed for the generation path, which calls a provider
+      # and bills it. Left unset, that path refuses with a stated reason
+      # instead of attempting anything.
+      NEOMUNDI_PROVIDER_API_KEY: ${NEOMUNDI_PROVIDER_API_KEY:-}
+      # Optional. Defaults to https://api.neomundi.io. Plain HTTP is accepted
+      # only for a loopback host, which from inside a container means the
+      # container's own loopback — not the host machine's.
+      NEOMUNDI_API_BASE_URL: ${NEOMUNDI_API_BASE_URL:-https://api.neomundi.io}
+    # `docker compose stop` sends SIGTERM, which the server handles. The grace
+    # period is longer than the default 10s because a measurement call in
+    # flight is not retried: cutting it short leaves an outcome unknown, and
+    # the connector cannot ask NeoMundi whether the call was billed.
+    stop_grace_period: 45s
+    restart: "no"
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true

@@ -31,22 +31,28 @@ awarded.**
 | Runtime dependencies | **none**. Node.js 24 or later |
 | Pinned reference revision | backend `68d6057`, measurement version `3.3.0` |
 
-**Three test scopes, deliberately distinguished and never merged.** The first
-is the one you get by cloning this repository:
+**Three test scopes, deliberately distinguished and never merged.** Figures
+re-measured on 2026-10-20, with `npm test` from the repository root:
 
 | Scope | Result |
 |---|---|
-| **This repository, fresh clone** | **118 passed, 9 skipped** |
-| This repository, with recorded API responses present | **187 passed** |
-| Full working copy, including a local probe excluded from here | 196 passed |
+| **This repository, recordings absent** | **142 passed, 9 skipped** (151 tests) |
+| **This repository, recordings present beside it** | **211 passed, 0 skipped** |
+| Full working copy, including a local probe excluded from here | 211 + the probe's guard suite |
 
-The 9 skipped tests are the replay of recorded API responses. Those recordings
+The skipped tests are the replay of recorded API responses. Those recordings
 are **not in this repository** — they are execution data, not source — so the
 replay skips with a stated reason, and names each family of check it could not
 run. They are not a weaker part of the suite: they are the only part that can
 observe a divergence between the contract as read and the contract as served.
 
-The 9-test difference between the second and third rows is the guard suite of a
+Until 2026-10-20 the second row was **unreachable from this repository**: the
+lookup resolved one directory too high, so the replay skipped even where the
+recordings were present. See **ML-011**. The command that reproduces these
+figures is `npm test` at the repository root; `npm test` inside `runtime/` runs
+the connector suite only and reports a lower count.
+
+The difference between the second and third rows is the guard suite of a
 one-shot live-call probe, excluded from this repository along with the probe
 itself: see ML-010.
 
@@ -99,7 +105,7 @@ only: both the probe and its tests are excluded from here (ML-010).
 |---|---|
 | Any **hosted deployment** | the recordings come from a local instance built from the pinned revision |
 | Behaviour **under load** | no concurrency or saturation characterisation exists |
-| Any **real MCP host** | the client configuration example is generic and untested against a specific host |
+| Any MCP host **beyond the one verified** | one host was connected on 2026-10-20 (ML-009); configuration field names vary, and no second host has been tried |
 | Recorded **SSE** payloads | the streaming path has no recorded-response replay; see ML-002 |
 | The live-call probe **against a real endpoint** | its guards and its network-failure path are tested; the call itself has not been made |
 
@@ -283,9 +289,70 @@ To make a real call without it: start `runtime/server.mjs` and invoke
 
 ### ML-009 — No real MCP host has been connected
 
-`Open`. The client configuration example in `runtime/README.md` is generic.
-Field names vary between hosts, and no host has been verified against this
-server. It is not claimed that one has.
+`Fixed — verified`, 2026-10-20. One host has now been connected: Claude Code
+2.1.247, over HTTP, against the local server. It reported `✔ Connected`,
+completed the handshake at protocol `2025-06-18`, discovered the single tool
+`measure_execution`, and invoked it.
+
+The upstream was a **local stand-in** serving a response recorded from a real
+instance, so no deployment was called and no quota was spent. The nominal call
+returned the recorded `request_id` and `g_score` unchanged; invalid arguments
+produced `INVALID_ARGUMENTS` with **no upstream call at all**; a stopped
+upstream produced `NETWORK_ERROR` with no fabricated measurement and no status
+classification. Neither credential appeared anywhere in the 32,916-byte
+envelope. Evidence and the reproduction steps: `START_HERE.md` §3.
+
+**What this does not establish, and must not be read as establishing.** The
+upstream was not NeoMundi: this validates the connector's path and the MCP
+transport, **not contract conformance against any deployment** —
+`LIVE_API_VALIDATED` remains unawarded. Exactly **one** host was verified, and
+configuration field names vary between hosts. The SSE path was not exercised:
+it requires a provider credential and bills a generation.
+
+### ML-011 — The recorded-response replay skipped where the recordings existed
+
+`Fixed — verified`, 2026-10-20. The lookup for the recorded responses hard-coded
+one directory depth, written for a working copy nested one folder deeper than
+this repository. In this repository the default therefore resolved **one level
+above** the recordings, and the replay skipped with "no recorded response
+available" on a checkout where they were present and readable.
+
+The failure mode is the one worth naming: nothing failed and nothing errored.
+The suite reported "118 passed, 9 skipped" and correctly named the five
+families of verification it had not run — while **the only part of the suite
+able to observe a divergence between the contract as read and the contract as
+served** was silently inert. A skip that states its reason is still a skip
+nobody questioned.
+
+Both layout depths are now tried, nearest first, and the skip reason names
+every path attempted. `runtime/tests/captured-discovery.test.mjs` guards the
+resolution itself — including that an operator-named directory is never
+silently replaced by a discovered one, and that an existing-but-empty candidate
+does not mask a populated one. Verified: the repository suite runs **211
+passed, 0 skipped** where it previously reported 118 passed and 9 skipped.
+
+### ML-012 — The container image does not listen on loopback
+
+`By design`, with a consequence. Inside a container a listener on `127.0.0.1`
+is unreachable through a published port, so the image sets
+`NEOMUNDI_MCP_BIND=0.0.0.0`. The MCP endpoint is then reachable from wherever
+the container is published, and the `Authorization: Bearer` credential is the
+only barrier in front of it. The server states this on stderr at startup.
+
+Outside a container nothing changed: the default is still `127.0.0.1`, and no
+variable is needed to get it. Only `127.0.0.1` and `0.0.0.0` are accepted — a
+hostname resolves differently between build and run, and an arbitrary interface
+would widen exposure in a way nothing here has established.
+
+Widening the bind does **not** widen the `Host` allow-list, which still accepts
+only `127.0.0.1:<port>` and `localhost:<port>` for the port actually listened
+on. A consequence to plan for: the published port must map one-to-one, or the
+forwarded `Host` header is refused with 403. `runtime/tests/bind-address.test.mjs`
+holds both properties.
+
+**Not established:** the hardening declared in `compose.yaml` — read-only root
+filesystem, all capabilities dropped, `no-new-privileges`, unprivileged user —
+is set out of prudence and has **not been exercised under load**.
 
 ---
 
@@ -328,6 +395,39 @@ workaround in your code hides the signal from everyone else.
 | Pinned backend revision | `68d6057cf620e430e6488da3cfcec9c471c75ed6` |
 | Expected measurement version | `3.3.0` |
 | Frozen OpenAPI specification | **none exists server-side** |
+
+### 6.1 — The deployed API declares 3.3.1, and this connector still pins 3.3.0
+
+Established on 2026-10-20, by reading the backend repository over the commit
+range `68d6057..aeff13c`. **Not** by observing a running deployment.
+
+| What was compared | Finding |
+|---|---|
+| `govern-v3/app/models/` (request and response models) | **byte-identical** across the range |
+| `govern-v3/tests/golden/measurement_surface_lock.json` | the **version string alone** moves; the RGC schema hash and every other locked field are unchanged |
+| `govern-v3/app/api/v1/streaming.py` | changed — the trajectory rules `R1/R2/R3` now read only measured points plus the final one |
+| The backend's own comparability statement, beside `MEASUREMENT_VERSION` | REST path, aggregates, coverage statuses and gated fields: **identical**. Streaming: a decision can differ |
+
+**The pin was deliberately left at 3.3.0.** It names the revision this code's
+reading of the contract was established against, and the eleven recordings that
+back it all declare `3.3.0`. Moving it would detach it from its evidence.
+
+What changed instead: a `divergent` verdict against a 3.3.1 instance now
+carries `measurement_reference.divergence_scope`, stating **per transport** what
+the pair was found to change and what it does not fix. `agreement` is untouched
+— it still reads `divergent`, and `divergent` still means "not comparable" for
+anything the scope does not cover.
+
+**Three things this does not do.** It does not validate conformance against any
+deployment. It does not make a streaming series comparable across the two
+versions. And on the streaming path it publishes nothing at all, because no
+version is declared there (ML-003) — so the one transport whose decision the
+bump can change is the one where the connector cannot tell which version
+produced it.
+
+**Unchanged by the bump, and stated by the backend itself:** slicing invariance.
+The published series, profile and total variation still vary with the network
+framing under both versions.
 
 Because no specification is published, the pinned commit and the version
 string are the only things a measurement can be attributed to. Compare
@@ -379,8 +479,10 @@ renumbered; a resolved entry keeps its identifier and changes status.
 **ML-006** | No automatic retry, ever | `By design` | connector `0.1.0` | connector scope |
 **ML-007** | Scores do not use the whole range | `By design` | backend `3.3.0` | measurement methodology |
 **ML-008** | Judge variance unmeasured | `Open` | backend `3.3.0` | measurement methodology |
-**ML-009** | No real MCP host connected | `Open` | connector `0.1.0` | integration |
+**ML-009** | No real MCP host connected | `Fixed — verified` 2026-10-20 | connector `0.1.0` | integration |
 **ML-010** | One-shot live-call probe not distributed | `By design` | connector `0.1.0` | repository scope |
+**ML-011** | Recorded-response replay skipped where the recordings existed | `Fixed — verified` 2026-10-20 | connector `0.1.0` | test evidence |
+**ML-012** | The container image does not listen on loopback | `By design` | connector `0.1.0` | packaging |
 
 **Internal tracking.** Each `BL-*` entry maps to an item in an internal
 backend correction plan holding reproduction steps, source locations,

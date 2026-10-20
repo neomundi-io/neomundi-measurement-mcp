@@ -59,7 +59,8 @@
         "expected_measurement_version",
         "expected_backend_commit",
         "agreement",
-        "version_path"
+        "version_path",
+        "divergence_scope"
       ],
       "description": "Version provenance, reported separately from the measurement itself. expected_* describe the backend revision THIS CODE was built against; received_* are verbatim values the answering instance declared at audit.measurement_version, or null when it declared none. The two are never merged. A divergent agreement is not an adapter error and alters nothing in response: it states that results are not comparable with a series produced under the expected version. Distinct from the contract_version alias, which copies a TOP-LEVEL contract_version.",
       "properties": {
@@ -101,6 +102,67 @@
             "null"
           ],
           "description": "Response path the version was read from when the field was present, otherwise null. Distinguishes an absent field from a present but unusable one."
+        },
+        "divergence_scope": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": false,
+          "required": [
+            "expected_measurement_version",
+            "received_measurement_version",
+            "rest",
+            "sse",
+            "summary",
+            "unchanged_by_the_bump",
+            "evidence"
+          ],
+          "description": "What is established about THIS divergence, or null. Null means either no divergence, or a divergence about which nothing has been established -- both leave agreement as the only verdict. Never present unless agreement is divergent, never a substitute for it, and never a reason to treat a divergent result as comparable: it states, per transport, what the version pair was found to change and what it did not. Admitted only from the backend published comparability statement at the declared revision, with the commit range named in evidence.",
+          "properties": {
+            "expected_measurement_version": {
+              "type": "string",
+              "description": "The pinned version this scope was established against. Present so a stale table cannot be read as current: if it differs from measurement_reference.expected_measurement_version the scope is withheld."
+            },
+            "received_measurement_version": {
+              "type": "string",
+              "description": "The declared version this entry describes, equal to received_measurement_version."
+            },
+            "rest": {
+              "type": "string",
+              "enum": [
+                "identical",
+                "may_differ",
+                "unknown"
+              ],
+              "description": "What the version pair changes on POST /v1/govern. identical: declared identical by the backend own comparability statement."
+            },
+            "sse": {
+              "type": "string",
+              "enum": [
+                "identical",
+                "may_differ",
+                "decision_may_differ",
+                "unknown"
+              ],
+              "description": "What the version pair changes on POST /v1/govern/stream. decision_may_differ: the published measurement is unchanged but the decision assigned from it can differ."
+            },
+            "summary": {
+              "type": "string",
+              "minLength": 1,
+              "description": "What changed, in the backend own terms. Not a reassurance and not a recommendation."
+            },
+            "unchanged_by_the_bump": {
+              "type": "string",
+              "minLength": 1,
+              "description": "What the version increment explicitly does NOT fix, so it is never read as fixing it."
+            },
+            "evidence": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Where this was read: the commit range and the files carrying the statement. Repository evidence, never an observation of a running deployment."
+            }
+          }
         }
       }
     },

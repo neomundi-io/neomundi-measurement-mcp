@@ -1,0 +1,48 @@
+# Nothing that is not source enters the build context.
+#
+# This matters more than build speed: the context is what a layer can capture,
+# and a credential or a recorded response that reaches a layer stays in the
+# image. The repository already excludes those from Git; this excludes them
+# from the image even on a working copy where they are present.
+
+# Credentials and local configuration, in every form.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Version control and local tooling.
+.git
+.gitignore
+.gitattributes
+.github
+node_modules
+coverage
+*.log
+.DS_Store
+Thumbs.db
+
+# The one-shot live-call probe and its guards. Excluded from the repository
+# too: it contacts a real endpoint and consumes quota. An image that could run
+# it would turn a container start into a billable call.
+runtime/live-once.mjs
+runtime/.live-api-attempted
+runtime/tests/live-once.test.mjs
+
+# Recorded API responses: execution data, never image content.
+runtime/tests/fixtures/captured/
+**/fixtures/captured/
+*.captured.json
+observation.json
+report_*.json
+
+# Internal reports and the container artefacts themselves.
+runtime/REFERENCE_AND_LOOPBACK_REPORT.md
+runtime/FINALISATION_REPORT.md
+runtime/PUBLICATION_READINESS_REPORT.md
+Dockerfile
+.dockerignore
+compose.yaml
