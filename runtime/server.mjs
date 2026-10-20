@@ -207,11 +207,15 @@ export function createMcpServer({ config, fetchImpl = globalThis.fetch }) {
 
   return {
     server,
-    async listen(port = config.port) {
+    async listen(port = config.port, address = config.bindAddress ?? '127.0.0.1') {
       await new Promise((resolve, reject) => {
         server.once('error', reject);
-        server.listen(port, '127.0.0.1', () => { server.removeListener('error', reject); resolve(); });
+        server.listen(port, address, () => { server.removeListener('error', reject); resolve(); });
       });
+      // The URL still names loopback even when the listener is wider: that is
+      // the address a client on this machine uses, and the Host allow-list
+      // below accepts nothing else. A published port must therefore be mapped
+      // one-to-one, or the forwarded Host header will not match.
       return `http://127.0.0.1:${server.address().port}/mcp`;
     },
     async close() {
@@ -236,6 +240,15 @@ async function main() {
       // instance is never mistaken for a call to a real deployment.
       process.stderr.write(`Upstream transport is plain HTTP on loopback (${config.baseUrl}). Verification only.\n`);
     }
+    if (config.publishedBeyondLoopback) {
+      // Said plainly, once. The listener is no longer confined to this
+      // machine, and the Bearer credential is the only barrier in front of it.
+      process.stderr.write(`Listener bound to ${config.bindAddress}, not loopback: the MCP endpoint is reachable from wherever this process is published, and NEOMUNDI_MCP_API_KEY is the only barrier. Publish the port one-to-one, or the forwarded Host header will be refused.\n`);
+    }
+    // Containers stop by signal, so a clean exit is the normal path, not an
+    // edge case: stop accepting, abort in-flight calls, let the loop drain.
+    // A second signal is left to the default handler rather than swallowed, so
+    // an operator can always force the issue.
     for (const event of ['SIGINT', 'SIGTERM']) process.once(event, () => { void app.close(); });
   } catch {
     await app?.close();
