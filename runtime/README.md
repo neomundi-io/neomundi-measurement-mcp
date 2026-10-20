@@ -29,7 +29,8 @@ Adresse par défaut : **`http://127.0.0.1:8787/mcp`**. Le démarrage n'appelle a
 | Variable facultative | Défaut | Contrainte |
 |---|---|---|
 | `NEOMUNDI_API_BASE_URL` | `https://api.neomundi.io` | origine seule, sans identifiants, chemin, query ou fragment. HTTPS partout ; **HTTP accepté uniquement pour `127.0.0.1`, `localhost` et `[::1]`** — voir « Vérification contre une instance locale » |
-| `NEOMUNDI_MCP_PORT` | 8787 | entier 1–65535 ; écoute toujours sur loopback |
+| `NEOMUNDI_MCP_PORT` | 8787 | entier 1–65535 |
+| `NEOMUNDI_MCP_BIND` | `127.0.0.1` | `127.0.0.1` ou `0.0.0.0`, **et rien d'autre**. Voir « Exécution en conteneur » avant de changer cette valeur |
 | `NEOMUNDI_TIMEOUT_MS` | 120000 | délai global, entier positif ≤ 3600000 |
 | `NEOMUNDI_IDLE_TIMEOUT_MS` | 30000 | inactivité réseau, entier positif ≤ 3600000 |
 | `NEOMUNDI_MAX_RESPONSE_BYTES` | 2097152 | taille amont maximale en octets, ≤ 16777216 |
@@ -150,8 +151,31 @@ L'enveloppe rapporte les deux faces séparément, et ne les fusionne jamais :
 | `received_measurement_version`, `received_normalizer_version` | valeurs **verbatim** déclarées par l'instance, lues à `audit.measurement_version` ; null si elle n'en déclare pas |
 | `version_path` | chemin de lecture quand le champ était présent, sinon null. Distingue un champ **absent** d'un champ présent mais inutilisable |
 | `agreement` | `match`, `divergent`, `declared_unusable`, `not_declared` |
+| `divergence_scope` | `null`, ou ce qui est **établi** au sujet de cette divergence précise. Ne remplace jamais `agreement` |
 
 **`divergent` est le signal qui compte** : les résultats ne sont pas comparables à une série produite sous la version attendue, et des champs peuvent avoir changé de sens. Ce n'est **pas** une erreur adaptateur, `isError` reste faux, et la charge serveur n'est jamais réécrite pour s'accorder avec l'attente. Un agent doit lire `agreement` avant de comparer deux chiffres entre appels.
+
+#### `divergence_scope` — pourquoi ce champ existe
+
+Un déploiement qui sert une version postérieure à la version épinglée rend **tous** les appels `divergent`. Un intégrateur à qui l'on ne dit que « non comparable » ne peut pas distinguer un incrément qui n'a rien déplacé sur son transport d'un incrément qui invalide sa série. La consigne 5.6 de `KNOWN_LIMITATIONS.md` lui demande de **signaler** une divergence plutôt que de l'absorber ; sans portée, il les signalerait toutes à l'identique et le signal ne vaudrait rien.
+
+`divergence_scope` est donc `null` sauf si quelque chose a été **établi** sur ce couple de versions exact, et il ne modifie ni `agreement`, ni la charge serveur. Une version absente de la table reste simplement `divergent` **sans portée** — la réponse honnête, puisque rien n'a été établi à son sujet.
+
+Une entrée n'est admise qu'à partir de la **déclaration de comparabilité publiée par le backend lui-même** à la révision déclarée, avec la plage de commits qui la porte nommée dans `evidence`. Jamais depuis un changelog, jamais depuis une inférence sur ce qu'un numéro de correctif « devrait » signifier.
+
+| Champ | Signification |
+|---|---|
+| `expected_measurement_version` | la version épinglée contre laquelle cette portée a été établie. Si elle diffère de `measurement_reference.expected_measurement_version`, la portée est **retirée** : une table périmée ne se publie pas comme actuelle |
+| `received_measurement_version` | la version déclarée que cette entrée décrit |
+| `rest` | `identical`, `may_differ` ou `unknown` — ce que le couple change sur `POST /v1/govern` |
+| `sse` | `identical`, `may_differ`, `decision_may_differ` ou `unknown` — sur `POST /v1/govern/stream`. `decision_may_differ` : la mesure publiée est inchangée, mais la décision qui en est tirée peut différer |
+| `summary` | ce qui a changé, dans les termes du backend. Ni une réassurance, ni une recommandation |
+| `unchanged_by_the_bump` | ce que l'incrément de version **ne corrige pas**, pour qu'il ne soit jamais lu comme le corrigeant |
+| `evidence` | où cela a été lu : la plage de commits et les fichiers porteurs. Preuve **de dépôt**, jamais l'observation d'un déploiement en marche |
+
+**Une seule entrée existe aujourd'hui : `3.3.1`.** Sur REST, les deux versions sont déclarées identiques par le verrou de surface de mesure du backend. Sur SSE, les règles de trajectoire `R1/R2/R3` ont changé : une observation laissée en `ALLOW` par les signaux mesurés, dont le profil était `DROP` ou `OSCILLATING` à partir de points **non mesurés**, est décidée différemment. L'invariance au découpage n'est corrigée **ni** sous 3.3.0 **ni** sous 3.3.1.
+
+⚠ **Le transport dont la décision peut changer est aussi celui où aucune version n'est publiée** (ML-003). Sur SSE, `agreement` vaut `not_declared` et `divergence_scope` reste `null` : le connecteur ne peut pas dire quelle version a produit la décision qu'il relaie. C'est énoncé, pas corrigé.
 
 `declared_unusable` couvre un champ présent dont la valeur n'est pas une chaîne non vide — un nombre, par exemple. Il n'est **pas** converti : fabriquer `"3.3"` depuis `3.3` inventerait une déclaration que le serveur n'a pas faite. La valeur d'origine reste intacte sous `response.audit`.
 
@@ -300,6 +324,48 @@ try {
 ```
 
 Le client doit pouvoir transmettre le header Bearer configuré. Aucun branchement spécifique à ChatGPT ou Codex n'a été testé. Un service hébergé à distance ne peut pas joindre cette adresse loopback : ce MVP local n'est pas un connecteur ChatGPT cloud déployé.
+
+## Exécution en conteneur
+
+Une image locale existe depuis le 2026-10-20 : [`Dockerfile`](../Dockerfile) et [`compose.yaml`](../compose.yaml) à la racine du dépôt. **Elle n'est publiée sur aucun registre, et ne doit pas l'être sans décision explicite** : ce connecteur est privé, et une image est un canal de distribution.
+
+L'image est reproductible par construction : le connecteur n'a **aucune dépendance d'exécution**, donc rien à installer, aucun verrou à résoudre et aucun accès réseau au moment du build. Elle vaut la base épinglée plus les sources du dépôt. La suite hors ligne tourne **pendant** le build : un build qui ne passe pas ses propres tests ne produit pas d'image.
+
+```bash
+docker build -t neomundi-measurement-mcp:local .
+
+# Les clés viennent de votre environnement, jamais de l'image ni d'un .env.
+NEOMUNDI_API_KEY=… NEOMUNDI_MCP_API_KEY=… docker compose up --build
+```
+
+### Les deux contraintes à connaître avant de publier un port
+
+**1. L'écoute n'est plus confinée au loopback dans l'image.** Dans un conteneur, un processus écoutant sur `127.0.0.1` est inatteignable à travers un port publié ; l'image fixe donc `NEOMUNDI_MCP_BIND=0.0.0.0`. La conséquence est réelle et le serveur l'énonce sur stderr au démarrage : **le point d'entrée MCP devient joignable depuis là où le conteneur est publié, et `NEOMUNDI_MCP_API_KEY` est alors la seule barrière devant lui.** Le `compose.yaml` fourni compense en ne publiant que sur le loopback de l'hôte (`127.0.0.1:8787:8787`).
+
+Hors conteneur, **rien ne change** : le défaut reste `127.0.0.1`, et aucune variable n'est nécessaire pour l'obtenir.
+
+**2. Le port doit être publié à l'identique.** La liste blanche `Host` n'accepte que `127.0.0.1:<port>` et `localhost:<port>` pour le port réellement écouté. `-p 9000:8787` fait envoyer `Host: localhost:9000` par le client, refusé en **403 `invalid_host`**. Ce contrôle est délibéré — il est ce qui bloque un rebinding DNS ou une confusion de proxy — et élargir l'écoute ne l'élargit pas : `tests/bind-address.test.mjs` le vérifie.
+
+### Ce qui a été vérifié sur l'image, le 2026-10-20
+
+| Vérification | Résultat observé |
+|---|---|
+| Build | image construite, **suite hors ligne passée dans l'image** |
+| Démarrage sans secret | refus, message générique, **code de sortie 1**, aucune valeur affichée |
+| Clé malformée, adresse de bind non autorisée | refus au démarrage, même message |
+| Démarrage nominal | `Private NeoMundi MCP listening on http://127.0.0.1:8787/mcp` + l'avertissement de bind sur stderr |
+| Sans credential, puis avec un mauvais credential | **401** dans les deux cas, en-tête `WWW-Authenticate` présent |
+| `initialize` puis `tools/list` | session établie, protocole `2025-06-18`, un outil : `measure_execution` |
+| Amont injoignable | `adapter_error.code = NETWORK_ERROR`, `response: null`, `transport: not_validated`, **aucune mesure fabriquée** |
+| Secrets dans les journaux | **zéro occurrence** des deux sentinelles |
+| `docker stop` | arrêt **immédiat**, `exitcode=0`, pas de kill |
+| Contenu de l'image | ni sonde d'appel réel, ni rapports internes, ni aucun `.env` — 247 Mo |
+
+Le durcissement du `compose.yaml` — `read_only`, `cap_drop: ALL`, `no-new-privileges`, utilisateur `node` — est déclaré mais **n'a pas été exercé sous charge** : il est posé par prudence, pas par mesure.
+
+Aucune sonde `HEALTHCHECK` n'est déclarée : elle devrait présenter le credential Bearer pour franchir le 401, et une sonde portant le credential dans les métadonnées de l'image serait pire que pas de sonde. La vivacité se vérifie depuis l'extérieur, avec le credential que vous détenez déjà.
+
+Le délai de grâce à l'arrêt est porté à 45 s dans le `compose.yaml` : un appel de mesure en vol **n'est jamais rejoué**, et le couper court laisse une issue inconnue que le connecteur ne peut pas lever auprès de NeoMundi.
 
 ## Installation et configuration d'un client MCP
 
