@@ -416,7 +416,7 @@ Forme générique d'un hôte MCP acceptant un transport HTTP. **Ne mettez pas la
 }
 ```
 
-Les noms de champs varient d'un hôte à l'autre (`type`, `transport`, `serverUrl`…) : reportez-vous à la documentation du vôtre. **Ce bloc n'est pas une configuration vérifiée contre un hôte précis** — aucun hôte MCP réel n'a été branché sur ce serveur à ce jour, et cela n'est pas affirmé.
+Les noms de champs varient d'un hôte à l'autre (`type`, `transport`, `serverUrl`…) : reportez-vous à la documentation du vôtre. **Un seul hôte a été vérifié** : Claude Code 2.1.247, le 2026-10-20, en transport HTTP — connexion, handshake, découverte de l'outil et invocation (ML-009, et `START_HERE.md` §3). Ce bloc reste générique : il n'est vérifié contre aucun **autre** hôte, et cela n'est pas affirmé.
 
 Le serveur doit être démarré séparément : cette configuration ne le lance pas.
 

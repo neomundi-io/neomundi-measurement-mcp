@@ -26,7 +26,7 @@ platform's own documentation, at the moment of the decision]**.
 **Dependencies** | none. Node 24 |
 **Tests** | 211 passed, 0 skipped with the recordings present |
 **Hosting** | none. No deployment, no domain, no TLS termination, no registry |
-**Real MCP host connected** | **none** (ML-009) |
+**Real MCP host connected** | **one**, Claude Code 2.1.247 on 2026-10-20, against a local stand-in upstream (ML-009). No second host tried |
 
 The two capabilities that matter for a first useful version are already here:
 the tool **accepts `documents[]`** and the response **exposes `rag_grounding`,
@@ -83,7 +83,7 @@ These are gaps in **our** work, stated independently of any platform rule.
 **P-3** | **A NeoMundi API key per user, and a tier.** `documents[]` grounding requires **TIER_02+** | Without per-user keys, every call is billed to one account, and the tier of that account decides what every user gets |
 **P-4** | **No usage accounting at the connector.** `POST /v1/govern` is not idempotent, debits quota and writes a usage event; the connector never retries, by design (ML-006) | A connector that cannot attribute a call cannot explain a bill, and cannot answer "did my call go through?" after a 5xx |
 **P-5** | **No reduction layer** (§2) | The raw envelope is unusable as a chat answer, and a careless reduction is worse than none |
-**P-6** | **No host has ever been connected** (ML-009) | Every integration claim is untested |
+**P-6** | **One host verified, against a local stand-in** (ML-009) | The transport and the connector path are exercised; contract conformance against a deployment is not, and no second host has been tried |
 
 **Platform-side requirements are deliberately not enumerated here.** Whether a
 connector is exposed as MCP or as an OpenAPI action, what authentication scheme
@@ -129,10 +129,9 @@ exposed:
 
 Reachable without any platform decision, and worth doing in this order:
 
-1. **Connect one real MCP host to the local server** and close ML-009. This
-   needs no hosting, no TLS and no new code — the client configuration example
-   in `runtime/README.md` is generic precisely because nothing has verified it.
-   It is the cheapest unknown remaining, and it is first for that reason.
+1. ~~Connect one real MCP host to the local server~~ — **done on 2026-10-20**,
+   Claude Code against a local stand-in upstream. ML-009 is closed, and what it
+   does and does not establish is stated there.
 2. **Write the reduction layer and review it as a measurement surface**, using
    the eleven recorded responses as input. No network, no quota, no deployment:
    the recordings already cover the three measurement families.
@@ -171,7 +170,7 @@ deployment declares `3.3.1`. Its bounded extent is in `KNOWN_LIMITATIONS.md`
 ## 7. The shortest honest path
 
 ```
-ML-009 — connect one real MCP host to the local server     no cost, no decision
+ML-009 — connect one real MCP host                            DONE 2026-10-20
       ↓
 Reduction layer, driven by reading_aid, on the 11 recordings   no cost, no network
       ↓
@@ -184,6 +183,5 @@ P-2 / P-3 — per-user identity and keys                 the largest unbuilt pie
 Platform conditions                                    [to verify, at that point]
 ```
 
-The first two steps are free, require no decision, and would remove the two
-largest unknowns in this document. Everything below them is a decision, not a
-task.
+The first step is done. The second is free and requires no decision; it is the
+one remaining task in this document that is a task rather than a decision.

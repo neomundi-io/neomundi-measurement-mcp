@@ -105,7 +105,7 @@ only: both the probe and its tests are excluded from here (ML-010).
 |---|---|
 | Any **hosted deployment** | the recordings come from a local instance built from the pinned revision |
 | Behaviour **under load** | no concurrency or saturation characterisation exists |
-| Any **real MCP host** | the client configuration example is generic and untested against a specific host |
+| Any MCP host **beyond the one verified** | one host was connected on 2026-10-20 (ML-009); configuration field names vary, and no second host has been tried |
 | Recorded **SSE** payloads | the streaming path has no recorded-response replay; see ML-002 |
 | The live-call probe **against a real endpoint** | its guards and its network-failure path are tested; the call itself has not been made |
 
@@ -289,9 +289,25 @@ To make a real call without it: start `runtime/server.mjs` and invoke
 
 ### ML-009 — No real MCP host has been connected
 
-`Open`. The client configuration example in `runtime/README.md` is generic.
-Field names vary between hosts, and no host has been verified against this
-server. It is not claimed that one has.
+`Fixed — verified`, 2026-10-20. One host has now been connected: Claude Code
+2.1.247, over HTTP, against the local server. It reported `✔ Connected`,
+completed the handshake at protocol `2025-06-18`, discovered the single tool
+`measure_execution`, and invoked it.
+
+The upstream was a **local stand-in** serving a response recorded from a real
+instance, so no deployment was called and no quota was spent. The nominal call
+returned the recorded `request_id` and `g_score` unchanged; invalid arguments
+produced `INVALID_ARGUMENTS` with **no upstream call at all**; a stopped
+upstream produced `NETWORK_ERROR` with no fabricated measurement and no status
+classification. Neither credential appeared anywhere in the 32,916-byte
+envelope. Evidence and the reproduction steps: `START_HERE.md` §3.
+
+**What this does not establish, and must not be read as establishing.** The
+upstream was not NeoMundi: this validates the connector's path and the MCP
+transport, **not contract conformance against any deployment** —
+`LIVE_API_VALIDATED` remains unawarded. Exactly **one** host was verified, and
+configuration field names vary between hosts. The SSE path was not exercised:
+it requires a provider credential and bills a generation.
 
 ### ML-011 — The recorded-response replay skipped where the recordings existed
 
@@ -463,7 +479,7 @@ renumbered; a resolved entry keeps its identifier and changes status.
 **ML-006** | No automatic retry, ever | `By design` | connector `0.1.0` | connector scope |
 **ML-007** | Scores do not use the whole range | `By design` | backend `3.3.0` | measurement methodology |
 **ML-008** | Judge variance unmeasured | `Open` | backend `3.3.0` | measurement methodology |
-**ML-009** | No real MCP host connected | `Open` | connector `0.1.0` | integration |
+**ML-009** | No real MCP host connected | `Fixed — verified` 2026-10-20 | connector `0.1.0` | integration |
 **ML-010** | One-shot live-call probe not distributed | `By design` | connector `0.1.0` | repository scope |
 **ML-011** | Recorded-response replay skipped where the recordings existed | `Fixed — verified` 2026-10-20 | connector `0.1.0` | test evidence |
 **ML-012** | The container image does not listen on loopback | `By design` | connector `0.1.0` | packaging |

@@ -1,6 +1,10 @@
 # MVP privé implémenté
 
-> **Reprise — état au 2026-10-20.** Document de reprise de ce dépôt.
+> **Le document de reprise de ce dépôt est [`START_HERE.md`](START_HERE.md).**
+> Il porte l'état Git, la PR, la CI, le statut de ML-009, les blocages et la
+> prochaine tâche. Le résumé ci-dessous en est un extrait, à la date indiquée.
+>
+> **Reprise — état au 2026-10-20.**
 >
 > | | |
 > |---|---|
@@ -18,7 +22,7 @@
 >
 > **Rapport de consolidation du 2026-10-20 — non publié dans ce dépôt.** Il porte la matrice de compatibilité API/SDK/MCP, l'inventaire des corrections, les relevés de tests, l'état du packaging et les **blocages réels**, dont ceux qui demandent une autorisation de facturation. Même catégorie que les trois autres rapports internes, et `check-publication.mjs` refuse tout chemin `RAPPORT_*`. Il vit dans la copie de travail, sous `RAPPORT_CONSOLIDATION_20261020.md`, et une copie sauvegardée accompagne les autres fichiers hors Git du connecteur. Son existence est consignée ici pour qu'un lecteur sache que ces éléments sont suivis, et non simplement omis.
 >
-> **Prochaine action prioritaire : connecter un hôte MCP réel au serveur local et clore ML-009.** Sans hébergement, sans TLS, sans appel facturé, sans code nouveau.
+> **ML-009 est clos** depuis le 2026-10-20 : Claude Code a été connecté au serveur local, handshake, découverte et invocation compris. **Prochaine action prioritaire : la couche de réduction** — `START_HERE.md` §5.
 >
 > **Vérifier Git avant toute modification.** L'état ci-dessus est un relevé daté.
 
