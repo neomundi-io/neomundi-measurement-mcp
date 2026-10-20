@@ -35,8 +35,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
+      # v7 rather than v4: the runner forces v4 onto Node 24 and warns about it
+      # on every run. A workflow that warns on every run trains people to stop
+      # reading its output.
       - name: Check out the repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       # Node 24 is required, not preferred: the adapter uses JSON.rawJSON and
       # the JSON.parse source context to keep API numbers byte-exact. On an
@@ -44,7 +47,7 @@ jobs:
       # `engines` in package.json says >=24; this pins the major the project
       # is tested on.
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: '24'
 
