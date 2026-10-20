@@ -10,11 +10,11 @@ revérifier par commande avant toute modification.
 
 | | |
 |---|---|
-**`origin/main`** | **`50e1c96`** — *« Merge pull request #2 … »*, fusionnée le 2026-10-20T11:29:48Z. Les cinq commits de la PR #2 sont **ancêtres de `main`**, vérifié un par un |
-**Branche de travail** | `ci/mcp-tests-publication-20261020`. **Son dernier commit n'est pas recopié ici** : un document ne peut pas porter l'empreinte du commit qui le contient, et chaque rectification creuserait l'écart qu'elle prétend combler. La commande du §7 le lit |
-**PR** | **#2 — FUSIONNÉE.** La PR de CI est ouverte depuis cette branche ; son numéro et son résultat sont en §6 |
-**CI** | **ajoutée par cette branche** — `.github/workflows/checks.yml`. Avant elle : zéro workflow, zéro run, zéro check-run, zéro statut |
-**Tests** | **211 passés, 0 échec, 0 sauté** sur le code de `main` (`npm test` à la racine, enregistrements présents). **Sans eux — ce que voit la CI : 151 tests, 142 passés, 9 sautés** |
+**`origin/main`** | **`8a12bf3`** — *« Merge pull request #3 … »*. Avant lui, `50e1c96` portait la PR #2. Les commits des deux PR sont **ancêtres de `main`**, vérifié un par un |
+**Branche de travail** | aucune en cours. Ce document est amené par une PR documentaire ; **son commit n'est pas recopié ici** — un document ne peut pas porter l'empreinte du commit qui le contient, et chaque rectification creuserait l'écart qu'elle prétend combler. La commande du §7 le lit |
+**PR** | **#2 FUSIONNÉE** (2026-10-20T11:29:48Z, `50e1c96`) · **#3 FUSIONNÉE** — CI et clarification de visibilité, `8a12bf3` |
+**CI** | **en place et verte.** `.github/workflows/checks.yml` — suite complète + garde-fou de publication, sur `pull_request` et `push` vers `main`. Vérifiée **sur la PR #3 et sur `main`**. Avant la PR #3 : zéro workflow, zéro run, zéro check-run, zéro statut |
+**Tests** | **211 passés, 0 échec, 0 sauté** sur le code de `main` (`npm test` à la racine, enregistrements présents). **En CI, chiffres lus dans le journal du runner : 151 tests, 142 passés, 0 échec, 9 sautés** |
 **Statut du connecteur** | `LIVE_TRANSPORT_VALIDATED_CONTRACT_PENDING`. **`LIVE_API_VALIDATED` non accordé** |
 **Épinglage** | backend `68d6057`, mesure `3.3.0`. Le déploiement déclare **`3.3.1`** — écart borné (§6.1 de `KNOWN_LIMITATIONS.md`), épinglage **volontairement conservé** |
 **Conteneur** | image locale. **Publiée sur aucun registre** |
@@ -152,8 +152,9 @@ puis l'hébergement.
 
 | # | Blocage | Qui le lève |
 |---|---|---|
-**B-1** | ~~Aucune CI~~ — **levé le 2026-10-20** : `.github/workflows/checks.yml` exécute la suite complète et le garde-fou de publication sur `pull_request` et `push` vers `main` | — |
+**B-1** | ~~Aucune CI~~ — **levé**, PR #3 : la suite complète et le garde-fou tournent sur `pull_request` et `push` vers `main`, vérifiés verts sur les deux | — |
 **B-2** | ~~PR #2 non fusionnée~~ — **fusionnée** le 2026-10-20T11:29:48Z en `50e1c96` | — |
+**B-10** | **Aucun contrôle n'est *requis* côté GitHub.** La CI est verte, mais rien n'empêche techniquement de fusionner une PR rouge : aucune règle de protection de branche n'est configurée sur `main` | **Sébastien** — c'est un réglage de dépôt, pas du code |
 **B-3** | **Conformité de contrat non établie**, `LIVE_API_VALIDATED` non accordé. Demande un appel réel — donc **facturé** | **autorisation de Sébastien** |
 **B-4** | **Palier et quota de la clé inconnus.** `documents[]` exige **TIER_02+** | registre des clés |
 **B-5** | **Épinglage `3.3.0` face à `3.3.1`** — borné et documenté, décision ouverte | **Sébastien** |
@@ -167,10 +168,36 @@ puis l'hébergement.
 ## 7. Revérifier avant toute modification
 
 ```bash
-git -C . remote -v && git branch --show-current && git log -1 --oneline && git status --porcelain
-npm test                      # 211 passés, 0 sauté, enregistrements présents
+git fetch --prune                                  # avant tout : main local n'est pas origin/main
+git log -1 --oneline origin/main && git status -sb
+npm test                      # 211 passés, 0 sauté, enregistrements présents à côté
 node check-publication.mjs    # ce qui sort du dépôt
 ```
 
+L'état de la CI se lit sans authentification, le dépôt étant public :
+
+```bash
+curl -s "https://api.github.com/repos/neomundi-io/neomundi-measurement-mcp/actions/runs?branch=main&per_page=1"
+```
+
+⚠ L'API anonyme est limitée à **60 requêtes par heure**. Interroger en boucle
+serrée l'épuise, et les appels suivants renvoient une erreur qui ressemble à
+une absence de résultat. Interroger une fois, espacer.
+
 Les empreintes de commit citées en §1 datent de leur écriture. **La commande
 fait foi**, pas ce document.
+
+## 8. Ordre de reprise
+
+1. lire ce fichier ;
+2. `git fetch --prune`, puis comparer `origin/main` au §1 ;
+3. `npm test` et `node check-publication.mjs` — les deux doivent passer avant
+   toute modification ;
+4. lire le registre (`KNOWN_LIMITATIONS.md`), puis le document du domaine
+   touché selon le §2 ;
+5. travailler **sur une branche**, ouvrir une PR, laisser la CI se prononcer.
+   **Ne jamais pousser directement sur `main`** — y compris pour un document :
+   la PR #3 et la PR documentaire qui a amené cette version ont toutes deux
+   suivi ce chemin ;
+6. ne pas relancer un travail déjà fait : §3 pour ML-009, §4 pour ce qui est
+   vérifié, §6 pour ce qui reste ouvert.
