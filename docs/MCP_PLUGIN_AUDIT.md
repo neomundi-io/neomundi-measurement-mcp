@@ -1,4 +1,21 @@
-# MCP 0.2 et plugin — audit de livraison
+# MCP et plugin — audit de livraison
+
+## Candidate 0.3.0-rc.1 : contrat vérifiable
+
+Le code API a permis d'identifier les métadonnées manquantes. La correction associée
+déclare la provenance réelle des compteurs et publie des contrats REST/SSE séparés.
+Le MCP valide les réponses contre ces schémas inclus à l'identique, avec leur SHA-256.
+Une version seule ne suffit pas ; les anciens résultats restent non validés.
+Lire [le guide de qualification](RESPONSE_CONTRACTS_FR.md).
+
+La suite backend complète passe : 1 002 tests. Les 22 tests dédiés couvrent aussi les
+vraies routes simulées, la provenance fournisseur/zéro/secours, les absences et la relecture.
+L'installation locale de la candidate dans un profil Codex isolé et deux appels MCP
+avec le SDK indépendant 1.32.2 ont validé les schémas, les null et l'intégrité SSE
+contre un serveur local simulé. Aucun appel hébergé n'a été lancé pour cette candidate.
+Le déploiement API et la qualification réelle restent requis avant la release finale.
+
+## Livraison 0.2 et preuves historiques
 
 26 octobre 2026. Base du dépôt : `574a4fd92c96906b548d27f2bf31d7765df15e81`.
 Les observations distantes précédentes restent datées ; cette livraison

@@ -1,3 +1,5 @@
+> **0.3.0-rc.1:** versioned response-contract validation is described in [the contract guide](../docs/RESPONSE_CONTRACTS.md). Final hosted qualification is pending.
+
 > **0.2.0 update:** this page retains the HTTP configuration and historical
 > evidence. A local stdio/plugin entry is now available; read
 > [installation](../docs/PLUGIN.md) ([Français](../docs/PLUGIN_FR.md)).

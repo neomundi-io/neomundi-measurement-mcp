@@ -2,6 +2,8 @@
 
 [English](README.md) · [Français](README_FR.md)
 
+**Next release: 0.3.0-rc.1.** Adds validation against versioned REST/SSE response schemas. The backend companion change must be deployed and freshly qualified before a final release. The completed live test below concerns 0.2.0. [Response contracts and release steps](docs/RESPONSE_CONTRACTS.md).
+
 ![REST](https://img.shields.io/badge/API-REST-blue) ![SSE](https://img.shields.io/badge/API-SSE-blue) ![Plugin](https://img.shields.io/badge/plugin-local_pilot-orange)
 
 Measure an existing AI execution from an agent, or request a generation with
@@ -24,7 +26,7 @@ carry an incomplete measurement.
 
 ## Where we stand
 
-Connector/plugin version **0.2.0 — pilot evaluation**.
+Last live-qualified plugin: **0.2.0 — pilot evaluation**. Current source: **0.3.0-rc.1**.
 
 **Live qualification completed on 26 October 2026:** one REST diagnostic and
 one bounded SSE generation through the installed local plugin reached the

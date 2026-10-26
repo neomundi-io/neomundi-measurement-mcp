@@ -149,7 +149,7 @@ export function createMcpServer({ config, fetchImpl = globalThis.fetch }) {
       rpcResult(response, id, {
         protocolVersion,
         capabilities: { tools: { listChanged: false } },
-        serverInfo: { name: 'neomundi-measurement-mcp-private', version: '0.2.0' },
+        serverInfo: { name: 'neomundi-measurement-mcp-private', version: '0.3.0-rc.1' },
         instructions: 'NeoMundi supplies raw measurements and metrological context. Preserve all states and null. No measurement grants execution permission or constitutes a compliance, safety, assurance or governance decision. API errors are transport errors, not measurement classifications.',
       }, { 'Mcp-Session-Id': newId });
       return;
