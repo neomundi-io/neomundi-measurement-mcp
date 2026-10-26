@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "neomundi": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["${PLUGIN_ROOT}/runtime/stdio.mjs"],
+      "cwd": "${PLUGIN_ROOT}"
+    }
+  }
+}

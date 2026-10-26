@@ -1,0 +1,68 @@
+# MCP 0.2 et plugin — audit de livraison
+
+26 octobre 2026. Base du dépôt : `574a4fd92c96906b548d27f2bf31d7765df15e81`.
+Les observations distantes précédentes restent datées ; cette livraison
+ne les transforme pas en preuve de déploiement du nouveau code.
+
+## Écarts et corrections
+
+| Écart constaté | Correction |
+|---|---|
+| `done` accepté sans contrôle d’assemblage et des métadonnées fournies | Comparaison des chunks reconnus au récapitulatif ; longueur Unicode, octets UTF-8 et SHA-256 fournis vérifiés |
+| `stream_interrupted: true` pouvait valider le transport | Erreur d’interruption explicite |
+| Intégrité absente des informations de validation | Champ `integrity` séparé de la conformité du contrat et de la mesure |
+| Génération pouvait omettre modèle et fournisseur | Paramètres explicites requis en 0.2 ; aucun modèle imposé |
+| Pas de plugin local distribué | Manifestes portables et compatibilité Codex, catalogue local, skill d’usage et package avec empreintes |
+| Pas d’entrée stdio | Relais stdio réutilisant le dispatcher HTTP sur loopback éphémère |
+| Documentation mélangeant états anciens et état actuel | Accueil français, guide d’installation FR/EN et addenda de portée |
+
+Les preuves serveur restent intactes, y compris les événements et lexèmes
+numériques. Une erreur ne transforme pas le contenu en « dangereux ».
+Un `done` historique opaque ou `[DONE]` reste supporté, sans inventer
+de texte final, de version ou de preuve d’intégrité.
+
+## Vérifications
+
+La suite initiale compte 173 tests : 156 réussis, 17 ignorés parce que
+les captures REST privées optionnelles sont absentes. Les captures ne
+sont pas publiées pour supprimer les skips.
+
+Neuf tests ajoutés reproduisaient l’absence de contrôles SSE avant correction.
+Ils passent après correction. Les tests stdio couvrent découverte sans appel
+API, passage REST/SSE, précision numérique et arguments invalides sans POST.
+Bilan final : **192 tests, 175 réussis, 17 ignorés**, aucun échec.
+Les 17 captures privées manquantes restent exclues.
+
+Installation du package par le CLI Codex dans un profil isolé, version 0.2.0
+confirmée. Un client indépendant `@modelcontextprotocol/sdk` **1.32.2**
+a connecté le serveur de cette copie installée : découverte sans appel API,
+un REST avec grand entier conservé dans le texte brut, un SSE avec intégrité
+vérifiée et signal null conservé, arguments invalides sans nouvel appel.
+**Deux POST loopback, zéro appel hébergé, zéro génération fournisseur.**
+Les deux manifestes portables ont été validés contre leurs schémas officiels
+Agent Plugins 1.0.0. Le package inclut une liste explicite de fichiers et
+leurs empreintes SHA-256, pas les captures historiques ou données de tests.
+
+La compilation d’un manifeste ne constitue pas son installation ni un appel
+à un service hébergé. Chaque périmètre est rapporté séparément.
+
+## Limites maintenues
+
+- `validation.contract` ne peut pas être déclarée validée sans contrat backend versionné et vérifiable. Une étiquette de version ne suffit pas.
+- La provenance de tokens absente reste `unknown` ; des compteurs de fragments ne deviennent pas des tokens fournisseur.
+- `presentation` reste REST-shaped ; lire la réponse et les événements SSE, sans convertir artificiellement les enveloppes.
+- La livraison locale ne modifie ni l’API ni le serveur MCP hébergé. Leurs contrats et anomalies restent distincts.
+- Aucun changement du modèle scientifique, des seuils, des évaluateurs, de Cohere, de Station ou de Protocol Runner.
+- Les appels authentifiés restent conditionnés aux accès disponibles ; aucun contournement du magasin Windows ou des permissions SSH.
+- Pas de soumission à un annuaire public, de publication npm, de licence nouvelle ni de promesse d’exécution mobile.
+
+## Migration
+
+Clients HTTP existants : conserver leur authentification et leur URL.
+Pour `generation`, ajouter explicitement `model` et `provider` si absents.
+Le résultat ajoute `integrity`; les valeurs upstream ne changent pas.
+Un désaccord de métadonnées qui était ignoré devient une erreur adaptateur.
+
+Clients locaux : lire [PLUGIN_FR.md](PLUGIN_FR.md). Ils utilisent la clé
+NeoMundi et, pour la génération, une clé fournisseur par instance.
+La clé HTTP MCP interne est générée à chaque lancement, non persistée.

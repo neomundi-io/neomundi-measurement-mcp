@@ -1,0 +1,23 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "neomundi-measurement",
+  "version": "0.2.0",
+  "description": "Measure an existing AI execution or receive generation and measurements through NeoMundi REST/SSE.",
+  "author": { "name": "NeoMundi", "url": "https://neomundi.io" },
+  "homepage": "https://github.com/neomundi-io/neomundi-station-public",
+  "repository": "https://github.com/neomundi-io/neomundi-measurement-mcp",
+  "keywords": ["measurement", "mcp", "rest", "sse"],
+  "extensions": {
+    "com.openai": {
+      "requires_local_executor": true,
+      "interface": {
+        "displayName": "NeoMundi Measurement",
+        "shortDescription": "Mesurer une exécution d’IA avec REST ou SSE",
+        "longDescription": "Transmettez une exécution existante ou demandez une génération mesurée. États, null et provenance restent visibles. Une mesure ne donne aucune autorisation d’exécution.",
+        "developerName": "NeoMundi",
+        "category": "Developer tools",
+        "defaultPrompt": ["Mesure cette exécution avec NeoMundi et distingue les signaux mesurés de ceux indisponibles."]
+      }
+    }
+  }
+}

@@ -235,7 +235,7 @@ test('BL-002 is marked observable only on the streaming path', async () => {
   assert.equal(rest.observable_here, false, 'REST is unaffected by BL-002');
 
   const mock = apiMock(sseReply('event: done\ndata: {"decision":"ALLOW","stability_score":0.9231}\n\n'));
-  const streamed = await measureExecution({ generation: { prompt: 'Question synthétique' } },
+  const streamed = await measureExecution({ generation: { prompt: 'Question synthétique', model: 'synthetic-model', provider: 'openai' } },
     { config: testConfig(), fetchImpl: mock.fetch });
   const sse = streamed.reading_aid.known_limitations.find((entry) => entry.id === 'BL-002');
   assert.equal(sse.observable_here, true);

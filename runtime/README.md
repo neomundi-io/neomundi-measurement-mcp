@@ -1,3 +1,10 @@
+> **0.2.0 update:** this page retains the HTTP configuration and historical
+> evidence. A local stdio/plugin entry is now available; read
+> [installation](../docs/PLUGIN.md) ([Français](../docs/PLUGIN_FR.md)).
+> Generation requires explicit provider/model. The envelope adds transport
+> `integrity` checks without certifying the backend contract. Current tests
+> and hosted qualification limits are in [the audit](../docs/MCP_PLUGIN_AUDIT.md).
+
 # NeoMundi measurement MCP — MVP privé local
 
 Le serveur expose **un seul outil `measure_execution`**, via Streamable HTTP sur `/mcp`. Il transmet une requête à l'API existante, puis restitue ses données sans calcul, normalisation métrologique, interprétation ou décision dérivée.

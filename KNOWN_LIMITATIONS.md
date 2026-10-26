@@ -1,3 +1,22 @@
+# Current scope — connector/plugin 0.2.0, 26 October 2026
+
+The entries below preserve historical observations and identifiers.
+This addendum takes precedence for the current client capabilities:
+
+- ML-001: stdio is now implemented for local plugins; authenticated Streamable HTTP remains. Legacy GET SSE MCP is still unsupported.
+- ML-002: the tracked anonymized historical SSE observation has a reconstructed-frame replay; fresh hosted qualification of 0.2.0 is still pending.
+- SSE text assembly and supplied length/byte/hash metadata are checked. This does not fix BL-002's backend trajectory limitations.
+- `integrity` is separate from `validation.contract`. Missing metadata cannot certify an upstream contract, and no backend provenance is invented (ML-003/ML-004).
+- ML-013 remains: the existing flat presentation is primarily REST-shaped; the raw SSE final response and events remain authoritative.
+- Generation now requires explicit provider and model; one provisioned provider key per process.
+- Current offline suite: 192 tests, 175 passed, 17 skipped (private historical REST captures absent).
+- A Codex plugin installation and independent MCP-client REST/SSE calls against a local stand-in were verified. No fresh hosted test or server upgrade is claimed.
+
+Read [the audit](docs/MCP_PLUGIN_AUDIT.md) and [installation guide](docs/PLUGIN.md)
+([Français](docs/PLUGIN_FR.md)). No backend limitation is closed by this client delivery.
+
+---
+
 # Known limitations — NeoMundi measurement MCP connector
 
 **Read this before relying on any figure that reaches an agent through this

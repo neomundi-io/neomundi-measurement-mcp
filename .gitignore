@@ -41,3 +41,6 @@ runtime/tests/fixtures/captured/
 *.captured.json
 observation.json
 report_*.json
+
+# Built plugin artifacts; source manifests remain tracked.
+dist/

@@ -1,101 +1,84 @@
-> **Choose your path:** integrate the measurement signal into your own infrastructure with the API, SDK or MCP, or [explore Station](https://github.com/neomundi-io/neomundi-station-public) to use the hosted instrument. The dashboard is a planned capability; see Station's current access and availability.
->
-> [Understand the measurements](https://github.com/neomundi-io/neomundi-metric-contract) · [Data flows and confidentiality](https://github.com/neomundi-io/neomundi-io-data-protection)
+# NeoMundi measurement MCP and plugin
 
-# NeoMundi measurement MCP
+[English](README.md) · [Français](README_FR.md)
 
-**Status: `LIVE_TRANSPORT_VALIDATED_CONTRACT_PENDING` — experimental.**
+![REST](https://img.shields.io/badge/API-REST-blue) ![SSE](https://img.shields.io/badge/API-SSE-blue) ![Plugin](https://img.shields.io/badge/plugin-local_pilot-orange)
 
-An MCP server exposing one tool, **`measure_execution`**, over Streamable HTTP.
-It transmits a request to the NeoMundi measurement API and relays the server's
-values verbatim. It recomputes nothing, corrects nothing, and decides nothing.
+Measure an existing AI execution from an agent, or request a generation with
+measurements. `measure_execution` preserves server values, null, states and
+provenance. [Explore Station](https://github.com/neomundi-io/neomundi-station-public).
 
-### "Private" here means the deployment posture, not this repository
+## Choose your path
 
-**This repository is public.** The word *private* appears in the package name,
-in `serverInfo.name` and in several document titles, and it has never meant the
-repository. Five different things are easy to conflate, so they are separated
-once, here:
-
-| | |
+| Need | Path |
 |---|---|
-| **Repository visibility** | **public.** Anyone can read this source |
-| **Software distribution** | **none.** No npm publish, no container registry, no release. The image in `Dockerfile` is built and run locally |
-| **Authentication** | **required.** Every MCP request needs `Authorization: Bearer`, compared in constant time, behind a `Host` allow-list and an `Origin` check |
-| **Data confidentiality** | **nothing is stored or logged here.** No `.env` is read, no header, argument, body or measurement is logged, and a payload containing a configured credential is withheld whole rather than rewritten |
-| **Internal resources** | **not published.** The one-shot live-call probe (ML-010), the recorded API responses, and the internal reports are excluded from this repository, and `check-publication.mjs` fails the build if one of them appears |
+| Measure an answer your application already produced | `execution`: REST `/v1/govern` |
+| Generate through NeoMundi and receive checks | `generation`: SSE `/v1/govern/stream` |
+| Install locally in an agent client | Desktop stdio plugin, Node.js 24+ |
+| Host the connector yourself | Authenticated Streamable HTTP |
 
-What *private* does describe: the server listens on loopback by default and is
-not meant to face the public internet. See ML-001 and ML-012.
+Upstream SSE is separate from MCP transport. The MCP client receives the
+terminal result and retained events, not a promise of live token rendering.
+Legacy GET SSE MCP transport is not implemented. A successful transport can
+carry an incomplete measurement.
 
-> ### Read this before relying on any figure
->
-> **📋 [`KNOWN_LIMITATIONS.md`](KNOWN_LIMITATIONS.md) — what is verified, what
-> is not, and the three open backend defects BL-001, BL-002 and BL-003.**
->
-> **BL-002 in particular: on the streaming path the published decision depends
-> on how the provider slices the stream.** Until it is resolved, no streaming
-> measurement should support a published figure or a comparison between models.
-> The REST path is unaffected.
+## Where we stand
 
-A measurement is not a permission, a compliance verdict, or evidence of truth,
-safety or absence of hallucination.
+Connector/plugin version **0.2.0 — pilot evaluation**. The hosted MCP's
+historical status remains `LIVE_TRANSPORT_VALIDATED_CONTRACT_PENDING`.
+This source delivery does not update that server or grant `LIVE_API_VALIDATED`.
 
-## What works today
+- REST and SSE use the same adapter from HTTP and stdio.
+- SSE assembly and supplied Unicode length, UTF-8 bytes and SHA-256 are checked.
+- Interruptions and mismatched integrity metadata are explicit errors; raw evidence remains available.
+- No retries, reconnections, second measurements or RGC emissions occur automatically.
+- Generation requires explicit `model` and `provider`, matching the provider credential provisioned to the process.
+- A local installable plugin and FR/EN installation guides are included.
 
-| | |
-|---|---|
-| Transport | Streamable HTTP, **loopback only**. Not stdio |
-| Tool | one, `measure_execution`, with two mutually exclusive paths |
-| `execution` | `POST /v1/govern` — **verified against 11 recorded real responses** |
-| `generation` | `POST /v1/govern/stream` — real transport observed once; see BL-002 and ML-002 |
-| Runtime dependencies | **none**. Node.js 24 or later |
-| Reading aid | homonym fields and their scales, withheld aggregates, unmeasured causes, preserved nulls, known limitations — all **beside** the response, never inside it |
-| Upstream errors | 401, 402, 413, 422, 429, 500, 502, 503, 504 each classified, with what each implies about billing and what a caller may do |
-| Retries | **none, ever.** The measurement call is not idempotent |
+Tests: **192 total, 175 passed, 17 skipped** without private historical REST
+captures. Those captures remain excluded. Plugin installation was tested in
+an isolated Codex profile; an independent MCP SDK client exercised the installed
+REST/SSE entry against a local stand-in. These are not hosted API tests.
+See [audit and verification](docs/MCP_PLUGIN_AUDIT.md).
 
-**Tests in this repository:** `118 passed, 9 skipped` on a fresh clone;
-`187 passed` once recorded API responses are present. The recordings are
-execution data and are not kept here, so the replay that uses them skips with a
-stated reason and names each check it could not run.
+## Install and run
 
-## Quick start
+- [Plugin installation](docs/PLUGIN.md) · [Français](docs/PLUGIN_FR.md)
+- [HTTP server configuration](runtime/README.md)
+- [Known limitations and dated evidence](KNOWN_LIMITATIONS.md)
+- [Measurement definitions](https://github.com/neomundi-io/neomundi-metric-contract)
+- [Data flows and confidentiality](https://github.com/neomundi-io/neomundi-io-data-protection)
 
-Node.js 24 or later, nothing to install.
+After environment credentials are provisioned:
 
-```
+```sh
+# Entry launched by a local MCP client
+node runtime/stdio.mjs
+# Standalone HTTP server; also requires NEOMUNDI_MCP_API_KEY
 node runtime/server.mjs
 ```
 
-Credentials come from the process environment and nowhere else; no `.env` file
-is ever loaded. Startup contacts no API. **A valid tool call against a running
-server reaches NeoMundi and can consume quota, and provider resources on the
-`generation` path.**
+No credentials are bundled or read from `.env`. Stdio generates a random
+internal MCP credential and binds an ephemeral loopback listener; HTTP hosting
+uses its separately provisioned MCP credential. There is one provider key per
+process: use separately provisioned instances for different credentials.
+Startup and tool discovery contact no NeoMundi API. Tool calls can consume
+quota and provider resources. Output containing a known credential is withheld.
 
-Verify everything first, with no credentials and no remote call:
+## Verify and package
 
+```sh
+npm test
+node check-publication.mjs
+npm run build:plugin
 ```
-node runtime/demo.mjs
-node --test tests/audit.test.mjs runtime/tests/*.test.mjs
-```
 
-## Documentation
+The package builder uses an explicit file allow-list and refuses overwriting
+an existing output directory. No npm publication, new licence grant, public
+directory submission or hosted deployment is performed by this build.
 
-| Document | Contents |
-|---|---|
-| [`KNOWN_LIMITATIONS.md`](KNOWN_LIMITATIONS.md) | **the register of what does and does not work** |
-| [`runtime/README.md`](runtime/README.md) | installation, client configuration, tools, envelope, reading aid, upstream statuses, SSE limits, and how the API, the Python SDK and this connector fit together |
-| [`runtime/CONSOLIDATION_REPORT.md`](runtime/CONSOLIDATION_REPORT.md) | validation status after the first real observation |
-| [`API_CONTRACT_AUDIT.md`](API_CONTRACT_AUDIT.md) | the initial contract audit, kept for the record |
-| [`README_AUDIT.md`](README_AUDIT.md) | the historical page from before implementation |
-
-The reports at the root and the schemas under `schemas/` document the
-historical audit. The active MCP schemas are under `runtime/schemas/`.
-`collect-evidence.ps1` needs local source archives that are not distributed
-here.
-
----
-
-## Explore NeoMundi
-
-[Station](https://github.com/neomundi-io/neomundi-station-public) · [Measurement API](https://github.com/neomundi-io/neomundi-runtime-measurement) · [Evidence library](https://github.com/neomundi-io/neomundi-station-public/blob/main/EVIDENCE.md)
+`integrity` checks transport evidence only. `validation.contract` stays separate:
+the connector does not invent absent contract versions or token provenance.
+`presentation` is REST-shaped; read the raw final response and events for SSE.
+A measurement grants no execution permission and proves neither truth, safety,
+absence of hallucination nor compliance. Interpretation remains yours.

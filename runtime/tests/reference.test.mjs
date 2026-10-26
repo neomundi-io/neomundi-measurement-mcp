@@ -98,7 +98,7 @@ test('the SSE done event declares no version, and that is not an error', async (
   // no version is published on that path. An absence in the upstream contract
   // must read as not_declared, not as agreement and not as a failure.
   const mock = apiMock(sseReply('event: done\ndata: {"decision":"ALLOW","stability_score":0.9231}\n\n'));
-  const result = await measureExecution({ generation: { prompt: 'Question synthétique' } },
+  const result = await measureExecution({ generation: { prompt: 'Question synthétique', model: 'synthetic-model', provider: 'openai' } },
     { config: testConfig(), fetchImpl: mock.fetch });
 
   assert.equal(result.adapter_error, null);
@@ -110,7 +110,7 @@ test('the SSE done event declares no version, and that is not an error', async (
 
 test('a [DONE]-only stream has no final object, so no version is attributed to it', async () => {
   const mock = apiMock(sseReply('data: {"content":"x"}\n\ndata: [DONE]\n\n'));
-  const result = await measureExecution({ generation: { prompt: 'Question synthétique' } },
+  const result = await measureExecution({ generation: { prompt: 'Question synthétique', model: 'synthetic-model', provider: 'openai' } },
     { config: testConfig(), fetchImpl: mock.fetch });
   assert.equal(result.sse.termination, '[DONE]');
   assert.equal(result.response, null);
