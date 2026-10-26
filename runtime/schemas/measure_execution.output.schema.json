@@ -14,7 +14,8 @@
     "measurement_reference",
     "reading_aid",
     "validation",
-    "presentation"
+    "presentation",
+    "integrity"
   ],
   "properties": {
     "transport": {
@@ -437,7 +438,7 @@
             "array",
             "null"
           ],
-          "description": "One entry per unmeasured signal with the cause the server named; null when the block is absent or null. Null here does not mean every signal was measured — measurement_status says that."
+          "description": "One entry per unmeasured signal with the cause the server named; null when the block is absent or null. Null here does not mean every signal was measured \u2014 measurement_status says that."
         },
         "evaluators": {
           "type": [
@@ -467,6 +468,38 @@
         "field_sources": {
           "type": "object",
           "description": "Every presented field and the exact source path it was copied from, so a reader can return to the raw value and so a subset is declared as a subset."
+        }
+      }
+    },
+    "integrity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "checks",
+        "missing"
+      ],
+      "description": "Adapter transport checks only. Never scientific validity, measurement completeness or upstream contract certification.",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "not_assessed",
+            "verified",
+            "failed"
+          ]
+        },
+        "checks": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "missing": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       }
     }

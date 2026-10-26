@@ -1,15 +1,19 @@
 {
   "name": "neomundi-measurement-mcp-repository",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "description": "Repository-level entry points. The connector itself is runtime/; see runtime/package.json.",
-  "engines": { "node": ">=24" },
+  "engines": {
+    "node": ">=24"
+  },
   "scripts": {
     "test": "node --test runtime/tests/*.test.mjs tests/*.test.mjs",
     "test:runtime": "node --test runtime/tests/*.test.mjs",
     "test:audit": "node --test tests/*.test.mjs",
     "start": "node runtime/server.mjs",
-    "demo": "node runtime/demo.mjs"
+    "demo": "node runtime/demo.mjs",
+    "start:stdio": "node runtime/stdio.mjs",
+    "build:plugin": "node scripts/build-plugin.mjs"
   }
 }

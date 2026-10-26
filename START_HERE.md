@@ -1,3 +1,28 @@
+# Reprise — MCP et plugin 0.2.0, 26 octobre 2026
+
+Cette section prime sur les relevés historiques ci-dessous.
+Base du travail : `574a4fd92c96906b548d27f2bf31d7765df15e81`.
+La branche de livraison est `feat/mcp-plugin-consolidation` ; consulter Git
+et la PR pour l'état de fusion, sans déduire un déploiement de cette fiche.
+
+Livré : contrôles SSE d'assemblage et d'intégrité, interruption déclarée
+refusée, modèle/fournisseur explicites, entrée MCP stdio réutilisant HTTP,
+plugin local portable et compatibilité Codex, guides FR/EN.
+
+Vérifications : 192 tests, 175 réussis, 17 ignorés sans captures privées.
+Installation dans un profil Codex isolé et appels REST/SSE via un client MCP
+indépendant contre un stand-in local. Aucun nouvel appel API hébergé ou
+fournisseur. Lire [l'audit](docs/MCP_PLUGIN_AUDIT.md).
+
+Prochaine étape : qualifier le nouveau code contre l'environnement hébergé
+après accès opérateur et déploiement contrôlé. La provenance des tokens et
+le contrat SSE backend manquants restent un chantier backend, pas des champs
+que le connecteur peut fabriquer. Station, Runner et Cohere inchangés.
+
+Les anciens résultats et totaux ci-dessous sont conservés comme historiques.
+
+---
+
 # START HERE — connecteur MCP NeoMundi
 
 **Point d'entrée de reprise de ce dépôt. À lire en premier.**

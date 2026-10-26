@@ -3,6 +3,7 @@ import { measurementReference } from './reference.mjs';
 import { AID_REFERENCE, readingAid } from './guidance.mjs';
 import { presentation } from './presentation.mjs';
 import { classifyUpstreamStatus } from './upstream.mjs';
+import { StreamIntegrity } from './integrity.mjs';
 
 const messages = Object.freeze({
   INVALID_ARGUMENTS: 'Arguments do not match the declared tool schema. No API call was made.',
@@ -14,6 +15,7 @@ const messages = Object.freeze({
   SSE_ERROR: 'NeoMundi emitted an SSE error event. Received events are retained.',
   SSE_INTERRUPTED: 'The SSE connection ended without done or [DONE]. The remote execution outcome is unknown.',
   SSE_TERMINAL_INVALID: 'The named done event did not contain a JSON object or null.',
+  SSE_INTEGRITY_INVALID: 'SSE content or supplied assembly/length/byte/hash metadata disagree. Raw evidence is retained; no successful transport is claimed.',
   RESPONSE_TOO_LARGE: 'The configured response size or event limit was exceeded. The remote outcome may be unknown.',
   UTF8_INVALID: 'NeoMundi returned invalid UTF-8.',
   TOTAL_TIMEOUT: 'The configured total API deadline elapsed. The remote execution outcome may be unknown.',
@@ -33,6 +35,7 @@ export class AdapterFailure extends Error {
 }
 export function emptyOutput() {
   return { transport: null, response: null, raw_response: null, sse: null, adapter_error: null,
+    integrity: { status: 'not_assessed', checks: [], missing: [] },
     contract_version: null, token_count_source: 'unknown',
     // The expected revision is a property of this code, so it is always
     // knowable, including before any byte has been received.
@@ -141,6 +144,7 @@ class SseParser {
     this.event = '';
     this.id = undefined;
     this.afterCR = false;
+    this.integrity = new StreamIntegrity();
   }
   feed(chunk) {
     let start = this.afterCR && chunk.startsWith('\n') ? 1 : 0;
@@ -193,6 +197,10 @@ class SseParser {
     if (this.id !== undefined) event.id = this.id;
     this.output.sse.events.push(event);
     exposeVersion(this.output, data);
+    if (event.event === 'chunk' && !this.integrity.chunk(data)) {
+      this.output.integrity.status = 'failed';
+      throw new AdapterFailure('SSE_INTEGRITY_INVALID');
+    }
     if (event.event === 'error') throw new AdapterFailure('SSE_ERROR');
     if (marker) {
       this.output.sse.termination = '[DONE]';
@@ -201,6 +209,12 @@ class SseParser {
       this.output.response = data;
       this.output.raw_response = raw;
       this.output.sse.termination = 'done';
+      if (isObject(data) && owns(data, 'stream_interrupted')) {
+        if (typeof data.stream_interrupted !== 'boolean') throw new AdapterFailure('SSE_INTEGRITY_INVALID');
+        if (data.stream_interrupted) throw new AdapterFailure('SSE_INTERRUPTED');
+      }
+      this.output.integrity = this.integrity.finish(data);
+      if (this.output.integrity.status === 'failed') throw new AdapterFailure('SSE_INTEGRITY_INVALID');
     }
   }
 }
@@ -292,6 +306,7 @@ export async function measureExecution(arguments_, { config, fetchImpl = globalT
       controller.signal.aborted && controller.signal.reason instanceof AdapterFailure ? controller.signal.reason :
         new AdapterFailure('NETWORK_ERROR');
     if (failure.code === 'CREDENTIAL_DISCLOSURE') output = emptyOutput();
+    if (failure.code === 'SSE_INTEGRITY_INVALID') output.integrity.status = 'failed';
     return failedOutput(failure.code, output, failure.httpStatus);
   } finally {
     clearTimeout(totalTimer);
