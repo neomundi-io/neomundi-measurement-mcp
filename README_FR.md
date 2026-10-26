@@ -20,6 +20,18 @@ résultat final et les événements conservés ; l’interface n’est pas promi
 comme un affichage token par token. La mesure peut rester incomplète même
 si le transport a abouti.
 
+## Validation réelle du plugin
+
+Le 26 octobre 2026, le plugin installé 0.2.0 a réalisé un REST diagnostique
+et une génération SSE courte contre l’API réelle. Les deux mesures déclarent
+**3 contrôles réussis sur 3**, sans erreur adaptateur. L’intégrité SSE
+(assemblage, longueur, octets, SHA-256) a été vérifiée indépendamment.
+
+Le contrat complet reste non validé faute de métadonnées. Le serveur MCP
+hébergé n’a pas été mis à jour ou qualifié par ce test. Lire
+[les preuves et réserves](docs/MCP_PLUGIN_AUDIT.md) avant toute généralisation.
+La release pilote peut maintenant être préparée.
+
 ## Installer et comprendre
 
 - [Installer le plugin local](docs/PLUGIN_FR.md)
