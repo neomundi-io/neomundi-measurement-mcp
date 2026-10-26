@@ -47,7 +47,10 @@ export async function runStdio({ environment = process.env, input = process.stdi
       if (owns(message, 'id')) error(message.id, -32603, 'Local MCP transport failed. Outcome may be unknown; do not replay automatically.');
     }).finally(() => pending.delete(job));
     pending.add(job);
-    if (message.method === 'initialize') initialization = job;
+    // Preserve the stdio handshake order across concurrent loopback HTTP
+    // requests. Tool calls must wait for the initialized notification too.
+    // Do not serialize ordinary calls: cancellation must remain concurrent.
+    if (message.method === 'initialize' || message.method === 'notifications/initialized') initialization = job;
   }
   try {
     const decoder = new TextDecoder('utf-8', { fatal: true });

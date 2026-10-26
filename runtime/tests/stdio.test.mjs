@@ -34,10 +34,24 @@ async function host(t, fetchImpl) {
     clientInfo: { name: 'stdio-test-host', version: '1' } });
   assert.equal(hello.result.protocolVersion, '2025-06-18');
   send('notifications/initialized', {}, true);
-  // Ping fences the initialization notification before tool calls.
-  await send('ping', {});
   return { send, replies, input };
 }
+
+test('stdio preserves initialization order even when notification HTTP handling is delayed', async t => {
+  const originalFetch=globalThis.fetch;
+  t.mock.method(globalThis,'fetch',async(url,options)=>{
+    if(JSON.parse(options.body).method==='notifications/initialized') {
+      await new Promise(resolve=>setTimeout(resolve,30));
+    }
+    return originalFetch(url,options);
+  });
+  let calls=0;
+  const h=await host(t,async()=>{calls++;throw Error('unexpected upstream call');});
+  const listed=await h.send('tools/list',{});
+  assert.equal(listed.error,undefined);
+  assert.equal(listed.result.tools[0].name,'measure_execution');
+  assert.equal(calls,0);
+});
 
 test('stdio startup, initialize and tools/list emit only JSON-RPC and never contact the API', async t => {
   let calls = 0;

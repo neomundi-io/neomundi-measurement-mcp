@@ -15,7 +15,8 @@
     "reading_aid",
     "validation",
     "presentation",
-    "integrity"
+    "integrity",
+    "contract_validation"
   ],
   "properties": {
     "transport": {
@@ -228,7 +229,8 @@
         "contract": {
           "enum": [
             "not_validated",
-            "not_assessed"
+            "not_assessed",
+            "validated"
           ],
           "description": "Missing envelope metadata prevents validation. Otherwise not assessed: no authoritative backend schema is selected. This is not a server measurement classification or a prompt compliance check."
         },
@@ -499,6 +501,66 @@
           "type": "array",
           "items": {
             "type": "string"
+          }
+        }
+      }
+    },
+    "contract_validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "schema_id",
+        "schema_sha256",
+        "schema_origin",
+        "issues"
+      ],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "not_assessed",
+            "not_identified",
+            "unsupported",
+            "validated",
+            "invalid"
+          ]
+        },
+        "schema_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "schema_sha256": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "schema_origin": {
+          "type": "string",
+          "enum": [
+            "bundled_backend_wire_schema"
+          ]
+        },
+        "issues": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "path",
+              "keyword"
+            ],
+            "properties": {
+              "path": {
+                "type": "string"
+              },
+              "keyword": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
           }
         }
       }

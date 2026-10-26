@@ -2,7 +2,7 @@
 
 [English](PLUGIN.md) · [Français](PLUGIN_FR.md)
 
-Local pilot plugin 0.2.0. Requires Node.js 24+. It includes an MCP server
+Local pilot plugin 0.3.0-rc.1. Requires Node.js 24+. It includes an MCP server
 and usage skill, not a model, credentials, provider account or public-directory
 listing. No licence decision or additional reuse grant is made here.
 
@@ -70,3 +70,5 @@ remain explicit. See [audit and executed checks](MCP_PLUGIN_AUDIT.md).
 
 Official format references: [packaging](https://developers.openai.com/plugins/build/plugins)
 and [desktop-only plugins](https://developers.openai.com/plugins/deploy/desktop-only).
+
+Response contracts and candidate qualification: [guide](RESPONSE_CONTRACTS.md).

@@ -1,3 +1,15 @@
+# Reprise — contrats REST/SSE et prochaine release
+
+Source : **0.3.0-rc.1**, candidate. Le test réel réussi du 26 octobre porte sur **0.2.0**.
+Lire [contrats et livraison](docs/RESPONSE_CONTRACTS_FR.md), puis [installation](docs/PLUGIN_FR.md).
+Le backend doit publier les métadonnées et les deux schémas avant la qualification finale.
+Les captures historiques restent inchangées ; elles ne deviennent pas conformes rétroactivement.
+Le serveur MCP hébergé reste un déploiement séparé. Aucun annuaire public n'est déclaré validé.
+
+Les relevés datés ci-dessous sont conservés pour la traçabilité.
+
+---
+
 # Reprise — MCP et plugin 0.2.0, 26 octobre 2026
 
 Cette section prime sur les relevés historiques ci-dessous.

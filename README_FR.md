@@ -2,6 +2,8 @@
 
 [Français](README_FR.md) · [English](README.md)
 
+**Prochaine version : 0.3.0-rc.1.** Elle vérifie les contrats de réponse REST/SSE versionnés. La correction API associée doit être déployée puis qualifiée avant la release finale. Le test réel ci-dessous concerne la version 0.2.0. [Contrats et étapes de livraison](docs/RESPONSE_CONTRACTS_FR.md).
+
 ![REST](https://img.shields.io/badge/API-REST-blue) ![SSE](https://img.shields.io/badge/API-SSE-blue) ![Plugin](https://img.shields.io/badge/plugin-local_pilote-orange)
 
 Mesurer une exécution d’IA depuis votre agent, ou demander une génération
@@ -30,7 +32,7 @@ et une génération SSE courte contre l’API réelle. Les deux mesures déclare
 Le contrat complet reste non validé faute de métadonnées. Le serveur MCP
 hébergé n’a pas été mis à jour ou qualifié par ce test. Lire
 [les preuves et réserves](docs/MCP_PLUGIN_AUDIT.md) avant toute généralisation.
-La release pilote peut maintenant être préparée.
+La prochaine release est préparée avec un contrat vérifiable côté API et côté client.
 
 ## Installer et comprendre
 

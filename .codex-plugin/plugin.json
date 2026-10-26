@@ -1,8 +1,10 @@
 {
   "name": "neomundi-measurement",
-  "version": "0.2.0",
+  "version": "0.3.0-rc.1",
   "description": "NeoMundi REST/SSE measurement connector for pilot evaluation.",
-  "author": { "name": "NeoMundi" },
+  "author": {
+    "name": "NeoMundi"
+  },
   "skills": "./skills/",
   "mcpServers": "./.mcp.json",
   "interface": {

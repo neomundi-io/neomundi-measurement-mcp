@@ -4,6 +4,7 @@ import { AID_REFERENCE, readingAid } from './guidance.mjs';
 import { presentation } from './presentation.mjs';
 import { classifyUpstreamStatus } from './upstream.mjs';
 import { StreamIntegrity } from './integrity.mjs';
+import { responseContract } from './response-contracts.mjs';
 
 const messages = Object.freeze({
   INVALID_ARGUMENTS: 'Arguments do not match the declared tool schema. No API call was made.',
@@ -36,6 +37,8 @@ export class AdapterFailure extends Error {
 export function emptyOutput() {
   return { transport: null, response: null, raw_response: null, sse: null, adapter_error: null,
     integrity: { status: 'not_assessed', checks: [], missing: [] },
+    contract_validation: { status: 'not_assessed', schema_id: null, schema_sha256: null,
+      schema_origin: 'bundled_backend_wire_schema', issues: [] },
     contract_version: null, token_count_source: 'unknown',
     // The expected revision is a property of this code, so it is always
     // knowable, including before any byte has been received.
@@ -111,13 +114,16 @@ function completedOutput(output) {
   output.token_count_source = typeof source === 'string' && source.trim() ? source : 'unknown';
   output.validation.transport = 'validated';
   output.validation.metadata_gaps = [
-    ...(output.contract_version === null ? ['contract_version_missing'] : []),
+    ...(output.response?.contract_version == null ? ['contract_version_missing'] : []),
     ...(output.token_count_source === 'unknown' ? ['token_count_source_unknown'] : []),
   ];
-  // A version label alone cannot validate an opaque, unversioned SSE schema.
+  // A label alone proves nothing: validate the identified bundled schema below.
   output.validation.contract = output.validation.metadata_gaps.length ? 'not_validated' : 'not_assessed';
+  output.contract_validation = responseContract(output.response, output.transport);
+  if (output.contract_validation.status === 'validated') output.validation.contract = 'validated';
+  else if (output.contract_validation.status === 'invalid') output.validation.contract = 'not_validated';
   // Reported beside, never inside, `validation`: the published meaning of those
-  // three states is unchanged by this addition, and a version agreement is not
+  // measurement-version states is unchanged by this addition; agreement is not
   // a contract conformance verdict.
   output.measurement_reference = measurementReference(output.response);
   // Built beside the response, from the response, and changing nothing in it.

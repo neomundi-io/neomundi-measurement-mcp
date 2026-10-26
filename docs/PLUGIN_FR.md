@@ -2,7 +2,7 @@
 
 [Français](PLUGIN_FR.md) · [English](PLUGIN.md)
 
-Plugin local **0.2.0**, destiné aux pilotes. Node.js 24 ou plus récent est
+Plugin local **0.3.0-rc.1**, destiné aux pilotes. Node.js 24 ou plus récent est
 nécessaire. Le package inclut un serveur MCP et un guide d’usage ; il ne
 contient ni modèle, ni clé, ni abonnement fournisseur. Il n’est pas publié
 dans l’annuaire public et aucun nouveau droit de licence n’est accordé.
@@ -103,3 +103,5 @@ effectivement exécutés et les limites d’accès au serveur hébergé.
 
 Références : [package OpenAI](https://developers.openai.com/plugins/build/plugins),
 [plugin local](https://developers.openai.com/plugins/deploy/desktop-only).
+
+Contrats de réponse et qualification de cette candidate : [guide](RESPONSE_CONTRACTS_FR.md).

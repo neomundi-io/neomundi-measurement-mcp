@@ -1,19 +1,16 @@
-# Current scope — connector/plugin 0.2.0, 26 October 2026
+# Current scope — connector/plugin 0.3.0-rc.1, 26 October 2026
 
-The entries below preserve historical observations and identifiers.
-This addendum takes precedence for the current client capabilities:
+This addendum takes precedence over the historical entries below.
 
-- ML-001: stdio is now implemented for local plugins; authenticated Streamable HTTP remains. Legacy GET SSE MCP is still unsupported.
-- ML-002: the tracked anonymized historical SSE observation has a reconstructed-frame replay; fresh hosted qualification of 0.2.0 is still pending.
-- SSE text assembly and supplied length/byte/hash metadata are checked. This does not fix BL-002's backend trajectory limitations.
-- `integrity` is separate from `validation.contract`. Missing metadata cannot certify an upstream contract, and no backend provenance is invented (ML-003/ML-004).
-- ML-013 remains: the existing flat presentation is primarily REST-shaped; the raw SSE final response and events remain authoritative.
-- Generation now requires explicit provider and model; one provisioned provider key per process.
-- Current offline suite: 192 tests, 175 passed, 17 skipped (private historical REST captures absent).
-- A Codex plugin installation and independent MCP-client REST/SSE calls against a local stand-in were verified. No fresh hosted test or server upgrade is claimed.
-
-Read [the audit](docs/MCP_PLUGIN_AUDIT.md) and [installation guide](docs/PLUGIN.md)
-([Français](docs/PLUGIN_FR.md)). No backend limitation is closed by this client delivery.
+- 0.2.0 completed one real REST diagnostic and one bounded real SSE generation on 26 October. Both measurements were complete; SSE integrity was independently verified. The separately hosted MCP server was not upgraded by that test.
+- 0.3.0-rc.1 adds actual validation against bundled versioned REST/SSE response schemas. Its companion backend change publishes the missing metadata and schemas. Production qualification of this new contract remains a release gate.
+- Historical responses remain unvalidated: no version or token provenance is inferred retroactively. Unknown contract versions remain unsupported.
+- Schema validity, SSE assembly integrity, measurement completeness, measurement-version comparability and execution permission are separate questions. None upgrades the others.
+- Stdio and authenticated Streamable HTTP are supported; legacy GET SSE MCP transport is not implemented. Upstream generation SSE is supported.
+- No retry, reconnection, second measurement or RGC emission occurs automatically. One provisioned provider credential is used per process.
+- ML-013 remains: the presentation layer is primarily REST-shaped. Read the raw SSE final response and events.
+- BL-001 to BL-003 are not closed by these metadata changes. No computation or measurement version is changed.
+- See [contracts](docs/RESPONSE_CONTRACTS.md), [FR guide](docs/PLUGIN_FR.md) and [audit](docs/MCP_PLUGIN_AUDIT.md).
 
 ---
 
@@ -245,10 +242,10 @@ path. A streaming measurement cannot be attributed to a revision, and is not
 comparable with a REST measurement. The two routes return **different
 contract shapes**, and no authoritative upstream schema exists for the SSE one.
 
-### ML-004 — Contract conformance is permanently unvalidated
+### ML-004 — Historical contract validation gap
 
-`Open`, upstream cause. The envelope reports
-`validation.contract: not_validated` on **every** call, because the two
+`Historical observation (before 0.3.0)`, upstream cause. The envelope reported
+`validation.contract: not_validated` on calls against the then-unversioned API, because the two
 metadata fields it looks for are not emitted by the backend. The field
 therefore never discriminates. It is kept unchanged rather than redefined, so
 that its published meaning does not shift under existing consumers.
