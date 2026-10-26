@@ -15,6 +15,13 @@ avec le SDK indépendant 1.32.2 ont validé les schémas, les null et l'intégri
 contre un serveur local simulé. Aucun appel hébergé n'a été lancé pour cette candidate.
 Le déploiement API et la qualification réelle restent requis avant la release finale.
 
+Un essai d'installation a aussi révélé une course d'initialisation stdio : un appel
+pouvait devancer `notifications/initialized` dans le relais HTTP local. L'ordre est
+désormais garanti pour le handshake, sans sérialiser les appels ordinaires ni bloquer
+leur annulation. Un test retarde volontairement la notification et exige que la liste
+des outils réussisse, sans appel à l'API. Suite MCP : 210 tests, 193 réussis et 17
+ignorés faute de captures privées. Les captures de 0.2 ne sont pas modifiées.
+
 ## Livraison 0.2 et preuves historiques
 
 26 octobre 2026. Base du dépôt : `574a4fd92c96906b548d27f2bf31d7765df15e81`.
