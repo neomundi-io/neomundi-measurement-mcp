@@ -46,6 +46,39 @@ leurs empreintes SHA-256, pas les captures historiques ou données de tests.
 La compilation d’un manifeste ne constitue pas son installation ni un appel
 à un service hébergé. Chaque périmètre est rapporté séparément.
 
+## Qualification réelle du plugin installé — 26 octobre 2026
+
+Après fusion de la PR #7, le plugin installé **0.2.0** a effectué un appel
+REST diagnostique et une génération SSE réelle via OpenAI/gpt-4o-mini,
+sortie limitée à huit tokens, contre l’API NeoMundi hébergée.
+Les deux ont retourné un transport validé, sans erreur adaptateur, et une
+mesure déclarée complète : trois contrôles réussis sur trois, couverture 1.0.
+
+Le SSE s’est terminé par `done`. L’assemblage des deux fragments, la longueur
+Unicode, les octets UTF-8 et le SHA-256 ont été vérifiés par le connecteur,
+puis recalculés indépendamment depuis les preuves : concordance des quatre
+contrôles. REST a pris 4 547 ms côté client ; SSE, 2 989 ms.
+Le coût SSE retourné est 0.000005 ; devise et facturation effective non attestées.
+
+REST utilisait un texte de diagnostic et des métriques runtime synthétiques
+déclarées, pas des observations de performance fournisseur. Aucune relance
+automatique n’était prévue et aucune seconde mesure REST n’a été ajoutée
+à la génération SSE.
+
+**Portée : plugin local vers API réelle, pas le serveur MCP hébergé.**
+Aucun déploiement de celui-ci. Ce test ne remplace pas celui du SDK Python.
+
+**Réserves :** `validation.contract` reste `not_validated` : version de
+contrat absente et provenance de tokens inconnue. REST déclare la mesure
+3.3.1 et le normaliseur 1.0.0 ; SSE ne déclare pas de version de mesure dans
+le chemin audit attendu. La sonde factuelle reste dégradée malgré ces mesures
+ponctuellement réussies. Ni charge, ni répétabilité, ni tous les fournisseurs,
+ni les limites backend ne sont validés par ces deux appels.
+
+Les enveloppes brutes, identifiants opérationnels et empreintes de preuve
+sont conservés en interne, sans publication de captures dans le dépôt.
+La release pilote peut maintenant être préparée avec ces réserves explicites.
+
 ## Limites maintenues
 
 - `validation.contract` ne peut pas être déclarée validée sans contrat backend versionné et vérifiable. Une étiquette de version ne suffit pas.
