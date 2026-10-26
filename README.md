@@ -24,7 +24,15 @@ carry an incomplete measurement.
 
 ## Where we stand
 
-Connector/plugin version **0.2.0 — pilot evaluation**. The hosted MCP's
+Connector/plugin version **0.2.0 — pilot evaluation**.
+
+**Live qualification completed on 26 October 2026:** one REST diagnostic and
+one bounded SSE generation through the installed local plugin reached the
+real NeoMundi API. Both reported complete measurements (3/3); SSE assembly,
+Unicode length, UTF-8 bytes and SHA-256 were independently verified.
+Upstream contract conformance remains unvalidated because metadata is missing.
+This does not upgrade or qualify the separately hosted MCP server.
+ The hosted MCP's
 historical status remains `LIVE_TRANSPORT_VALIDATED_CONTRACT_PENDING`.
 This source delivery does not update that server or grant `LIVE_API_VALIDATED`.
 
