@@ -1,3 +1,62 @@
+# CGU EN BROUILLON SUR LE SITE — 1er novembre 2026
+
+**Cette section prime sur toutes les suivantes.**
+**Rien n'est publié. Les deux pages restent en BROUILLON.**
+
+État complet : [`LEGAL_STATUS_V1.md`](LEGAL_STATUS_V1.md).
+
+## Ce qui a été fait
+
+Les deux brouillons **préexistants** ont été remplis avec la version **0.4** :
+
+| | Français | Anglais |
+|---|---|---|
+Page | **3772** · `cgu` | **3773** · `terms-of-use` |
+Statut | **`draft`** | **`draft`** |
+
+**Seul le champ `content` a été écrit.** Titres, slugs, adresses, menus,
+traductions et réglages de thème sont intacts, et `status` a été explicitement
+maintenu à `draft`. **Aucune page créée.**
+
+## Pourquoi elles restent en brouillon
+
+**Les textes se déclarent eux-mêmes non publiables** — « projet de travail,
+non publiable en l'état » — et portent **12 clauses non arbitrées par langue**
+(7 « à compléter », 5 « à confirmer », identiques FR et EN).
+
+Trois sont structurantes : **date d'entrée en vigueur**, **limitation de
+responsabilité** (la gratuité n'exonère pas de plein droit en droit français),
+**qualification des rôles RGPD**.
+
+S'y ajoute un blocage hors CGU : **la politique de confidentialité publiée ne
+couvre pas le traitement MCP**, alors que les CGU y renvoient deux fois.
+
+## Ce qui a été vérifié
+
+**27 titres** et **18 articles** dans chaque langue, **154 blocs** Gutenberg
+par page, les **12 marqueurs** et l'avertissement de projet **survivent** à la
+conversion, et WordPress a bien stocké les **18 articles**. **Aucun lien mort**
+— les renvois internes au dépôt deviennent du texte, sauf ceux qui ont une
+page réelle.
+
+## Ce qui n'a pas pu être vérifié
+
+**Le rendu visuel, bureau et mobile.** Une page en brouillon n'est pas servie
+publiquement : l'URL de prévisualisation non authentifiée renvoie une **404**,
+ce qui a été constaté. Le thème Astra définit bien des points de rupture à
+921 px et 544 px, et tous les blocs utilisés sont standard — le risque est
+faible, **mais il n'est pas mesuré**.
+
+## Prochaine action
+
+**Trancher les trois clauses structurantes**, puis faire relire par un
+conseil. La suite est mécanique et décrite dans
+[`LEGAL_STATUS_V1.md`](LEGAL_STATUS_V1.md) §5 — avec un point à ne pas
+manquer : modifier le texte **change son empreinte**, donc la publication
+créera une **version 1.0** au registre, jamais une correction de la 0.4.
+
+---
+
 # VOLET ASSOCIATIF — statuts lus, 1er novembre 2026
 
 **Cette section prime sur toutes les suivantes. Aucun document publié, API et
