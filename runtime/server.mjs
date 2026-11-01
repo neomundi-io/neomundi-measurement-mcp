@@ -4,6 +4,7 @@ import { pathToFileURL } from 'node:url';
 import { loadConfiguration } from './config.mjs';
 import { isObject, owns, parseInputJson, scalar, toolDefinition } from './contract.mjs';
 import { measureExecution } from './adapter.mjs';
+import { CARD_RESOURCE_URI, cardResource } from './ui/card.mjs';
 
 export const SUPPORTED_PROTOCOLS = Object.freeze(['2025-06-18', '2025-03-26']);
 const digest = (value) => createHash('sha256').update(value).digest();
@@ -160,7 +161,10 @@ export function createMcpServer({ config, fetchImpl = globalThis.fetch }) {
       sessions.set(newId, { protocolVersion, initialized: false, active: new Map(), expiresAt: Date.now() + config.sessionTtlMs });
       rpcResult(response, id, {
         protocolVersion,
-        capabilities: { tools: { listChanged: false } },
+        // `resources` is declared because the measurement card is served as
+        // one. It is read-only and static: no subscriptions, no change
+        // notifications, and the only resource is the card document itself.
+        capabilities: { tools: { listChanged: false }, resources: { listChanged: false, subscribe: false } },
         serverInfo: { name: 'neomundi-measurement-mcp-private', version: '0.3.0-rc.1' },
         instructions: 'NeoMundi supplies raw measurements and metrological context. Preserve all states and null. No measurement grants execution permission or constitutes a compliance, safety, assurance or governance decision. API errors are transport errors, not measurement classifications.',
       }, { 'Mcp-Session-Id': newId });
@@ -191,6 +195,23 @@ export function createMcpServer({ config, fetchImpl = globalThis.fetch }) {
       rpcResult(response, id, { tools: [toolDefinition] });
       return;
     }
+    // The measurement card. Static, credential-free in content, and served
+    // from memory: reading it makes no upstream call and consumes no quota.
+    if (message.method === 'resources/list') {
+      if (owns(params, 'cursor')) { rpcError(response, id, -32602, 'This server has no paginated resources.'); return; }
+      const { text: _text, ...listed } = cardResource();
+      rpcResult(response, id, { resources: [listed] });
+      return;
+    }
+    if (message.method === 'resources/read') {
+      if (params.uri !== CARD_RESOURCE_URI) {
+        rpcError(response, id, -32602, 'Unknown resource URI.'); return;
+      }
+      const { uri, mimeType, text, _meta } = cardResource();
+      rpcResult(response, id, { contents: [{ uri, mimeType, text, _meta }] });
+      return;
+    }
+    if (message.method === 'resources/templates/list') { rpcResult(response, id, { resourceTemplates: [] }); return; }
     if (message.method !== 'tools/call') { rpcError(response, id, -32601, 'Method not found.'); return; }
     if (params.name !== 'measure_execution' || Object.keys(params).some((key) => !['name', 'arguments', '_meta'].includes(key))) {
       rpcError(response, id, -32602, 'Unknown tool or invalid tool call parameters.'); return;

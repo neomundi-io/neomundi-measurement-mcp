@@ -69,8 +69,19 @@ export async function runStdio({ environment = process.env, input = process.stdi
     buffer += decoder.decode();
     if (buffer.trim()) error(null, -32700, 'Unterminated JSON-RPC line.');
   } finally {
-    await app.close();
+    // Drain BEFORE closing, not after. `app.close()` aborts in-flight calls by
+    // design — that is right for a signal, where an operator is stopping the
+    // process. It is wrong here: reaching this point means stdin ended, which
+    // is the host saying "I have sent everything", not "discard what you are
+    // holding". Closing first aborted the loopback request still carrying an
+    // answer, and the caller received a transport failure for a call that had
+    // already been made and, for a measurement, already been billed — the one
+    // outcome this connector must never produce, since it never replays.
+    //
+    // Each call is bounded by the adapter's own timeouts, so this waits for a
+    // request that is already going to end rather than for an open stream.
     await Promise.allSettled(pending);
+    await app.close();
   }
 }
 

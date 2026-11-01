@@ -28,3 +28,58 @@ test('plugin and compatibility manifests point to the same credential-free MCP e
   assert.equal(portable.env, undefined);
   assert.equal(load('plugin.json').version, load('runtime/package.json').version);
 });
+
+test('listing metadata stays inside the platform limits, and claims no policy that does not exist', () => {
+  const load = path => JSON.parse(readFileSync(new URL('../' + path, import.meta.url)));
+  const manifest = load('plugin.json');
+  const openai = manifest.extensions['com.openai'].interface;
+
+  // Limits read from the platform's submission documentation on 2026-11-01.
+  // They are platform facts, not ours: re-verify them at submission time.
+  // shortDescription was 43 characters against a maximum of 30 before this
+  // was pinned, which the automated submission checks would have rejected.
+  for (const [field, max] of Object.entries({
+    displayName: 30, shortDescription: 30, longDescription: 4000, developerName: 80,
+  })) {
+    const value = openai[field];
+    assert.equal(typeof value, 'string', `${field} must be present`);
+    assert.ok([...value].length <= max, `${field} is ${[...value].length} characters, max ${max}`);
+  }
+  assert.ok([...manifest.name].length <= 64);
+  assert.match(manifest.name, /^[a-z0-9]+(-[a-z0-9]+)*$/, 'the plugin name must be kebab-case');
+
+  // Every URL declared here resolved when it was written. A URL that does not
+  // resolve is a stated rejection reason, so none may be invented to fill a
+  // field: `termsOfServiceURL` is ABSENT on purpose, because Neomundi
+  // Recherche publishes legal notices and a privacy policy but no terms of
+  // service. Adding one here would claim a document that does not exist.
+  assert.equal(openai.websiteURL, 'https://neomundi.org');
+  assert.equal(openai.privacyPolicyURL, 'https://neomundi.org/politique-de-confidentialite');
+  assert.equal(openai.supportURL, 'https://neomundi.org/contact');
+  assert.equal(Object.hasOwn(openai, 'termsOfServiceURL'), false,
+    'do not add termsOfServiceURL until a terms document actually exists');
+
+  // The association carries the plugin, so the identity shown is the
+  // association's and the site is the .org that publishes the evidence --
+  // never the .io that carries the commercial offer.
+  assert.equal(openai.developerName, 'Neomundi Recherche');
+  assert.equal(manifest.author.name, 'Neomundi Recherche');
+  assert.ok(openai.longDescription.includes('association loi 1901'));
+  // The claim the whole connector exists to protect must survive packaging.
+  assert.ok(openai.longDescription.includes('aucune autorisation d’exécution'));
+});
+
+test('the declared icons exist, are square, and are large enough to be listed', () => {
+  const manifest = JSON.parse(readFileSync(new URL('../plugin.json', import.meta.url)));
+  const declared = Object.values(manifest.icons);
+  assert.ok(declared.every(p => p.startsWith('./')), 'icon paths stay relative to the plugin root');
+  for (const [size, relative] of Object.entries(manifest.icons)) {
+    const bytes = readFileSync(new URL('../' + relative.slice(2), import.meta.url));
+    // PNG IHDR carries width and height big-endian at bytes 16 and 20.
+    const width = bytes.readUInt32BE(16), height = bytes.readUInt32BE(20);
+    assert.equal(width, Number(size), `${relative} must be ${size} wide`);
+    assert.equal(width, height, `${relative} must be square`);
+    assert.ok(width >= 48, 'the listing icon has a 48 pixel minimum');
+  }
+  assert.equal(manifest.extensions['com.openai'].interface.icon, './assets/icon-512.png');
+});

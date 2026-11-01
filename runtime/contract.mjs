@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs';
+import { CARD_RESOURCE_URI } from './ui/card.mjs';
 
 export const inputSchema = JSON.parse(readFileSync(new URL('./schemas/measure_execution.input.schema.json', import.meta.url)));
 export const outputSchema = JSON.parse(readFileSync(new URL('./schemas/measure_execution.output.schema.json', import.meta.url)));
@@ -93,4 +94,13 @@ export const toolDefinition = {
   inputSchema,
   outputSchema,
   annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
+  // Links the tool to its UI resource. Two spellings on purpose: `ui.resourceUri`
+  // is the shared MCP Apps field, and `openai/outputTemplate` is the alias
+  // ChatGPT reads. A host that understands neither ignores both and still gets
+  // the full structured output — the card is an added reading surface, never a
+  // precondition for using this tool.
+  _meta: {
+    'ui': { resourceUri: CARD_RESOURCE_URI },
+    'openai/outputTemplate': CARD_RESOURCE_URI,
+  },
 };

@@ -1,3 +1,109 @@
+# Reprise — plugin V1, carte de mesure et VPS, 1er novembre 2026
+
+**Cette section prime sur toutes les suivantes.**
+
+## Le constat qui commande tout le reste
+
+**`mcp.neomundi.org` existe, répond en HTTPS — et sert `0.1.0`.**
+
+Le VPS Infomaniak héberge un service actif depuis le 2026-10-25, derrière
+Caddy, avec un certificat Let's Encrypt valide. Le code servi est à
+**`0cbd369` du 2026-09-07, 32 commits derrière `main`**. Les modules
+`presentation.mjs`, `guidance.mjs`, `reference.mjs`, `integrity.mjs`,
+`response-contracts.mjs` et `stdio.mjs` en sont **absents**, vérifié fichier
+par fichier sur la machine.
+
+Ce sont exactement les champs qui distinguent un `ALLOW` mesuré d'un `ALLOW`
+décidé sans aucun contrôle. **La carte de mesure lit `presentation` : branchée
+sur la production actuelle, elle n'affiche pas de mesure.** Mettre la
+production à niveau est donc un **préalable**, pas un confort.
+
+Détail et procédure de bascule — non exécutée : [déploiement HTTPS](docs/DEPLOIEMENT_HTTPS.md).
+
+## État Git et vérifications
+
+| | |
+|---|---|
+Base | `origin/main` à **`0e06d5c`**, version **`0.3.0-rc.1`** |
+Branche | **`feat/chatgpt-plugin-hosted-compat`** — consulter Git et la PR pour l'état de fusion |
+Tests | **299 passés, 0 échec, 0 sauté** avec les enregistrements à côté (270 sur `main` avant ces deux passes) |
+Garde de publication | `PASS`, 95 fichiers, aucun secret, aucune trace machine |
+Image Docker | **construite et vérifiée**, base épinglée par digest d'index OCI, suite hors ligne exécutée **dans** l'image |
+Paquet | `dist/neomundi-measurement-0.3.0-rc.1.zip`, 38 fichiers, **reproductible bit pour bit** |
+MCP Inspector | **exécuté** — outil, ressource, schémas et `_meta` confirmés |
+
+## Livré par cette passe
+
+1. **Carte de mesure MCP Apps** — ressource `ui://neomundi-measurement/card-v1.html`,
+   type `text/html;profile=mcp-app`, servie par `resources/list` et
+   `resources/read`, référencée par le `_meta` de l'outil sous les deux
+   orthographes (`ui.resourceUri` et `openai/outputTemplate`).
+   Document **autonome** : aucune ressource externe, CSP déclarée **vide**,
+   toute valeur écrite en `textContent` et jamais en balisage.
+   La logique d'affichage vit dans `runtime/ui/view-model.mjs`, **fonction
+   pure testée en Node**, et c'est ce fichier exact qui est inliné dans la
+   page. **Aucun feu tricolore** : la fondation de marque l'interdit, et une
+   pastille verte sur un `ALLOW` jamais évalué serait le mensonge que cette
+   carte existe pour empêcher. Les conditions sont écrites **en mots**.
+2. **Icônes** 512/256/128/48, carrées, **dérivées** de la marque existante par
+   détourage et remplissage — jamais par étirement. Provenance et
+   transformation exactes : [`assets/README.md`](assets/README.md).
+3. **Identité de l'association** dans le manifeste, **relevée, pas inventée** :
+   Neomundi Recherche, association loi 1901, et les URL de site, de support et
+   de politique de confidentialité, **toutes vérifiées comme résolvant**.
+4. **Paquet ZIP** reproductible, construit sans aucune dépendance.
+5. **Deux corrections de défauts préexistants sur `main`** — §suivant.
+
+## Deux défauts corrigés, tous deux antérieurs à cette passe
+
+**`docker build` échouait sur `main`.** Les fichiers de `PLUGIN_FILES`
+n'étaient pas copiés dans le contexte de build, donc
+`tests/plugin-package.test.mjs` échouait **pendant le build** depuis le commit
+où ce test est arrivé. L'image n'avait pas été reconstruite depuis.
+
+**`stdio` perdait la réponse d'un appel déjà émis.** `runStdio` fermait le
+dispatcher HTTP **avant** de drainer les requêtes en vol. Fermer interrompt
+les appels en cours — correct pour un signal, faux pour une fin d'entrée :
+stdin qui se termine signifie « j'ai tout envoyé », pas « jette ce que tu
+tiens ». L'appelant recevait un échec de transport **pour un appel déjà émis
+et, pour une mesure, déjà facturé** — et ce connecteur ne rejoue jamais.
+Corrigé, avec un test de non-régression.
+
+## Ce qui bloque, et qui le lève
+
+| # | Blocage | Qui |
+|---|---|---|
+**D-1** | **La production sert `0.1.0`** sans les garde-fous métrologiques | **Sébastien**, sur un SHA — rien n'a été déployé |
+**D-4** | **Un credential partagé, une seule clé API** pour tous. Joignable ≠ multi-utilisateur | **Sébastien** |
+**P-2** | **Aucunes conditions générales n'existent.** `termsOfServiceURL` est demandé à la soumission ; le champ est **volontairement absent**, et un test échoue si on l'invente | **Sébastien** |
+**P-3** | La politique de confidentialité n'a jamais été relue face à ce que l'enveloppe retourne réellement | **Sébastien** |
+**P-4** | Vérification d'identité de l'organisation côté plateforme : état inconnu | **Sébastien** |
+**D-2 / D-3** | 34 mises à jour système en attente dont une de sécurité ; `ufw` inactif | **Sébastien** |
+**P-7** | Imbrication de `extensions.com.openai` (`interface` ou à plat) non établie sur le schéma officiel | une session |
+
+## Prochaine action concrète
+
+**Autoriser la bascule de `mcp.neomundi.org` vers `0.3.0-rc.1`**, sur un SHA.
+C'est le seul pas qui débloque la démonstration du plugin dans ChatGPT : tout
+le reste est prêt et vérifié localement. La procédure et son retour arrière
+sont écrits dans [le déploiement HTTPS](docs/DEPLOIEMENT_HTTPS.md) §4.
+
+Sans cette autorisation, une chose reste faisable sans coût : installer le ZIP
+en **plugin local** (Codex, bureau) et l'exercer hors ligne —
+[procédure](docs/PUBLICATION.md) §2.
+
+## Revérifier avant toute modification
+
+```bash
+git fetch --prune                 # une copie locale ne fait pas foi
+git log -1 --oneline origin/main && git status -sb
+npm test                          # 299 passés, 0 sauté, enregistrements présents à côté
+node check-publication.mjs        # ce qui sort du depot
+node scripts/build-package.mjs    # paquet reproductible
+```
+
+---
+
 # Reprise — compatibilité plugin ChatGPT / Codex, 1er novembre 2026
 
 **Cette section prime sur tous les relevés ci-dessous.**

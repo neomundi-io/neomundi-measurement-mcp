@@ -13,9 +13,16 @@ export const PLUGIN_FILES = Object.freeze([
   'skills/measure-execution/SKILL.md',
   ...['adapter', 'config', 'contract', 'guidance', 'integrity', 'presentation',
     'reference', 'response-contracts', 'schema-validation', 'server', 'stdio', 'upstream'].map(n => `runtime/${n}.mjs`),
+  // The measurement card. NOT optional: contract.mjs imports card.mjs for the
+  // tool's _meta and server.mjs serves the resource, so a package without
+  // these two files fails at import — the plugin would not start at all.
+  'runtime/ui/card.mjs', 'runtime/ui/view-model.mjs',
   'runtime/package.json', 'runtime/schemas/measure_execution.input.schema.json',
   'runtime/schemas/measure_execution.output.schema.json',
   'runtime/schemas/contracts/govern-rest-1.0.json', 'runtime/schemas/contracts/govern-sse-1.0.json',
+  // Listing icon, derived from the brand mark. See assets/README.md for how.
+  'assets/icon-512.png', 'assets/icon-256.png', 'assets/icon-128.png', 'assets/icon-48.png',
+  'assets/README.md',
 ]);
 
 export function buildPlugin(destination) {

@@ -10,12 +10,18 @@
 # configured and none should be added without an explicit decision: this
 # connector is private, and an image is a distribution channel.
 #
-# Pin the base by digest, not by tag, before relying on a build for evidence.
-# `node:24-alpine` is a moving target; the digest is not. The tag is used here
-# so a first build works on any machine, and the digest line below is where a
-# reproducible build pins it.
-#   FROM node@sha256:<digest>   # node:24-alpine, resolved on <date>
-FROM node:24-alpine
+# The base is pinned by digest, not by tag: `node:24-alpine` is a moving
+# target and a build on a moved tag is not the build that was verified.
+#
+# This is the digest of the multi-platform OCI *index*, which is what a tag
+# resolves to and what keeps the build working on amd64 and arm64 alike. It is
+# deliberately NOT a per-platform manifest digest: pinning one of those would
+# hard-code a single architecture and fail everywhere else.
+#
+# Resolved 2026-11-01 with `docker buildx imagetools inspect node:24-alpine`:
+#   MediaType: application/vnd.oci.image.index.v1+json
+# To move it, re-resolve and replace the whole line, never edit digits by hand.
+FROM node@sha256:8a32c8cf649a49915a66e81e7a609223c708d0adabf288ee3f4077d765542f85
 
 # Node 24 is required, not preferred: the adapter uses JSON.rawJSON and the
 # JSON.parse source context to keep API numbers byte-exact. On an older
@@ -33,6 +39,25 @@ COPY schemas/ ./schemas/
 # Read by the repository-level audit suite below: the proposed tool payload it
 # asserts is marked synthetic and non-executable.
 COPY examples/ ./examples/
+
+# The plugin packaging inputs. They are not used by the running server, but the
+# repository suite below builds the plugin package and verifies its manifests,
+# and a suite that cannot run is a suite that proves nothing.
+#
+# These were missing while `tests/plugin-package.test.mjs` already existed, so
+# `docker build` failed at `npm test` on every commit since that test landed —
+# the image had simply not been rebuilt. Keep this list in step with the
+# repository-level tests, not with what the server imports.
+# The exact set is `PLUGIN_FILES` in scripts/build-plugin.mjs; keep the two in
+# step, because the test builds the package from this list and fails by name
+# on the first missing entry.
+COPY scripts/ ./scripts/
+COPY skills/ ./skills/
+COPY assets/ ./assets/
+COPY docs/ ./docs/
+COPY .codex-plugin/ ./.codex-plugin/
+COPY .agents/ ./.agents/
+COPY plugin.json mcp.json .mcp.json README.md README_FR.md ./
 
 # The offline suite, in the image, at build time. A build that cannot pass its
 # own tests does not produce a runnable image. No credential is read and no
