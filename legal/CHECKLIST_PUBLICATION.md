@@ -14,7 +14,7 @@ modifiée** : la mission l'interdit expressément.
 |---|---|---|---|
 `/cgu-mcp` *(ou `/conditions-utilisation-mcp`)* | CGU du service de mesure | [`CGU_MCP_FR.md`](CGU_MCP_FR.md) | **à créer** |
 `/en/mcp-terms` | version anglaise | [`CGU_MCP_EN.md`](CGU_MCP_EN.md) | **à créer** |
-`/en/privacy-policy` | version anglaise de la politique | [`PRIVACY_POLICY_MCP_EN.md`](PRIVACY_POLICY_MCP_EN.md) | **à créer** — **[à vérifier]** si une page anglaise existe déjà |
+`/en/privacy-policy` | version anglaise de la politique | [`PRIVACY_POLICY_MCP_EN.md`](PRIVACY_POLICY_MCP_EN.md) | **existe déjà** (`200`) — **à actualiser**, pas à créer |
 
 ### 1.2 Pages à actualiser
 
@@ -24,7 +24,14 @@ modifiée** : la mission l'interdit expressément.
 `/mentions-legales` | **Ajouter une ligne** nommant le service expérimental `mcp.neomundi.org` et son hébergeur | **à actualiser** |
 `/contact` | Vérifier que le formulaire couvre les demandes RGPD **et** les questions contractuelles | **à vérifier** |
 
-> **Les trois URL existantes répondent `200`** — vérifié. Les URL proposées
+> ⚠ **Vérifié le 2026-11-01 : aucune page de CGU n'est en ligne.** L'API
+> WordPress liste **33 pages publiées**, aucune relative aux conditions
+> d'utilisation, et **aucune modification après le 15 octobre**. Si les pages
+> existent, elles sont en **brouillon** — l'API ne montre que le publié. Leur
+> contenu n'a donc **pas pu être vérifié**.
+>
+> `/politique-de-confidentialite`, `/en/privacy-policy`, `/mentions-legales`
+> et `/en/legal-notice` répondent bien `200`. Les URL proposées
 > en 1.1 sont des **propositions** : à ajuster à l'arborescence réelle et aux
 > règles de permaliens du site.
 

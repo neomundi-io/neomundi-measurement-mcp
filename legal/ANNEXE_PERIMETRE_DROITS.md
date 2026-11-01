@@ -64,22 +64,59 @@ projet antérieur ; et tout élément produit dans un cadre salarié.
 
 ---
 
-## 4. Pouvoir d'engager l'association
+## 4. Pouvoir d'engager l'association — **vérifié le 2026-11-01**
 
-**[À ÉTABLIR — les statuts n'ont pas pu être consultés.]**
+Les statuts ont été lus. Les réponses ne sont plus des champs à compléter.
 
-À renseigner avant signature :
-
-| Question | Réponse | Référence statutaire |
+| Question | Réponse | Référence |
 |---|---|---|
-Qui représente légalement l'association ? | **[À COMPLÉTER]** | **[article …]** |
-Une autorisation préalable d'un organe collégial est-elle requise ? | **[À COMPLÉTER]** | **[article …]** |
-Quelle procédure en cas de conflit d'intérêts ? | **[À COMPLÉTER]** | **[article …]** |
-Qui signe, le Concédant étant lui-même **[qualité à préciser]** ? | **[À COMPLÉTER]** | **[article …]** |
+Qui représente légalement l'association ? | **Le Président**, « dans tous les actes de la vie civile ». Aucun autre membre du bureau n'a ce pouvoir | **article 8** |
+Comment le bureau est-il composé ? | Au minimum trois membres : **Président, Secrétaire, Trésorier**, élus en assemblée générale **pour un an renouvelable** | **article 7** |
+Quel organe autorise un engagement de cette nature ? | **Le bureau**, qui « prend toutes les décisions nécessaires à la bonne marche de l'association » | **article 8** |
+Une procédure de conflit d'intérêts existe-t-elle ? | **Non.** Les statuts n'en prévoient aucune : elle doit être organisée par décision du bureau et documentée | — |
+Qui a été élu, et quand ? | Bureau élu **à l'unanimité** par l'**assemblée générale constitutive du 31 mars 2026** | procès-verbal d'AG constitutive |
+Qui signe, le Concédant étant le Président ? | **À trancher** — mandat spécial à un autre membre, ou signature par le Président avec délibération prise sans lui | [modèle de procès-verbal](PV_BUREAU_LICENCE_MODELE.md) |
 
-> **Aucun pouvoir de signature n'est présumé.** Une archive `ASSOCIATION.zip`
-> a été fournie le 2026-11-01 ; **elle ne contenait qu'un dossier vide**, et
-> aucune pièce statutaire n'a pu en être tirée.
+### 4.1 Ce que l'article 11 des statuts dit déjà
+
+> « La propriété intellectuelle afférente aux développements techniques,
+> métriques et architectures **demeure la propriété de leurs auteurs ou ayants
+> droit**, qui concèdent à l'association **une licence d'usage à titre gratuit
+> pour ses activités de diffusion scientifique**. »
+
+Deux conséquences, et la seconde est la plus importante :
+
+1. **le modèle retenu est déjà celui des statuts** — licence gratuite, pas de
+   transfert de propriété. La convention ne crée pas un régime nouveau, elle
+   le précise ;
+2. ⚠ **le périmètre statutaire est plus étroit que l'exploitation réelle.**
+   L'article 11 vise la « **diffusion scientifique** ». Héberger un service,
+   le tenir en production et en délivrer l'accès à des participants
+   **excède ce que ces termes couvrent avec certitude**. C'est précisément ce
+   que la convention écrite vient couvrir — et c'est la raison pour laquelle
+   elle reste nécessaire malgré l'article 11.
+
+**L'article 11 confie par ailleurs au bureau** la définition des modalités de
+diffusion des travaux de recherche.
+
+### 4.2 Points encore ouverts
+
+- **le mandat du bureau court un an** : celui issu de l'AG constitutive expire
+  fin mars 2027. **C'est le mandat en cours à la date de signature qui doit
+  être justifié** ;
+- une **cooptation d'administrateur** a été délibérée par le bureau le
+  13 juin 2026. Les statuts ne prévoient ni la fonction d'administrateur ni la
+  cooptation : **cette qualité n'emporte aucun pouvoir de représentation**, et
+  sa ratification éventuelle en assemblée générale reste à vérifier ;
+- **aucun règlement intérieur** n'a été produit, alors que l'**article 13**
+  permet au bureau d'en adopter un. Ce serait le véhicule naturel pour la
+  durée de conservation des données et la politique d'acceptation des CGU.
+
+### 4.3 Où sont les pièces
+
+Les statuts, les procès-verbaux, le récépissé de préfecture et la publication
+au Journal officiel sont conservés **hors de ce dépôt public** : ils nomment
+des personnes physiques. Ce document en cite les articles, jamais les noms.
 
 ---
 

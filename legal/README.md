@@ -1,6 +1,6 @@
 # Dossier juridique — connecteur MCP NeoMundi
 
-**Version du dossier : 0.3 — 2026-11-01.**
+**Version du dossier : 0.5 — 2026-11-01.**
 
 > ## ⛔ Aucun de ces documents n'est publié, ni signé, ni opposable.
 >
@@ -14,11 +14,15 @@
 
 | Fichier | Objet | État |
 |---|---|---|
-[`CGU_MCP_FR.md`](CGU_MCP_FR.md) · [`CGU_MCP_EN.md`](CGU_MCP_EN.md) | Conditions d'utilisation du service MCP | **V0.3** — projet |
+[`CGU_MCP_FR.md`](CGU_MCP_FR.md) · [`CGU_MCP_EN.md`](CGU_MCP_EN.md) | Conditions d'utilisation du service MCP | **V0.4** — projet |
 [`POLITIQUE_CONFIDENTIALITE_MCP_FR.md`](POLITIQUE_CONFIDENTIALITE_MCP_FR.md) · [`PRIVACY_POLICY_MCP_EN.md`](PRIVACY_POLICY_MCP_EN.md) | Complément MCP à la politique existante de `neomundi.org` | **V0.1** — projet |
 [`CONVENTION_PILOTE_FR.md`](CONVENTION_PILOTE_FR.md) | Convention de participation à un pilote | **V0.1** — projet |
-[`LICENCE_EXPLOITATION_ASSOCIATIVE_FR.md`](LICENCE_EXPLOITATION_ASSOCIATIVE_FR.md) | Licence non exclusive fondateur → association | **V0.2** — projet |
+[`LICENCE_EXPLOITATION_ASSOCIATIVE_FR.md`](LICENCE_EXPLOITATION_ASSOCIATIVE_FR.md) | Licence non exclusive fondateur → association | **V0.3** — projet, **adossée aux statuts réels** |
 [`ANNEXE_PERIMETRE_DROITS.md`](ANNEXE_PERIMETRE_DROITS.md) | Inventaire des éléments concédés et justification des droits | **V0.1** — **incomplète par construction** |
+[`PV_BUREAU_LICENCE_MODELE.md`](PV_BUREAU_LICENCE_MODELE.md) | Procès-verbal de bureau autorisant la licence | **V0.1** — modèle |
+[`ACCEPTATION_CGU.md`](ACCEPTATION_CGU.md) | Mécanisme d'acceptation et preuve de consentement | **V0.1** |
+[`MODELE_ACCEPTATION_FR.md`](MODELE_ACCEPTATION_FR.md) · [`MODELE_ACCEPTATION_EN.md`](MODELE_ACCEPTATION_EN.md) | Formulaire d'acceptation à renvoyer | **V0.1** |
+[`cgu-versions.json`](cgu-versions.json) | Registre des versions, épinglées par empreinte | **lisible par machine** |
 [`DECISIONS_OUVERTES.md`](DECISIONS_OUVERTES.md) | Les seules décisions encore ouvertes | — |
 [`CHECKLIST_PUBLICATION.md`](CHECKLIST_PUBLICATION.md) | WordPress et candidature OpenAI | — |
 
@@ -63,6 +67,25 @@ Un document est versionné **dans son propre en-tête**, pas par son nom de
 fichier : un lecteur qui ouvre un fichier doit voir sa version sans avoir à
 consulter un index. Le dossier porte une version d'ensemble, en tête de ce
 fichier.
+
+## Les statuts, et ce qu'ils règlent
+
+Lus le **2026-11-01**. Trois articles gouvernent ce dossier :
+
+- **article 7** — bureau de trois membres, élus **pour un an renouvelable** ;
+- **article 8** — **le Président seul** représente l'association ; **le bureau**
+  prend les décisions nécessaires à sa bonne marche ;
+- **article 11** — la propriété intellectuelle **demeure aux auteurs**, qui
+  concèdent une **licence d'usage gratuite** pour les activités de **diffusion
+  scientifique**.
+
+Le modèle retenu — **licence gratuite, non exclusive, sans transfert** — est
+donc **déjà celui des statuts**. La convention écrite reste nécessaire pour
+une raison précise : le périmètre statutaire, « diffusion scientifique », est
+**plus étroit** que l'exploitation réelle d'un service hébergé.
+
+**Les pièces statutaires ne sont pas versées à ce dépôt** : elles nomment des
+personnes physiques. Ce dossier en cite les articles, jamais les noms.
 
 ## Ce qui n'entre jamais ici
 

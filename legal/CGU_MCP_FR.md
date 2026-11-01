@@ -1,6 +1,6 @@
 # Conditions générales d'utilisation — service de mesure MCP NeoMundi
 
-**Version 0.3 — projet de travail, non publiable en l'état.**
+**Version 0.4 — projet de travail, non publiable en l'état.**
 **Date d'entrée en vigueur : [À COMPLÉTER].**
 
 > ⛔ **Projet non publié, non signé, sans effet juridique.** À relire par un
@@ -90,11 +90,24 @@ Les présentes CGU s'appliquent à tout accès au Service.
 **L'accès au Service est soumis à autorisation préalable de l'Éditeur.**
 Il n'existe ni inscription libre, ni création de compte autonome.
 
-**L'acceptation des présentes CGU intervient** [À COMPLÉTER — *mécanisme à
-retenir* : (a) par la signature de la convention de participation au pilote,
-qui y renvoie expressément ; ou (b) par un acte technique d'acceptation lors
-de la délivrance des accès]. **Tant que ce mécanisme n'est pas arrêté et mis
-en œuvre, l'opposabilité des présentes n'est pas établie.**
+**L'acceptation des présentes CGU est recueillie par un acte écrit explicite,
+préalable à la délivrance de l'accès.**
+
+Le Participant déclare par écrit accepter une **version déterminée** des
+présentes, identifiée par son **numéro de version** et par l'**empreinte
+SHA-256 de son texte**. L'association consigne cette acceptation — identité du
+signataire, date, version et empreinte acceptées, méthode d'acceptation — et
+**ne délivre l'identifiant d'accès qu'ensuite**.
+
+**Ni le silence, ni l'absence de réponse, ni le simple usage du Service ne
+valent acceptation.**
+
+Une **modification substantielle** des présentes donne lieu à une **nouvelle
+acceptation** : l'acceptation antérieure porte sur un autre texte, et son
+empreinte en fait foi.
+
+La procédure est décrite dans le document
+[acceptation des CGU](ACCEPTATION_CGU.md).
 
 En cas de contradiction entre les présentes et une convention de participation
 signée, **cette dernière prévaut**.
@@ -382,7 +395,9 @@ compétentes françaises**, sous réserve des règles d'ordre public applicables
 
 ## Annexe — Points à trancher avant publication
 
-1. Mécanisme d'acceptation des CGU (art. 4) — **sans lui, pas d'opposabilité**.
+1. ~~Mécanisme d'acceptation~~ — **arrêté** : acte écrit explicite préalable
+   à la délivrance de l'accès (art. 4). Reste à **publier** le texte pour que
+   le mécanisme devienne utilisable.
 2. Admission ou exclusion des consommateurs (art. 5).
 3. Identifiants individuels, ou maintien d'un accès non individualisé (art. 6).
 4. Politique de citation (art. 11).

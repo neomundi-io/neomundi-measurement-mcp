@@ -1,6 +1,6 @@
 # Terms of Use — NeoMundi MCP measurement service
 
-**Version 0.3 — working draft, not publishable as it stands.**
+**Version 0.4 — working draft, not publishable as it stands.**
 **Effective date: [TO BE COMPLETED].**
 
 > ⛔ **Unpublished, unsigned draft with no legal effect.** To be reviewed by
@@ -86,11 +86,23 @@ These Terms apply to any access to the Service.
 **Access requires the Publisher's prior authorisation.** There is no open
 sign-up and no self-service account creation.
 
-**Acceptance of these Terms occurs** [TO BE COMPLETED — *mechanism to be
-chosen*: (a) by signing the pilot participation agreement, which refers to
-them expressly; or (b) by a technical acceptance step when access is granted].
-**Until that mechanism is settled and implemented, enforceability is not
-established.**
+**Acceptance of these Terms is collected by an explicit written act, prior to
+the issuing of access.**
+
+The Participant declares in writing that it accepts a **specific version** of
+these Terms, identified by its **version number** and by the **SHA-256
+fingerprint of its text**. The association records that acceptance — signatory
+identity, date, version and fingerprint accepted, acceptance method — and
+**issues the access credential only afterwards**.
+
+**Neither silence, nor absence of reply, nor mere use of the Service
+constitutes acceptance.**
+
+A **substantial change** to these Terms calls for a **fresh acceptance**: the
+earlier acceptance covered a different text, and its fingerprint evidences
+that.
+
+The procedure is described in [CGU acceptance](ACCEPTATION_CGU.md).
 
 Where these Terms conflict with a signed participation agreement, **the latter
 prevails**.
@@ -371,7 +383,9 @@ subject to applicable mandatory rules.
 
 ## Annex — Points to settle before publication
 
-1. Acceptance mechanism (Art. 4) — **without it, no enforceability**.
+1. ~~Acceptance mechanism~~ — **settled**: explicit written act prior to
+   issuing access (Art. 4). The text still needs **publishing** for the
+   mechanism to become usable.
 2. Admission or exclusion of consumers (Art. 5).
 3. Individual credentials, or continued non-individualised access (Art. 6).
 4. Citation policy (Art. 11).

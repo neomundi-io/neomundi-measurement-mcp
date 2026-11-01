@@ -1,3 +1,145 @@
+# VOLET ASSOCIATIF — statuts lus, 1er novembre 2026
+
+**Cette section prime sur toutes les suivantes. Aucun document publié, API et
+moteur de mesure non modifiés.**
+
+## Les trois observations sont confirmées — avec une réserve qui compte
+
+| Observation | Vérification |
+|---|---|
+**Art. 7** — Sébastien est président fondateur | **confirmé.** Bureau élu à l'unanimité par l'AG constitutive du **31 mars 2026** ; il accepte le mandat de **Président fondateur** |
+**Art. 8** — le président représente l'association | **confirmé, mot pour mot** : « le président représente l'association dans tous les actes de la vie civile ». **Aucun autre membre n'a ce pouvoir** |
+**Art. 11** — PI aux auteurs, licence d'usage gratuite | **confirmé** — et le modèle retenu est donc **déjà celui des statuts** |
+
+> ⚠ **La réserve, et elle est importante.** L'article 11 concède une licence
+> gratuite **« pour ses activités de diffusion scientifique »**. Héberger un
+> service, le tenir en production et en délivrer l'accès à des participants
+> **excède ce que ces termes couvrent avec certitude**.
+>
+> **Les statuts ne suffisent donc pas à couvrir l'exploitation réelle.** C'est
+> exactement ce que la convention écrite vient faire — et c'est la raison pour
+> laquelle elle reste nécessaire malgré l'article 11.
+
+## Le conflit d'intérêts n'est pas réglé par les statuts
+
+Le Concédant **est** le Président, seul habilité à représenter l'association.
+La même personne se trouve des deux côtés, et **les statuts ne prévoient
+aucune procédure de conflit d'intérêts**.
+
+L'**article 8** donne au **bureau** le pouvoir de prendre « toutes les
+décisions nécessaires à la bonne marche de l'association » : c'est l'organe
+compétent pour autoriser la convention, **sans la voix du Président**.
+
+Un [modèle de procès-verbal](legal/PV_BUREAU_LICENCE_MODELE.md) est fourni,
+avec deux voies de signature — **mandat spécial** à un autre membre
+(recommandé) ou **signature présidentielle** après délibération prise sans lui.
+
+## Trois points relevés que personne n'avait signalés
+
+1. **Le mandat du bureau court un an** (art. 7). Celui issu de l'AG
+   constitutive **expire fin mars 2027** : c'est le mandat **en cours à la date
+   de signature** qui doit être justifié.
+2. Une **cooptation d'administrateur** a été délibérée le 13 juin 2026. Les
+   statuts ne prévoient **ni cette fonction ni la cooptation** : cette qualité
+   **n'emporte aucun pouvoir de représentation**.
+3. **Aucun règlement intérieur** n'existe, alors que l'**article 13** permet au
+   bureau d'en adopter un. Ce serait le véhicule naturel pour la **durée de
+   conservation** des données et la **politique d'acceptation** des CGU — deux
+   bloquants ouverts.
+
+## Livré
+
+- [Licence d'exploitation **V0.3**](legal/LICENCE_EXPLOITATION_ASSOCIATIVE_FR.md)
+  — adossée aux statuts réels : articulation avec l'article 11 (art. 1.1),
+  pouvoirs et conflit d'intérêts (art. 12), modalités de diffusion (art. 13) ;
+- [modèle de procès-verbal du bureau](legal/PV_BUREAU_LICENCE_MODELE.md) ;
+- [annexe de périmètre](legal/ANNEXE_PERIMETRE_DROITS.md) — la section
+  « pouvoirs » est **renseignée** ; l'inventaire des droits **reste à établir**.
+
+**Les pièces statutaires ne sont pas versées au dépôt** : elles nomment des
+personnes physiques. Le dossier en cite les articles, jamais les noms.
+
+## Ce qui reste pour clore le volet associatif
+
+1. **Tenir la réunion du bureau** et consigner le procès-verbal — une séance ;
+2. **trancher la voie de signature** (mandat spécial ou Président) ;
+3. **établir l'annexe de périmètre** — c'est le dernier vrai chantier, et le
+   seul qui demande un inventaire ;
+4. vérifier que le **mandat du bureau est en cours** à la signature.
+
+---
+
+# ACCEPTATION DES CGU — mécanisme arrêté, 1er novembre 2026
+
+**Cette section prime sur toutes les suivantes. Aucune page WordPress
+modifiée, aucun document publié, API et moteur de mesure non modifiés.**
+
+## Le constat qui change la mission
+
+**Les pages de CGU ne sont pas en ligne.** Vérifié par l'API WordPress : **33
+pages publiées**, aucune relative aux conditions d'utilisation, et **aucune
+modification après le 15 octobre**. Si elles existent, elles sont en
+**brouillon** — l'API ne montre que le publié. **Leur contenu n'a donc pas pu
+être vérifié.**
+
+En revanche `/politique-de-confidentialite`, `/en/privacy-policy`,
+`/mentions-legales` et `/en/legal-notice` répondent bien `200`.
+
+## Le mécanisme d'acceptation — B-1 est levé
+
+**Principe : l'accès est délivré en échange d'une acceptation écrite, et
+l'acceptation désigne un texte identifiable par son empreinte SHA-256.**
+
+Aucune infrastructure : ni compte, ni base, ni formulaire en ligne, ni case à
+cocher. Un échange de courriels et un fichier.
+
+| Document | Rôle |
+|---|---|
+[Mécanisme et preuve](legal/ACCEPTATION_CGU.md) | procédure en trois étapes, registre, retrait, changement de version |
+[Modèle FR](legal/MODELE_ACCEPTATION_FR.md) · [EN](legal/MODELE_ACCEPTATION_EN.md) | formulaire à renvoyer |
+[`legal/cgu-versions.json`](legal/cgu-versions.json) | registre des versions, **épinglées par empreinte** |
+`scripts/cgu-fingerprint.mjs` | calcule et vérifie les empreintes |
+
+**Preuve de consentement — quatre champs, et rien de plus :** identité du
+signataire, date, **version et empreinte** acceptées, méthode. Pas d'adresse
+personnelle, pas de pièce d'identité, pas d'IP, pas de traceur.
+
+> **Pourquoi l'empreinte évite de collecter davantage.** Sans elle, prouver
+> *quel* texte a été accepté obligerait à archiver une copie du document chez
+> chaque participant. Une chaîne de 64 caractères remplace cela.
+
+## Une garde qui refuse de s'exécuter trop tôt
+
+```bash
+node scripts/cgu-fingerprint.mjs
+# → « Aucune version acceptable aujourd'hui : aucune acceptation ne doit
+#     être recueillie. »
+```
+
+Tant que les CGU sont un **projet non publié**, l'outil **refuse** de désigner
+une version acceptable, et le modèle d'acceptation porte le même avertissement.
+Cinq tests (`tests/cgu-versions.test.mjs`) échouent si une empreinte ne
+correspond plus à son fichier — et **la bonne réaction n'est jamais de
+corriger l'empreinte**, mais de créer une version.
+
+## CGU passées en 0.4
+
+L'article 4 portait un `[À COMPLÉTER]` sur le mécanisme ; il est désormais
+rédigé, en FR et EN. Modifier le texte change son empreinte : j'ai donc
+**appliqué la règle du registre** et bumpé 0.3 → **0.4** plutôt que de
+corriger une empreinte. La 0.3 n'a jamais été publiée ni acceptée.
+
+## Ce qu'il reste pour rendre le mécanisme utilisable
+
+1. **Valider et publier les CGU** — le mécanisme est prêt, le texte ne l'est
+   pas ;
+2. renseigner `url_publiee` et `date_entree_en_vigueur`, puis passer
+   `acceptable` à `true` ;
+3. **fixer la durée de conservation** du registre d'acceptations ;
+4. créer le registre à son emplacement définitif, **hors de ce dépôt public**.
+
+---
+
 # DOSSIER JURIDIQUE — projets rédigés, 1er novembre 2026
 
 **Cette section prime sur toutes les suivantes. Aucun document n'est publié
