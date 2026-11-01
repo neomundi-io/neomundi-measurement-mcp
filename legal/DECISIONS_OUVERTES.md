@@ -23,7 +23,7 @@ Trois niveaux : **⛔ bloquant** — empêche une publication ou une signature ;
 
 | # | Décision | Pourquoi |
 |---|---|---|
-**⛔ B-1** | **Mécanisme d'acceptation des CGU** — signature de la convention pilote, ou acte technique | **Sans lui, l'opposabilité n'est pas établie.** C'est le bloquant le plus simple à lever |
+**○ B-1** | ~~Mécanisme d'acceptation~~ — **arrêté le 2026-11-01** : acte écrit explicite préalable à la délivrance de l'accès, version épinglée par **empreinte SHA-256**. Voir [acceptation des CGU](ACCEPTATION_CGU.md) | **Reste à publier le texte** pour que le mécanisme devienne utilisable — l'outil refuse toute acceptation tant que c'est un projet |
 **⛔ B-2** | **Clause de limitation de responsabilité** | La gratuité et le cadre scientifique **n'exonèrent pas de plein droit** en droit français |
 **⚠ B-3** | **Consommateurs admis ou exclus ?** | Une fiche publique de plugin rend le service visible du grand public. Conditionne le droit de la consommation |
 **⚠ B-4** | **Identifiants individuels, ou maintien d'un accès partagé ?** | Aujourd'hui : aucune attribution, aucune suspension individuelle. Les CGU l'énoncent ; il reste à décider si cela change |
@@ -60,8 +60,9 @@ Trois niveaux : **⛔ bloquant** — empêche une publication ou une signature ;
 
 **Ce qui débloque le plus pour le moins d'effort :**
 
-1. **B-1** — le mécanisme d'acceptation. Une décision, zéro infrastructure, et
-   l'opposabilité des CGU est acquise.
+1. ~~**B-1** — le mécanisme d'acceptation~~ — **fait.** Il ne reste qu'à
+   **publier les CGU** : le mécanisme est prêt et refuse de s'exécuter sur un
+   projet.
 2. **C-2** — lire les statuts. Une lecture, et C-3 et la signature se
    débloquent.
 3. **A-1** — fixer puis appliquer une durée de conservation. C'est le seul

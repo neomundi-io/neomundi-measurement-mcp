@@ -1,6 +1,6 @@
 # Dossier juridique — connecteur MCP NeoMundi
 
-**Version du dossier : 0.3 — 2026-11-01.**
+**Version du dossier : 0.4 — 2026-11-01.**
 
 > ## ⛔ Aucun de ces documents n'est publié, ni signé, ni opposable.
 >
@@ -14,11 +14,14 @@
 
 | Fichier | Objet | État |
 |---|---|---|
-[`CGU_MCP_FR.md`](CGU_MCP_FR.md) · [`CGU_MCP_EN.md`](CGU_MCP_EN.md) | Conditions d'utilisation du service MCP | **V0.3** — projet |
+[`CGU_MCP_FR.md`](CGU_MCP_FR.md) · [`CGU_MCP_EN.md`](CGU_MCP_EN.md) | Conditions d'utilisation du service MCP | **V0.4** — projet |
 [`POLITIQUE_CONFIDENTIALITE_MCP_FR.md`](POLITIQUE_CONFIDENTIALITE_MCP_FR.md) · [`PRIVACY_POLICY_MCP_EN.md`](PRIVACY_POLICY_MCP_EN.md) | Complément MCP à la politique existante de `neomundi.org` | **V0.1** — projet |
 [`CONVENTION_PILOTE_FR.md`](CONVENTION_PILOTE_FR.md) | Convention de participation à un pilote | **V0.1** — projet |
 [`LICENCE_EXPLOITATION_ASSOCIATIVE_FR.md`](LICENCE_EXPLOITATION_ASSOCIATIVE_FR.md) | Licence non exclusive fondateur → association | **V0.2** — projet |
 [`ANNEXE_PERIMETRE_DROITS.md`](ANNEXE_PERIMETRE_DROITS.md) | Inventaire des éléments concédés et justification des droits | **V0.1** — **incomplète par construction** |
+[`ACCEPTATION_CGU.md`](ACCEPTATION_CGU.md) | Mécanisme d'acceptation et preuve de consentement | **V0.1** |
+[`MODELE_ACCEPTATION_FR.md`](MODELE_ACCEPTATION_FR.md) · [`MODELE_ACCEPTATION_EN.md`](MODELE_ACCEPTATION_EN.md) | Formulaire d'acceptation à renvoyer | **V0.1** |
+[`cgu-versions.json`](cgu-versions.json) | Registre des versions, épinglées par empreinte | **lisible par machine** |
 [`DECISIONS_OUVERTES.md`](DECISIONS_OUVERTES.md) | Les seules décisions encore ouvertes | — |
 [`CHECKLIST_PUBLICATION.md`](CHECKLIST_PUBLICATION.md) | WordPress et candidature OpenAI | — |
 

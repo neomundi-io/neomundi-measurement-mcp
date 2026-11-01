@@ -1,3 +1,74 @@
+# ACCEPTATION DES CGU — mécanisme arrêté, 1er novembre 2026
+
+**Cette section prime sur toutes les suivantes. Aucune page WordPress
+modifiée, aucun document publié, API et moteur de mesure non modifiés.**
+
+## Le constat qui change la mission
+
+**Les pages de CGU ne sont pas en ligne.** Vérifié par l'API WordPress : **33
+pages publiées**, aucune relative aux conditions d'utilisation, et **aucune
+modification après le 15 octobre**. Si elles existent, elles sont en
+**brouillon** — l'API ne montre que le publié. **Leur contenu n'a donc pas pu
+être vérifié.**
+
+En revanche `/politique-de-confidentialite`, `/en/privacy-policy`,
+`/mentions-legales` et `/en/legal-notice` répondent bien `200`.
+
+## Le mécanisme d'acceptation — B-1 est levé
+
+**Principe : l'accès est délivré en échange d'une acceptation écrite, et
+l'acceptation désigne un texte identifiable par son empreinte SHA-256.**
+
+Aucune infrastructure : ni compte, ni base, ni formulaire en ligne, ni case à
+cocher. Un échange de courriels et un fichier.
+
+| Document | Rôle |
+|---|---|
+[Mécanisme et preuve](legal/ACCEPTATION_CGU.md) | procédure en trois étapes, registre, retrait, changement de version |
+[Modèle FR](legal/MODELE_ACCEPTATION_FR.md) · [EN](legal/MODELE_ACCEPTATION_EN.md) | formulaire à renvoyer |
+[`legal/cgu-versions.json`](legal/cgu-versions.json) | registre des versions, **épinglées par empreinte** |
+`scripts/cgu-fingerprint.mjs` | calcule et vérifie les empreintes |
+
+**Preuve de consentement — quatre champs, et rien de plus :** identité du
+signataire, date, **version et empreinte** acceptées, méthode. Pas d'adresse
+personnelle, pas de pièce d'identité, pas d'IP, pas de traceur.
+
+> **Pourquoi l'empreinte évite de collecter davantage.** Sans elle, prouver
+> *quel* texte a été accepté obligerait à archiver une copie du document chez
+> chaque participant. Une chaîne de 64 caractères remplace cela.
+
+## Une garde qui refuse de s'exécuter trop tôt
+
+```bash
+node scripts/cgu-fingerprint.mjs
+# → « Aucune version acceptable aujourd'hui : aucune acceptation ne doit
+#     être recueillie. »
+```
+
+Tant que les CGU sont un **projet non publié**, l'outil **refuse** de désigner
+une version acceptable, et le modèle d'acceptation porte le même avertissement.
+Cinq tests (`tests/cgu-versions.test.mjs`) échouent si une empreinte ne
+correspond plus à son fichier — et **la bonne réaction n'est jamais de
+corriger l'empreinte**, mais de créer une version.
+
+## CGU passées en 0.4
+
+L'article 4 portait un `[À COMPLÉTER]` sur le mécanisme ; il est désormais
+rédigé, en FR et EN. Modifier le texte change son empreinte : j'ai donc
+**appliqué la règle du registre** et bumpé 0.3 → **0.4** plutôt que de
+corriger une empreinte. La 0.3 n'a jamais été publiée ni acceptée.
+
+## Ce qu'il reste pour rendre le mécanisme utilisable
+
+1. **Valider et publier les CGU** — le mécanisme est prêt, le texte ne l'est
+   pas ;
+2. renseigner `url_publiee` et `date_entree_en_vigueur`, puis passer
+   `acceptable` à `true` ;
+3. **fixer la durée de conservation** du registre d'acceptations ;
+4. créer le registre à son emplacement définitif, **hors de ce dépôt public**.
+
+---
+
 # DOSSIER JURIDIQUE — projets rédigés, 1er novembre 2026
 
 **Cette section prime sur toutes les suivantes. Aucun document n'est publié
