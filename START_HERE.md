@@ -1,3 +1,96 @@
+# POLITIQUE DE CONFIDENTIALITÉ — elle couvre enfin le service, 1er novembre 2026
+
+**Les deux pages publiées décrivent désormais le service de mesure**, et plus
+seulement le site. C'était le dernier écart entre les CGU et le reste du corpus :
+leur article 16 renvoyait à une politique qui ne décrivait pas le service.
+
+État complet : [`LEGAL_STATUS_V1.md`](LEGAL_STATUS_V1.md) §2bis.
+
+## Les deux adresses
+
+| | Français — **fait foi** | Anglais — information |
+|---|---|---|
+| Page | **`https://neomundi.org/politique-de-confidentialite`** | **`https://neomundi.org/en/privacy-policy`** |
+| Identifiant | 916 | 919 |
+| Statut | `publish` (inchangé) | `publish` (inchangé) |
+| Copie canonique | [`legal/POLITIQUE_CONFIDENTIALITE_FR.md`](legal/POLITIQUE_CONFIDENTIALITE_FR.md) | [`legal/PRIVACY_POLICY_EN.md`](legal/PRIVACY_POLICY_EN.md) |
+| Empreinte SHA-256 | `c6e9b0a9a732986b01968cbbd66cf9f83d3387857de972a9029a884332456ec2` | `29b50bfab4c554eb10eb7a5ee991a3d3ed96479195bc0aae6fd11a05fa6340d7` |
+
+## Ce qui a été écrit, et ce qui n'a pas bougé
+
+**Trois écritures seulement par page** : un paragraphe de périmètre, la section
+« Service de mesure NeoMundi » — **quatorze sous-sections** — et la date de mise
+à jour. Les **douze sections préexistantes** sont conservées **telles quelles**,
+boutons de formulaire de contact compris.
+
+Ce n'est pas une précaution de style : les correctifs ont été appliqués **côté
+serveur, par remplacement d'un fragment identifié**, et non en réécrivant le
+champ entier. Le texte déjà publié ne pouvait donc pas bouger d'un caractère.
+
+> **Le sens de versionnage est inversé par rapport aux CGU, et c'est voulu.**
+> Les copies du dépôt sont **dérivées des pages servies**, rendues en texte.
+> Une divergence fichier/page est impossible par construction. Une politique de
+> confidentialité n'est pas acceptée par empreinte : rien n'oblige la page à
+> suivre un fichier, contrairement aux CGU.
+
+## Les quatre phrases qui comptent
+
+- **le contenu soumis est transmis, l'invite comprise.** La page l'affirme en
+  gras, dès le deuxième paragraphe. Prétendre le contraire était la tentation à
+  écarter ;
+- **l'invite n'est jamais conservée, des extraits de la réponse peuvent
+  l'être** — avec le seuil, le plafond de cinq extraits, et un chiffre daté ;
+- **aucune durée de conservation des mesures n'est annoncée**, parce qu'aucune
+  n'est configurée. La page l'écrit au lieu de se taire ;
+- **les rôles RGPD dépendent du traitement**, et la page **refuse de publier
+  une qualification non arrêtée**.
+
+Deux sous-sections nomment les limites : **« Ce que nous ne pouvons pas
+affirmer »** — six phrases que l'association n'écrit pas — et **« Points en
+cours de consolidation »**.
+
+## Vérifié sur les pages servies
+
+- **HTTP 200**, **27 titres** par page (13 h3 préexistants + la section de
+  mesure et ses 14 sous-titres), structure **symétrique** FR/EN ;
+- **liens vers les CGU dans le corps ET en pied de page**, dans les deux
+  langues ;
+- **aucun tableau, aucun bloc préformaté, aucune largeur fixe** — choix
+  délibéré pour le mobile ;
+- **débordement horizontal mesuré à 0 px** dans un conteneur de 360 px, sur
+  **222 éléments** en français et **219** en anglais, et aucun texte ne déborde
+  de son bloc.
+
+> **Les captures d'écran ont échoué** trois fois dans cet environnement
+> (`Page.captureScreenshot` expire). Le contrôle mobile ci-dessus est une
+> **mesure de débordement**, pas un coup d'œil — c'est plus précis, mais ce
+> n'est pas la même chose, et il faut le savoir.
+
+## Ce que cela débloque pour la candidature
+
+Trois points de [`docs/PUBLICATION.md`](docs/PUBLICATION.md) §4.2 sont levés :
+**P-1** (la production servait `0.1.0`), **P-2** (CGU inexistantes) et surtout
+**P-3** — *« la politique de confidentialité doit couvrir ce que l'outil
+retourne »*, qui était un **motif de rejet explicite**. La section de mesure
+déclare nommément les signaux, les états, la provenance, la décision, les
+longueurs **et les extraits conservés**.
+
+**Restent P-4 à P-10** : vérification d'identité de l'organisation, vérification
+de domaine, forme du bloc `auth`, imbrication `extensions.com.openai`, jeu de
+cas de test et vidéo, capture de la carte, et multi-utilisateur.
+
+## Prochaine action
+
+**Trancher la qualification des rôles RGPD.** C'est devenu le seul point
+juridique sur le chemin critique : les items 3 et 4 du registre de consolidation
+en dépendent, et c'est lui qui permettra de faire porter à l'article 16 des CGU
+un **lien direct** vers la politique — donc une **v1.1**, avec de nouvelles
+empreintes et une **nouvelle acceptation** à recueillir.
+
+**Ni l'API, ni le moteur de mesure, ni l'infrastructure n'ont été modifiés.**
+
+---
+
 # CGU v1.0 PUBLIÉES — 1er novembre 2026
 
 **Les conditions d'utilisation du service MCP sont en ligne et en vigueur.**
