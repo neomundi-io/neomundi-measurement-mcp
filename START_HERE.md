@@ -1,8 +1,78 @@
+# CANDIDATURE — état au 1er novembre 2026, après vérification des exigences officielles
+
+> **Cette section prime sur toutes les suivantes, y compris sur le point de
+> clôture juste en dessous.** Elle le corrige sur deux points, et elle déplace
+> la première marche du chantier.
+
+**L'audit Codex / Pradeep est tranché : aucun module n'est intégré, l'instrument
+et l'API sont inchangés, et le dossier Pradeep est traité séparément.**
+`P1-5`, `P2-2` et `P2-4` restent donc fermées.
+
+## A. Les deux blocages du manifeste sont levés — et `P0-1` était mal posée
+
+| | |
+|---|---|
+| `P-6` / `P0-1` — « bloc `auth` dans `mcp.json` » | **RÉSOLUE. Ce bloc n'existe pas.** Le schéma officiel ferme `mcp.json` à `$schema` et `mcpServers` ; l'ajouter aurait rendu le document invalide et **désactivé MCP pour tout le plugin** |
+| `P-7` / `P0-2` — imbrication `extensions.com.openai` | **RÉSOLUE. Le dépôt avait raison** : les champs sont imbriqués sous `interface`. La lecture « à plat » était fausse |
+
+Les deux schémas officiels sont désormais **archivés dans le dépôt avec leur
+SHA-256** (`schemas/agent-plugins/`), et `scripts/validate-manifests.mjs`
+valide les manifestes **contre eux**, pas contre une lecture de page web.
+
+**Trois défauts réels sont tombés en vérifiant** : `icons` au niveau supérieur
+était une violation du manifeste clos, `category` portait une minuscule que le
+tableau de bord n'utilise pas, et le texte de référencement était en français
+alors que la plateforme attend l'anglais en base et les autres langues sous
+`publication.translations`.
+
+## B. Le vrai blocage, qui n'était écrit nulle part
+
+> **ChatGPT ne propose que trois méthodes de connexion : OAuth, aucune
+> authentification, ou les deux.** `mcp.neomundi.org` exige un jeton `Bearer`
+> fixe — de l'authentification **par clé d'API** — et le portail « ne fournit
+> pas de flux de connexion par clé d'API ni de champ de saisie de jeton ».
+> Mettre le jeton dans `headers` et déclarer le serveur `type: "none"` sont
+> **nommément interdits**.
+>
+> **`P0-3` n'est donc pas « non tentée » : elle est impossible en l'état.**
+> C'est `P0-9`, et c'est un arbitrage de Sébastien : implémenter OAuth 2.1,
+> demander une dérogation, ou passer en « bureau seulement » — cette dernière
+> étant réservée aux partenaires agréés.
+
+**Et la vérification de domaine échouerait aussi** : le défi doit être servi en
+clair, or `https://mcp.neomundi.org/.well-known/openai-apps-challenge` répond
+`401`. **La solution ne touche pas au serveur** : la base du défi peut être un
+domaine parent éligible, et `https://neomundi.org/.well-known/openai-apps-challenge`
+répond `404` — joignable, rien à ouvrir côté MCP.
+
+## C. Où lire la suite
+
+| Document | Rôle |
+|---|---|
+| [`PLUGIN_RELEASE_READINESS.md`](PLUGIN_RELEASE_READINESS.md) | **état de préparation**, preuves, sources datées, six blocages nommés |
+| [`PLUGIN_SUBMISSION_CHECKLIST.md`](PLUGIN_SUBMISSION_CHECKLIST.md) | **liste actionnable**, dans l'ordre réel, avec les limites de champs |
+| [`PLUGIN_NEXT_ROADMAP.md`](PLUGIN_NEXT_ROADMAP.md) | P0 / P1 / P2, mise à jour : `P0-9` est la nouvelle première marche |
+| [`RESTART.md`](RESTART.md) | prompt de reprise autonome, pièges du poste |
+
+**Contrôles exécutés le 2026-11-01** : `npm test` **312 / 312**, 22 fichiers ;
+`node scripts/validate-manifests.mjs` **OK × 2** ; `node check-publication.mjs`
+**PASS**, 122 fichiers ; `node scripts/cgu-fingerprint.mjs` **OK**, 1.0 ;
+paquet reconstruit deux fois, empreinte identique
+`9dd06242…6bd6398`, 38 fichiers.
+
+**La carte a été vue et capturée**, depuis une charge **synthétique**, hors du
+dépôt — jamais depuis ChatGPT, qui n'a toujours jamais été branché.
+
+---
+
 # CLÔTURE DE SESSION — 1er novembre 2026
 
 **Première phase du chantier clôturée.** Un audit indépendant de l'écosystème
 Station / SDK / MCP est confié à **Codex**, à partir du rapport et des modules de
 **Pradeep Kumar**. Cette section prépare la reprise après cet audit.
+
+> **Corrigée par la section ci-dessus.** Ses §5 et §7 décrivent `P-6` et `P-7`
+> comme bloquants : ils ne le sont plus, et la première marche a changé.
 
 > ## Les quatre documents de reprise
 >
