@@ -20,7 +20,8 @@
       "requires_local_executor": true,
       "interface": {
         "displayName": "NeoMundi Measurement",
-        "shortDescription": "Mesurer une exécution d’IA avec REST ou SSE",
+        "shortDescription": "Mesurer une exécution d’IA",
+        "websiteURL": "https://neomundi.io",
         "longDescription": "Transmettez une exécution existante ou demandez une génération mesurée. États, null et provenance restent visibles. Une mesure ne donne aucune autorisation d’exécution.",
         "developerName": "NeoMundi",
         "category": "Developer tools",

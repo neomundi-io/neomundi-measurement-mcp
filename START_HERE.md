@@ -1,3 +1,94 @@
+# Reprise — compatibilité plugin ChatGPT / Codex, 1er novembre 2026
+
+**Cette section prime sur tous les relevés ci-dessous.**
+
+## État Git, vérifié par commande
+
+| | |
+|---|---|
+Base de travail | `origin/main` à **`0e06d5c`** — *« Merge pull request #8 … »* |
+Version | **`0.3.0-rc.1`** |
+Branche de cette passe | **`feat/chatgpt-plugin-hosted-compat`**, partie de `0e06d5c`. Consulter Git et la PR pour l'état de fusion ; **ne rien déduire de cette fiche** |
+Suite de tests | **279 passés, 0 échec, 0 sauté** avec les enregistrements présents à côté. Base `main` avant cette passe : **270 passés** |
+Garde de publication | `PASS`, 83 fichiers publiables, aucun secret, aucune trace machine |
+
+> ⚠ **Le piège qui a coûté le plus de temps dans cette passe.** Les copies de
+> travail locales du connecteur étaient **en retard de sept commits** sur
+> `origin/main`, et leur fiche annonçait `0.2.0` avec « aucun appel API
+> hébergé ». `origin/main` porte `0.3.0-rc.1`, **un diagnostic REST réel et une
+> génération SSE réelle bornée du 26 octobre**, et les schémas de contrat
+> REST/SSE versionnés. La branche locale était déjà fusionnée.
+>
+> **Faire `git fetch --prune` et relire depuis `origin/main` avant toute
+> conclusion.** Une copie locale ne fait pas foi, et une fiche encore moins.
+
+## Livré par cette passe — trois corrections, aucune sur l'API
+
+1. **Un `Host` de domaine hébergé est désormais acceptable.** Il ne l'était
+   pas : la liste d'hôtes était dérivée du port d'écoute, et un
+   `Host: mcp.example.org` recevait **403 `invalid_host` avant toute lecture de
+   credential** — mesuré, non déduit. Aucun assistant distant ne pouvait
+   atteindre ce connecteur. Nouvelle variable **`NEOMUNDI_MCP_ALLOWED_HOSTS`**,
+   opt-in explicite, **défaut vide donc comportement inchangé**. Un hôte n'est
+   accepté que parce qu'il a été *nommé*, jamais parce que l'écoute a été
+   élargie : cette séparation est l'invariant anti-rebinding du dépôt, et elle
+   est maintenant affirmée par son test d'origine **et** par un test de cette
+   passe.
+2. **`title` sur l'outil**, avec une garde qui refuse tout vocabulaire de
+   verdict dans ce champ. Un hôte l'affiche à une personne.
+3. **Manifeste** : `shortDescription` ramenée de **43 à 26 caractères** (la
+   limite de la plateforme est 30 — elle était dépassée), et `websiteURL`
+   renseignée depuis une valeur déjà présente dans le fichier.
+
+Aucune sémantique de mesure n'a bougé : schémas, présentation, `reading_aid`,
+classification amont et validation de contrat sont intacts.
+
+## Documents de cette passe
+
+1. [Analyse d'écarts](PLUGIN_GAP_ANALYSIS.md) — matrice *existant / manquant /
+   à corriger / non vérifié*, et les mesures qui l'appuient ;
+2. [Architecture](PLUGIN_ARCHITECTURE.md) — interface compatible avec un
+   instrument propriétaire **ou** ouvert, sans décision irréversible ;
+3. [Feuille de route](PLUGIN_ROADMAP.md) — P0 / P1 / P2.
+
+## Blocages, et qui les lève
+
+| # | Blocage | Qui |
+|---|---|---|
+**G-1** | Aucun point d'entrée HTTPS public. Le code l'accepte ; l'infrastructure n'existe pas | **Sébastien** — et cette passe **n'autorise aucun déploiement** |
+**G-2** | Un credential statique partagé, aucune identité par utilisateur. Tout appel est facturé au même compte | **Sébastien** — plus grosse pièce non construite |
+**G-3** | `privacyPolicyURL` et `termsOfServiceURL` inexistantes — **volontairement non inventées** | **Sébastien** |
+**G-4** | Vérification d'identité de l'organisation côté plateforme : état inconnu | **Sébastien** |
+**G-5** | Imbrication de `extensions.com.openai` (`interface` ou champs à plat) non établie | une session |
+**G-7** | Qualification de `0.3.0-rc.1` en production — le backend doit publier métadonnées et schémas | porte de release |
+**G-8** | MCP Inspector jamais exécuté | une session, sans coût |
+
+## Prochaine action concrète
+
+**Trancher le modèle d'authentification — `P0-3` de la feuille de route.** Tout
+le reste en dépend, et c'est le seul vrai blocage du premier palier.
+Recommandation : commencer par un **plugin local avec la clé de
+l'utilisateur**, compatible avec les deux scénarios de distribution, sans
+infrastructure et sans facture.
+
+Sans décision, une tâche reste faisable immédiatement et sans coût :
+**exécuter MCP Inspector** contre le serveur local (`P0-4`).
+
+## Revérifier avant toute modification
+
+```bash
+git fetch --prune                 # avant tout : une copie locale ne fait pas foi
+git log -1 --oneline origin/main && git status -sb
+npm test                          # 279 passés, 0 sauté, enregistrements présents à côté
+node check-publication.mjs        # ce qui sort du dépôt
+```
+
+Les enregistrements rejoués sont cherchés dans un répertoire frère du SDK
+Python ; absents, les tests concernés se sautent **en le disant**. Un compte
+inférieur n'est donc pas un échec, mais il n'est pas la même preuve.
+
+---
+
 # Reprise — contrats REST/SSE et prochaine release
 
 Source : **0.3.0-rc.1**, candidate. Le test réel réussi du 26 octobre porte sur **0.2.0**.

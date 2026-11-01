@@ -40,6 +40,7 @@ Adresse par défaut : **`http://127.0.0.1:8787/mcp`**. Le démarrage n'appelle a
 | `NEOMUNDI_API_BASE_URL` | `https://api.neomundi.io` | origine seule, sans identifiants, chemin, query ou fragment. HTTPS partout ; **HTTP accepté uniquement pour `127.0.0.1`, `localhost` et `[::1]`** — voir « Vérification contre une instance locale » |
 | `NEOMUNDI_MCP_PORT` | 8787 | entier 1–65535 |
 | `NEOMUNDI_MCP_BIND` | `127.0.0.1` | `127.0.0.1` ou `0.0.0.0`, **et rien d'autre**. Voir « Exécution en conteneur » avant de changer cette valeur |
+| `NEOMUNDI_MCP_ALLOWED_HOSTS` | *vide* | en-têtes `Host` acceptés **en plus** de la paire loopback, séparés par des virgules. Correspondance exacte, minuscules, `hôte` ou `hôte:port` ; aucun joker, aucun schéma, aucun chemin. Vide par défaut, donc comportement inchangé. **Indépendant de `NEOMUNDI_MCP_BIND` : élargir l'écoute n'élargit jamais cette liste.** Nécessaire pour un hébergement derrière un proxy TLS — voir « Hébergement derrière un proxy » |
 | `NEOMUNDI_TIMEOUT_MS` | 120000 | délai global, entier positif ≤ 3600000 |
 | `NEOMUNDI_IDLE_TIMEOUT_MS` | 30000 | inactivité réseau, entier positif ≤ 3600000 |
 | `NEOMUNDI_MAX_RESPONSE_BYTES` | 2097152 | taille amont maximale en octets, ≤ 16777216 |
@@ -395,7 +396,24 @@ NEOMUNDI_API_KEY=… NEOMUNDI_MCP_API_KEY=… docker compose up --build
 
 Hors conteneur, **rien ne change** : le défaut reste `127.0.0.1`, et aucune variable n'est nécessaire pour l'obtenir.
 
-**2. Le port doit être publié à l'identique.** La liste blanche `Host` n'accepte que `127.0.0.1:<port>` et `localhost:<port>` pour le port réellement écouté. `-p 9000:8787` fait envoyer `Host: localhost:9000` par le client, refusé en **403 `invalid_host`**. Ce contrôle est délibéré — il est ce qui bloque un rebinding DNS ou une confusion de proxy — et élargir l'écoute ne l'élargit pas : `tests/bind-address.test.mjs` le vérifie.
+**2. Le port doit être publié à l'identique.** Par défaut, la liste blanche `Host` n'accepte que `127.0.0.1:<port>` et `localhost:<port>` pour le port réellement écouté. `-p 9000:8787` fait envoyer `Host: localhost:9000` par le client, refusé en **403 `invalid_host`**. Ce contrôle est délibéré — il est ce qui bloque un rebinding DNS ou une confusion de proxy — et élargir l'écoute ne l'élargit pas : `tests/bind-address.test.mjs` le vérifie. Pour accepter un autre `Host`, il faut le **nommer** dans `NEOMUNDI_MCP_ALLOWED_HOSTS` ; voir la section suivante.
+
+### Hébergement derrière un proxy
+
+Un proxy inverse transmet l'en-tête `Host` du domaine public, par exemple `Host: mcp.example.org`. Sans réglage, ce `Host` est refusé en **403 `invalid_host`**, *avant* toute lecture de credential : c'est correct pour la posture loopback, et cela rend un point d'entrée hébergé inatteignable. Nommer le domaine le rend acceptable :
+
+```bash
+NEOMUNDI_MCP_ALLOWED_HOSTS=mcp.example.org
+```
+
+Quatre propriétés à connaître :
+
+- **un hôte est accepté parce qu'il a été nommé**, jamais parce que l'écoute a été élargie. `NEOMUNDI_MCP_BIND=0.0.0.0` seul n'ajoute aucun `Host` ;
+- **la correspondance est exacte.** Nommer `mcp.example.org` n'accepte ni `example.org`, ni `evil.mcp.example.org`, ni `mcp.example.org:8443`. Il n'y a pas de joker ;
+- **l'`Origin` suit l'hôte.** Pour un hôte nommé, `https://` et `http://` sont acceptés — il est atteint à travers une terminaison TLS qu'il n'assure pas lui-même. Le loopback reste en clair uniquement. Un `Origin` absent reste accepté : un client MCP côté serveur n'en envoie pas ;
+- **ce processus sert du HTTP en clair.** Terminer TLS devant lui. Le credential `Authorization: Bearer` reste la seule barrière, et le serveur l'énonce sur stderr au démarrage.
+
+Cela rend un point d'entrée hébergé **techniquement joignable**. Cela ne fournit ni identité par utilisateur, ni clé NeoMundi par utilisateur : un seul credential partagé ouvre le serveur, et une seule clé API est dépensée pour tous ceux qui l'atteignent. Voir [la feuille de route](../PLUGIN_ROADMAP.md), `P1-2`.
 
 ### Ce qui a été vérifié sur l'image, le 2026-10-20
 

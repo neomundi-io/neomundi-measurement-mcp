@@ -84,10 +84,22 @@ export function createMcpServer({ config, fetchImpl = globalThis.fetch }) {
   async function dispatch(request, response) {
     if (closing) { send(response, 503, { error: 'server_closing' }); return; }
     const port = server.address()?.port;
-    const hosts = new Set([`127.0.0.1:${port}`, `localhost:${port}`]);
+    const loopbackHosts = [`127.0.0.1:${port}`, `localhost:${port}`];
+    // Explicitly named hosts only, and never derived from the bind address:
+    // the empty default keeps the loopback-only posture untouched.
+    const configuredHosts = config.allowedHosts ?? [];
+    const hosts = new Set([...loopbackHosts, ...configuredHosts]);
     if (!hosts.has(request.headers.host)) { send(response, 403, { error: 'invalid_host' }); return; }
     const origin = request.headers.origin;
-    if (origin !== undefined && !new Set([...hosts].map((host) => `http://${host}`)).has(origin)) {
+    // Loopback keeps plaintext only. A named host is reached through TLS
+    // termination it does not perform itself, so both schemes are accepted
+    // for it and for it alone. An absent Origin stays allowed: a server-side
+    // MCP client sends none, and the Host check above already ran.
+    const origins = new Set([
+      ...loopbackHosts.map((host) => `http://${host}`),
+      ...configuredHosts.flatMap((host) => [`https://${host}`, `http://${host}`]),
+    ]);
+    if (origin !== undefined && !origins.has(origin)) {
       send(response, 403, { error: 'invalid_origin' }); return;
     }
     const authCount = request.rawHeaders.filter((_entry, i) => i % 2 === 0 && request.rawHeaders[i].toLowerCase() === 'authorization').length;
@@ -244,6 +256,12 @@ async function main() {
       // Said plainly, once. The listener is no longer confined to this
       // machine, and the Bearer credential is the only barrier in front of it.
       process.stderr.write(`Listener bound to ${config.bindAddress}, not loopback: the MCP endpoint is reachable from wherever this process is published, and NEOMUNDI_MCP_API_KEY is the only barrier. Publish the port one-to-one, or the forwarded Host header will be refused.\n`);
+    }
+    if (config.hostAllowListExtended) {
+      // Said plainly, once, like the bind warning above. Each named host is a
+      // Host header this process will now answer, and the Bearer credential
+      // stays the only barrier in front of it.
+      process.stderr.write(`Host allow-list extended to ${config.allowedHosts.join(', ')} beyond loopback: requests carrying these Host headers are answered, and NEOMUNDI_MCP_API_KEY is the only barrier. Terminate TLS in front of this process; it serves plain HTTP.\n`);
     }
     // Containers stop by signal, so a clean exit is the normal path, not an
     // edge case: stop accepting, abort in-flight calls, let the loop drain.

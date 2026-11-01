@@ -1,3 +1,16 @@
+# Current scope — plugin host compatibility, 1 November 2026
+
+This addendum takes precedence over every entry below it.
+
+- **ML-014 — a hosted `Host` header was refused, and is now accepted only when named.** The `Host` allow-list was derived from the listening port, so any reverse-proxied domain received 403 `invalid_host` before any credential was read: no remote assistant could reach this connector at all. `NEOMUNDI_MCP_ALLOWED_HOSTS` adds named hosts, is **empty by default** — behaviour unchanged for every existing deployment — and is **independent of `NEOMUNDI_MCP_BIND`**: widening the listener still widens nothing. Exact match, no wildcard. For a named host, `https://` and `http://` are both accepted as `Origin`, because such a host is reached through TLS this process does not terminate.
+- **ML-015 — reachability is not multi-tenancy.** A hosted endpoint is now technically reachable. There is still **one** shared inbound credential and **one** NeoMundi API key for everyone who reaches it: no per-user identity, no token issuance, no revocation, no scoping, and no usage attribution. A hosted deployment therefore bills every call to one account, and that account's tier decides what every caller gets. This is the largest unbuilt piece, and it is a decision before it is code.
+- The tool now carries a human-readable `title`. It names the action and is held to the presentation layer's rule: a test refuses any verdict, risk, compliance or score vocabulary in that field, because a host shows it to a person.
+- Manifest metadata was brought within the platform's stated limits (`shortDescription` was 43 characters against a documented maximum of 30). `privacyPolicyURL` and `termsOfServiceURL` remain **absent and deliberately not invented**.
+- No measurement semantics changed: schemas, the presentation layer, `reading_aid`, upstream status classification and contract validation are untouched. Offline suite: **279 passed, 0 failed, 0 skipped** with the recordings present.
+- Platform requirements cited in [the gap analysis](PLUGIN_GAP_ANALYSIS.md) were read on 2026-11-01 and are not knowable from this repository: re-verify them at the moment of any decision.
+
+---
+
 # Current scope — connector/plugin 0.3.0-rc.1, 26 October 2026
 
 This addendum takes precedence over the historical entries below.

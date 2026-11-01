@@ -53,9 +53,55 @@ const LOOPBACK_HOSTS = Object.freeze(new Set(['127.0.0.1', 'localhost', '[::1]',
  */
 const BIND_ADDRESSES = Object.freeze(new Set(['127.0.0.1', '0.0.0.0']));
 
+/** Host headers accepted in addition to the loopback pair, and only those.
+ *
+ * Why this exists. The `Host` allow-list is derived from the listening port,
+ * so it accepts `127.0.0.1:<port>` and `localhost:<port>` and nothing else.
+ * That is correct for the loopback posture, and it makes a hosted deployment
+ * impossible: a reverse proxy forwards `Host: mcp.example.org`, which the
+ * server answers with 403 `invalid_host` before any credential is read. A
+ * hosted MCP endpoint — the one thing a remote assistant can reach — could
+ * therefore never work, whatever the infrastructure around it.
+ *
+ * This is a separate decision from `NEOMUNDI_MCP_BIND`, deliberately. Widening
+ * the bind must NOT widen the Host allow-list: that invariant is asserted by
+ * its own test and is what stops DNS rebinding and proxy confusion. A host is
+ * accepted here only because it was named explicitly.
+ *
+ * Exact-match, lowercase, `host` or `host:port`. No wildcard, no scheme, no
+ * path, no IP range: `*.example.org` and `mcp.example.org/x` stay refused, and
+ * a named host matches that string and no other. The default is empty, so a
+ * deployment that sets nothing behaves exactly as before.
+ *
+ * One normalisation, and only one: whitespace around a list entry is stripped,
+ * because the list is comma-separated and `a.example, b.example` is how an
+ * operator writes it. Nothing else is adjusted into acceptance — no case
+ * folding, no scheme stripping, no inner whitespace — so the string that is
+ * compared against an incoming `Host` is the one that was named.
+ */
+const ALLOWED_HOST = /^(?=.{1,253}$)[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)*(?::\d{1,5})?$/;
+
+const allowedHosts = (value) => {
+  if (value === undefined || value === '') return Object.freeze([]);
+  const entries = value.split(',').map((entry) => entry.trim()).filter((entry) => entry !== '');
+  if (!entries.length) throw new ConfigurationError();
+  for (const entry of entries) {
+    // Refused rather than normalised: a host that had to be lowercased, or
+    // stripped of a scheme or path, is not the string a proxy will forward.
+    // Only the separator whitespace handled above is tolerated.
+    if (entry !== entry.toLowerCase() || !ALLOWED_HOST.test(entry)) throw new ConfigurationError();
+    const port = entry.split(':')[1];
+    if (port !== undefined && (Number(port) < 1 || Number(port) > 65535)) throw new ConfigurationError();
+  }
+  return Object.freeze([...new Set(entries)]);
+};
+
 // Read by the deployed process only. Tests inject an artificial object and
 // never inspect real environment credentials. No .env loader or filesystem keys.
 export function loadConfiguration(environment) {
+  // Parsed once: it validates, and a second call would repeat the work and
+  // let the two values drift if the parsing ever changed.
+  const hosts = allowedHosts(environment.NEOMUNDI_MCP_ALLOWED_HOSTS);
   let url;
   try { url = new URL(environment.NEOMUNDI_API_BASE_URL || 'https://api.neomundi.io'); }
   catch { throw new ConfigurationError(); }
@@ -78,6 +124,13 @@ export function loadConfiguration(environment) {
     // the same reason as plaintextLoopback: the operator is told, a test can
     // assert it, and nothing has to re-derive it from a string comparison.
     publishedBeyondLoopback: bind(environment.NEOMUNDI_MCP_BIND) !== '127.0.0.1',
+    // Additional accepted Host headers. Empty unless named explicitly, and
+    // independent of bindAddress: see ALLOWED_HOST above.
+    allowedHosts: hosts,
+    // True only when a host beyond the loopback pair is accepted. Surfaced for
+    // the same reason as publishedBeyondLoopback: the operator is told at
+    // startup, and a test can assert it without re-deriving it.
+    hostAllowListExtended: hosts.length > 0,
     totalTimeoutMs: positive(environment.NEOMUNDI_TIMEOUT_MS, 120000, 3600000),
     idleTimeoutMs: positive(environment.NEOMUNDI_IDLE_TIMEOUT_MS, 30000, 3600000),
     maxResponseBytes: positive(environment.NEOMUNDI_MAX_RESPONSE_BYTES, 2097152, 16777216),
