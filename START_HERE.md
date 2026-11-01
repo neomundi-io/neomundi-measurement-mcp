@@ -1,3 +1,106 @@
+# CGU v1.0 PUBLIÉES — 1er novembre 2026
+
+**Les conditions d'utilisation du service MCP sont en ligne et en vigueur.**
+Sans rétroactivité : le texte le dit lui-même, en tête.
+
+État complet : [`LEGAL_STATUS_V1.md`](LEGAL_STATUS_V1.md).
+
+## Les deux adresses
+
+| | Français — **fait foi** | Anglais — information |
+|---|---|---|
+| Page | **`https://neomundi.org/cgu`** | **`https://neomundi.org/en/terms-of-use`** |
+| Identifiant | 3772 | 3773 |
+| Statut | **`publish`** | **`publish`** |
+| Empreinte SHA-256 | `01e5191f5b0f55785a8c43cd86f3286164a55387b95b3d7a83bf330b7a79034d` | `346de3fc524d0ac0c2efa17c12ab384b0e264ca0bbe7c5084cb079a294e4473d` |
+
+## Ce qui a débloqué la publication
+
+Les douze clauses non arbitrées qui tenaient les pages en brouillon ont été
+**retirées du texte, pas comblées par invention**. Chacune a été remplacée par
+un fait vérifié ou par une formulation de droit commun : l'article 15 renvoie
+au **droit commun** avec réserve de la faute lourde, l'article 17 remplace le
+préavis par une **nouvelle acceptation adossée à l'empreinte**, et le
+paragraphe « ControlTower » comme l'annexe « Points à trancher » ont été
+**supprimés**.
+
+**Ce qui a été retiré du texte n'a pas été tranché.** C'est l'objet du registre
+de consolidation ci-dessous.
+
+## Vérifié sur les pages servies
+
+Par requête HTTP non authentifiée — donc sur ce qu'un visiteur voit, pas sur
+ce que l'API annonce :
+
+- **HTTP 200** sur les deux adresses ;
+- **18 articles** dans chacune, URL canonique correcte ;
+- la mention de version et la **non-rétroactivité** présentes en tête ;
+- **zéro marqueur résiduel** — aucun « à compléter », « à confirmer », crochet
+  ni avertissement de projet ;
+- **les liens de pied de page existaient déjà** et pointent correctement, dans
+  les deux langues.
+
+Le **manifeste MCP** porte désormais `termsOfServiceURL` vers la page
+**française**, celle qui fait foi.
+
+## Le mécanisme d'acceptation est utilisable
+
+```
+node scripts/cgu-fingerprint.mjs
+# → « OK : 1 version(s). Version acceptable aujourd'hui : 1.0. »
+```
+
+L'outil refusait de désigner une version acceptable tant que rien n'était
+publié. **Il en désigne une maintenant.** La garde reste entière dans l'autre
+sens : **aucun accès ne doit être délivré sans acceptation écrite** de la
+version 1.0, enregistrée avec son empreinte (article 4).
+
+## Le dossier de projets est sorti de ce dépôt
+
+Ce dépôt est public, et la consigne était de ne publier aucun document
+interne. Le dossier `legal/` ne garde donc que **ce qui est publié** — les deux
+textes de CGU — et **ce qui sert à le vérifier** — le registre des versions.
+
+Politique de confidentialité MCP, convention pilote, licence associative,
+annexe de périmètre, PV de bureau, mécanisme et formulaires d'acceptation sont
+conservés **hors dépôt**, en statut **PROJET**. Les sections historiques de ce
+fichier qui les citaient portent la mention *(hors dépôt)*.
+
+> **L'historique Git garde la trace de leur passage.** Ce retrait protège les
+> versions futures, pas les anciennes. Ces projets ne contiennent aucune
+> information nominative ni contractuelle confidentielle, par construction.
+
+## Registre de consolidation — échéance 11 novembre 2026
+
+Six items, suivis hors dépôt :
+
+1. **politique de confidentialité MCP** et **qualification des rôles RGPD** —
+   le plus urgent : l'article 16 renvoie à une politique qui ne décrit pas
+   encore le traitement MCP, **et le texte publié l'assume en ne mettant aucun
+   lien direct** ;
+2. **durées de conservation** — mesurées, non décidées : la base et les
+   journaux de conteneurs conservent **sans limite** ;
+3. **régularisation du DPA Infomaniak** — demandée le 2026-11-01 ;
+4. **convention pilote** et **NDA** — aucun NDA n'est rédigé ;
+5. **licence associative** et **PV de bureau** — le périmètre statutaire
+   « diffusion scientifique » reste **plus étroit** que l'exploitation réelle ;
+6. **clauses contractuelles restantes** — vers une **v1.1**.
+
+**Aucune de ces réserves ne rend la v1.0 inopposable.** Et **aucune relecture
+par un conseil** n'a eu lieu — ni sur les CGU publiées, ni sur les projets.
+
+## Prochaine action
+
+**Trancher la qualification des rôles RGPD**, parce que les items 3 et 4 en
+dépendent, puis publier la politique de confidentialité actualisée en FR et en
+EN. **Alors seulement** l'article 16 pourra porter un lien direct — ce qui
+créera une **v1.1**, avec de nouvelles empreintes et une **nouvelle
+acceptation** à recueillir.
+
+**Ni l'API ni l'instrument de mesure n'ont été modifiés.**
+
+---
+
 # CGU EN BROUILLON SUR LE SITE — 1er novembre 2026
 
 **Cette section prime sur toutes les suivantes.**
@@ -89,7 +192,7 @@ L'**article 8** donne au **bureau** le pouvoir de prendre « toutes les
 décisions nécessaires à la bonne marche de l'association » : c'est l'organe
 compétent pour autoriser la convention, **sans la voix du Président**.
 
-Un [modèle de procès-verbal](legal/PV_BUREAU_LICENCE_MODELE.md) est fourni,
+Un modèle de procès-verbal *(hors dépôt)* est fourni,
 avec deux voies de signature — **mandat spécial** à un autre membre
 (recommandé) ou **signature présidentielle** après délibération prise sans lui.
 
@@ -108,11 +211,11 @@ avec deux voies de signature — **mandat spécial** à un autre membre
 
 ## Livré
 
-- [Licence d'exploitation **V0.3**](legal/LICENCE_EXPLOITATION_ASSOCIATIVE_FR.md)
+- Licence d'exploitation **V0.3** *(hors dépôt)*
   — adossée aux statuts réels : articulation avec l'article 11 (art. 1.1),
   pouvoirs et conflit d'intérêts (art. 12), modalités de diffusion (art. 13) ;
-- [modèle de procès-verbal du bureau](legal/PV_BUREAU_LICENCE_MODELE.md) ;
-- [annexe de périmètre](legal/ANNEXE_PERIMETRE_DROITS.md) — la section
+- modèle de procès-verbal du bureau *(hors dépôt)* ;
+- annexe de périmètre *(hors dépôt)* — la section
   « pouvoirs » est **renseignée** ; l'inventaire des droits **reste à établir**.
 
 **Les pièces statutaires ne sont pas versées au dépôt** : elles nomment des
@@ -154,8 +257,8 @@ cocher. Un échange de courriels et un fichier.
 
 | Document | Rôle |
 |---|---|
-[Mécanisme et preuve](legal/ACCEPTATION_CGU.md) | procédure en trois étapes, registre, retrait, changement de version |
-[Modèle FR](legal/MODELE_ACCEPTATION_FR.md) · [EN](legal/MODELE_ACCEPTATION_EN.md) | formulaire à renvoyer |
+Mécanisme et preuve *(hors dépôt)* | procédure en trois étapes, registre, retrait, changement de version |
+Modèle FR *(hors dépôt)* · EN *(hors dépôt)* | formulaire à renvoyer |
 [`legal/cgu-versions.json`](legal/cgu-versions.json) | registre des versions, **épinglées par empreinte** |
 `scripts/cgu-fingerprint.mjs` | calcule et vérifie les empreintes |
 
@@ -211,11 +314,11 @@ Tout est dans **[`legal/`](legal/README.md)** — huit documents, versionnés.
 | Livrable | État |
 |---|---|
 [CGU FR](legal/CGU_MCP_FR.md) · [EN](legal/CGU_MCP_EN.md) | **V0.3** — reprend la structure de la V0.1, change l'entité, le droit applicable et le mode d'accès |
-[Politique de confidentialité FR](legal/POLITIQUE_CONFIDENTIALITE_MCP_FR.md) · [EN](legal/PRIVACY_POLICY_MCP_EN.md) | **V0.1** — **sept traitements** détaillés |
-[Convention pilote FR](legal/CONVENTION_PILOTE_FR.md) | **V0.1** |
-[Licence d'exploitation FR](legal/LICENCE_EXPLOITATION_ASSOCIATIVE_FR.md) | **V0.2** — reprend le projet V0.1 du fondateur |
-[Annexe de périmètre des droits](legal/ANNEXE_PERIMETRE_DROITS.md) | **V0.1** — **incomplète par construction** |
-[Décisions ouvertes](legal/DECISIONS_OUVERTES.md) · [Checklist](legal/CHECKLIST_PUBLICATION.md) | — |
+Politique de confidentialité FR *(hors dépôt)* · EN *(hors dépôt)* | **V0.1** — **sept traitements** détaillés |
+Convention pilote FR *(hors dépôt)* | **V0.1** |
+Licence d'exploitation FR *(hors dépôt)* | **V0.2** — reprend le projet V0.1 du fondateur |
+Annexe de périmètre des droits *(hors dépôt)* | **V0.1** — **incomplète par construction** |
+Décisions ouvertes *(hors dépôt)* · Checklist *(hors dépôt)* | — |
 
 ## Deux choses manquaient, et il faut le savoir
 

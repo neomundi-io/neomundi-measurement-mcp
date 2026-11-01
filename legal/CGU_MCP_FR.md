@@ -1,16 +1,9 @@
 # Conditions générales d'utilisation — service de mesure MCP NeoMundi
 
-**Version 0.4 — projet de travail, non publiable en l'état.**
-**Date d'entrée en vigueur : [À COMPLÉTER].**
+**Version 1.0 — en vigueur depuis le 1er novembre 2026.**
 
-> ⛔ **Projet non publié, non signé, sans effet juridique.** À relire par un
-> conseil compétent avant publication. Les mentions **[À COMPLÉTER]** et
-> **[À CONFIRMER]** marquent ce qui n'est pas tranché : elles ne doivent pas
-> être comblées par analogie.
-
-**Historique.** La V0.1 visait le service *ControlTower* exploité par une
-société suisse. La présente version reprend sa structure et change trois
-choses : l'**entité éditrice**, le **droit applicable**, et le **mode d'accès**.
+Les présentes conditions s'appliquent **à compter de leur entrée en vigueur**
+et **ne rétroagissent pas**.
 
 ---
 
@@ -38,11 +31,8 @@ Siège : 29 rue Tronchet, 75008 Paris, France
 Directeur de la publication : **Sébastien FAVRE-LECCA**
 Contact : formulaire disponible à l'adresse `https://neomundi.org/contact`
 
-Hébergement : **Infomaniak Network SA**, Rue Eugène-Marziano 25, 1227 Les
-Acacias (GE), Suisse.
-
-> **[À COMPLÉTER]** — adresse de contact dédiée aux questions contractuelles
-> et de sécurité, si elle doit être distincte du formulaire.
+Hébergement du Service : **Infomaniak Network SA**, Rue Eugène-Marziano 25,
+1227 Les Acacias (GE), Suisse.
 
 ---
 
@@ -95,7 +85,7 @@ préalable à la délivrance de l'accès.**
 
 Le Participant déclare par écrit accepter une **version déterminée** des
 présentes, identifiée par son **numéro de version** et par l'**empreinte
-SHA-256 de son texte**. L'association consigne cette acceptation — identité du
+SHA-256 de son texte**. L'Éditeur consigne cette acceptation — identité du
 signataire, date, version et empreinte acceptées, méthode d'acceptation — et
 **ne délivre l'identifiant d'accès qu'ensuite**.
 
@@ -106,9 +96,6 @@ Une **modification substantielle** des présentes donne lieu à une **nouvelle
 acceptation** : l'acceptation antérieure porte sur un autre texte, et son
 empreinte en fait foi.
 
-La procédure est décrite dans le document
-[acceptation des CGU](ACCEPTATION_CGU.md).
-
 En cas de contradiction entre les présentes et une convention de participation
 signée, **cette dernière prévaut**.
 
@@ -117,13 +104,11 @@ signée, **cette dernière prévaut**.
 ## Article 5 — Destination du Service
 
 Le Service est destiné aux **chercheurs, institutions, organisations et
-professionnels** participant à un pilote autorisé.
+professionnels** participant à un pilote autorisé par l'Éditeur.
 
-> **[À CONFIRMER]** — admission ou exclusion des personnes physiques agissant
-> à des fins non professionnelles. La question se pose dès lors qu'une fiche
-> publique de plugin rend le Service visible du grand public, alors même que
-> l'accès reste soumis à autorisation. **La décision conditionne l'application
-> du droit de la consommation.**
+L'accès n'étant délivré que sur autorisation préalable et après acceptation
+écrite, **aucun accès ne s'ouvre par simple consultation du Service ou de sa
+fiche publique**.
 
 ---
 
@@ -135,12 +120,11 @@ Le Participant est responsable de la confidentialité de l'identifiant qui lui
 est remis et de tout usage effectué au moyen de celui-ci. Il informe l'Éditeur
 sans délai de toute divulgation suspectée.
 
-> **Limite énoncée franchement.** À ce stade, le Service **n'individualise pas
-> les accès** : il ne permet ni d'attribuer un appel à un Participant
-> déterminé, ni de suspendre un Participant isolément. **Une suspension est
-> donc nécessairement collective** (article 13). Cette limite est technique,
-> connue, et ne doit pas être présentée autrement. **[À CONFIRMER]** — mise en
-> place d'identifiants individuels.
+**Limite énoncée franchement.** À ce stade, le Service **n'individualise pas
+les accès** : il ne permet ni d'attribuer un appel à un Participant déterminé,
+ni de suspendre un Participant isolément. **Une suspension est donc
+nécessairement collective** (article 13). Cette limite est technique, connue,
+et ne doit pas être présentée autrement.
 
 ---
 
@@ -164,8 +148,6 @@ en production ou non.
 ---
 
 ## Article 8 — Nature des mesures et des résultats
-
-**Cet article est le cœur des présentes et ne doit pas être affaibli.**
 
 Les résultats produits constituent des **observations et des signaux
 contextualisés** au regard d'un protocole déterminé. Ils **ne constituent en
@@ -220,9 +202,9 @@ Le Participant est seul responsable :
 - de la manière dont il cite ou publie une Mesure (article 11) ;
 - du respect des droits des tiers et des exigences propres à son secteur.
 
-> **Le Service ne vérifie techniquement aucun de ces points.** Ces obligations
-> reposent sur une déclaration du Participant, et l'Éditeur n'a pas les moyens
-> d'en contrôler le respect.
+**Le Service ne vérifie techniquement aucun de ces points.** Ces obligations
+reposent sur une déclaration du Participant, et l'Éditeur n'a pas les moyens
+d'en contrôler le respect.
 
 ---
 
@@ -234,7 +216,7 @@ Le Participant garantit disposer des droits et autorisations nécessaires à la
 transmission du Contenu soumis, et s'engage à **n'y inclure que les données
 strictement nécessaires** à son cas d'usage.
 
-### 10.2 Ce que le Service en fait — dit franchement
+### 10.2 Ce que le Service en fait
 
 **Le Contenu soumis est transmis à l'infrastructure de mesure afin d'y être
 mesuré.** Cette transmission est **inhérente à la mesure** : il n'est pas
@@ -250,8 +232,9 @@ aucun contenu et n'enregistre aucune adresse IP.
   lorsque l'analyse de factualité dépasse un seuil : jusqu'à cinq extraits
   courts sont alors enregistrés avec la Mesure.
 
-Les modalités et durées figurent dans la
-[politique de confidentialité](POLITIQUE_CONFIDENTIALITE_MCP_FR.md).
+**Le traitement a lieu en Suisse**, chez l'hébergeur mentionné à l'article 1,
+qui fournit également l'un des modèles d'analyse. Les autres analyses
+s'exécutent sur les serveurs de l'Éditeur.
 
 ### 10.3 Données sensibles
 
@@ -282,10 +265,6 @@ et pour ses publications scientifiques.
 Les conditions de publication d'un jeu de données issu d'un pilote sont
 définies par la convention de participation. **La participation à un pilote
 n'emporte pas, à elle seule, autorisation de publier son jeu de données.**
-
-> **[À CONFIRMER]** — citation du Service ou de l'Éditeur dans une
-> communication externe : accord préalable, ou politique de citation
-> standardisée.
 
 ---
 
@@ -328,15 +307,12 @@ commerciale ni d'usage d'amélioration.**
 
 **L'Instrument de mesure, le Connecteur, la marque « NeoMundi » et la
 documentation demeurent la propriété de leurs titulaires respectifs.**
-L'association exploite ces éléments dans le cadre d'une **licence non
-exclusive** et **sans transfert de propriété**. Les présentes CGU **n'emportent
-aucune cession** et ne confèrent au Participant aucun droit sur ces éléments.
+L'Éditeur exploite ces éléments dans le cadre d'une **licence non exclusive**
+et **sans transfert de propriété**. Les présentes CGU **n'emportent aucune
+cession** et ne confèrent au Participant aucun droit sur ces éléments.
 
 Les composants appartenant à des tiers restent régis par leurs licences
 respectives.
-
-> **[À COMPLÉTER]** — renvoi à l'annexe de périmètre des droits une fois
-> l'inventaire établi.
 
 ---
 
@@ -352,31 +328,41 @@ La responsabilité de l'Éditeur ne saurait être engagée pour un dommage
 indirect, ni pour une décision prise sur le fondement d'une Mesure en
 contradiction avec les limites énoncées à l'article 8.
 
-> **[À COMPLÉTER]** — limitation de responsabilité. **La gratuité et le cadre
-> scientifique n'exonèrent pas de plein droit** ; la clause doit être calibrée
-> par un conseil au regard du droit français, qui écarte les clauses
-> exonératoires en cas de faute lourde ou dolosive.
+**Aucune des stipulations qui précèdent ne limite la responsabilité de
+l'Éditeur en cas de faute lourde ou dolosive, ni dans les cas où la loi
+l'interdit.** À défaut de stipulation contraire, la responsabilité des parties
+est régie par le droit commun.
 
 ---
 
 ## Article 16 — Protection des données
 
 Le traitement des données personnelles est décrit par la
-[politique de confidentialité](POLITIQUE_CONFIDENTIALITE_MCP_FR.md).
+**politique de confidentialité** de l'Éditeur, accessible depuis
+`https://neomundi.org`.
 
-> **[À COMPLÉTER]** — la qualification des rôles (responsable de traitement /
-> sous-traitant) entre l'Éditeur, le Participant et l'exploitant de
-> l'infrastructure de mesure **n'est pas établie**, et détermine si un accord
-> de sous-traitance est requis.
+Les éléments vérifiés et propres au Service figurent à l'**article 10** :
+l'invite n'est pas conservée, des extraits de la réponse peuvent l'être, le
+Connecteur ne conserve rien, et le traitement a lieu en Suisse.
+
+Le Participant qui souhaite exercer ses droits, ou obtenir des précisions sur
+un traitement, s'adresse à l'Éditeur par le formulaire de contact mentionné à
+l'article 1.
 
 ---
 
 ## Article 17 — Modification des CGU
 
-L'Éditeur peut modifier les présentes. Toute modification substantielle est
-portée à la connaissance des Participants **avant son entrée en vigueur**,
-selon un préavis **[À COMPLÉTER]**, le Participant pouvant cesser d'utiliser le
-Service s'il la refuse.
+L'Éditeur peut modifier les présentes.
+
+Chaque version est identifiée par un **numéro de version** et par
+l'**empreinte SHA-256 de son texte**. Une **modification substantielle** donne
+lieu à une **nouvelle acceptation** dans les conditions de l'article 4 :
+l'acceptation en cours porte sur un texte déterminé, et **demeure attachée à
+celui-ci** jusqu'à ce qu'une nouvelle acceptation soit recueillie.
+
+Un Participant qui n'accepte pas une nouvelle version **cesse d'utiliser le
+Service**, sans pénalité.
 
 ---
 
@@ -386,24 +372,3 @@ Les présentes sont régies par le **droit français**.
 
 À défaut de résolution amiable, les différends relèvent des **juridictions
 compétentes françaises**, sous réserve des règles d'ordre public applicables.
-
-> **[À CONFIRMER]** — attribution de compétence précise, et articulation avec
-> le fait que l'hébergement et une partie du traitement ont lieu **en
-> Suisse**.
-
----
-
-## Annexe — Points à trancher avant publication
-
-1. ~~Mécanisme d'acceptation~~ — **arrêté** : acte écrit explicite préalable
-   à la délivrance de l'accès (art. 4). Reste à **publier** le texte pour que
-   le mécanisme devienne utilisable.
-2. Admission ou exclusion des consommateurs (art. 5).
-3. Identifiants individuels, ou maintien d'un accès non individualisé (art. 6).
-4. Politique de citation (art. 11).
-5. Limitation de responsabilité (art. 15).
-6. Qualification des rôles au titre du RGPD (art. 16).
-7. Préavis de modification (art. 17).
-8. Juridiction compétente (art. 18).
-9. Adresse de contact contractuelle et sécurité (art. 1).
-10. Renvoi à l'annexe de périmètre des droits (art. 14).

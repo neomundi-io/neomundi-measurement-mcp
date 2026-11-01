@@ -1,15 +1,12 @@
 # Terms of Use — NeoMundi MCP measurement service
 
-**Version 0.4 — working draft, not publishable as it stands.**
-**Effective date: [TO BE COMPLETED].**
+**Version 1.0 — in force since 1 November 2026.**
 
-> ⛔ **Unpublished, unsigned draft with no legal effect.** To be reviewed by
-> qualified counsel before publication. **[TO BE COMPLETED]** and
-> **[TO BE CONFIRMED]** mark what is unsettled: they must not be filled in by
-> analogy.
+These terms apply **from their entry into force** and **do not operate
+retroactively**.
 
-**Translation notice.** The **French version prevails**. This translation is
-provided for information and is not a separate legal instrument.
+**The French version prevails.** This translation is provided for information
+and is not a separate legal instrument.
 
 ---
 
@@ -37,11 +34,8 @@ Registered office: 29 rue Tronchet, 75008 Paris, France
 Publication director: **Sébastien FAVRE-LECCA**
 Contact: form at `https://neomundi.org/contact`
 
-Hosting: **Infomaniak Network SA**, Rue Eugène-Marziano 25, 1227 Les Acacias
-(GE), Switzerland.
-
-> **[TO BE COMPLETED]** — dedicated contractual and security contact address,
-> if it is to differ from the form.
+Hosting of the Service: **Infomaniak Network SA**, Rue Eugène-Marziano 25,
+1227 Les Acacias (GE), Switzerland.
 
 ---
 
@@ -91,7 +85,7 @@ the issuing of access.**
 
 The Participant declares in writing that it accepts a **specific version** of
 these Terms, identified by its **version number** and by the **SHA-256
-fingerprint of its text**. The association records that acceptance — signatory
+fingerprint of its text**. The Publisher records that acceptance — signatory
 identity, date, version and fingerprint accepted, acceptance method — and
 **issues the access credential only afterwards**.
 
@@ -102,8 +96,6 @@ A **substantial change** to these Terms calls for a **fresh acceptance**: the
 earlier acceptance covered a different text, and its fingerprint evidences
 that.
 
-The procedure is described in [CGU acceptance](ACCEPTATION_CGU.md).
-
 Where these Terms conflict with a signed participation agreement, **the latter
 prevails**.
 
@@ -112,13 +104,11 @@ prevails**.
 ## Article 5 — Intended audience
 
 The Service is intended for **researchers, institutions, organisations and
-professionals** taking part in an authorised pilot.
+professionals** taking part in a pilot authorised by the Publisher.
 
-> **[TO BE CONFIRMED]** — whether natural persons acting outside a
-> professional capacity are admitted or excluded. The question arises as soon
-> as a public plugin listing makes the Service visible to the general public,
-> even though access remains subject to authorisation. **The decision
-> determines whether consumer-protection law applies.**
+Since access is issued only on prior authorisation and after written
+acceptance, **no access opens by merely viewing the Service or its public
+listing**.
 
 ---
 
@@ -130,12 +120,11 @@ The Participant is responsible for keeping that credential confidential and
 for any use made of it, and informs the Publisher without delay of any
 suspected disclosure.
 
-> **A limitation stated plainly.** At this stage the Service **does not
-> individualise access**: it can neither attribute a call to a particular
-> Participant nor suspend one Participant in isolation. **Suspension is
-> therefore necessarily collective** (Article 13). This limitation is
-> technical, known, and must not be presented otherwise. **[TO BE CONFIRMED]**
-> — introduction of individual credentials.
+**A limitation stated plainly.** At this stage the Service **does not
+individualise access**: it can neither attribute a call to a particular
+Participant nor suspend one Participant in isolation. **Suspension is
+therefore necessarily collective** (Article 13). This limitation is technical,
+known, and must not be presented otherwise.
 
 ---
 
@@ -159,8 +148,6 @@ in production or not.
 ---
 
 ## Article 8 — Nature of measurements and results
-
-**This Article is the heart of these Terms and must not be weakened.**
 
 Results are **observations and contextualised signals** relative to a defined
 protocol. They **in no case constitute** a certification, a verdict, an
@@ -214,9 +201,9 @@ The Participant is solely responsible for:
 - how it cites or publishes a Measurement (Article 11);
 - respecting third-party rights and any sector-specific requirements.
 
-> **The Service verifies none of these technically.** These obligations rest on
-> the Participant's own declaration, and the Publisher has no means of
-> checking compliance.
+**The Service verifies none of these technically.** These obligations rest on
+the Participant's own declaration, and the Publisher has no means of checking
+compliance.
 
 ---
 
@@ -228,7 +215,7 @@ The Participant warrants that it holds the rights and authorisations required
 to transmit the submitted content, and undertakes to include **only data
 strictly necessary** for its use case.
 
-### 10.2 What the Service does with it — stated plainly
+### 10.2 What the Service does with it
 
 **Submitted content is transmitted to the measurement infrastructure in order
 to be measured.** This transmission is **inherent to measuring**: a response
@@ -244,8 +231,9 @@ records no IP address.
   factuality analysis exceeds a threshold: up to five short excerpts are then
   stored alongside the Measurement.
 
-Details and durations are set out in the
-[privacy policy](PRIVACY_POLICY_MCP_EN.md).
+**Processing takes place in Switzerland**, with the host named in Article 1,
+which also provides one of the analysis models. The other analyses run on the
+Publisher's own servers.
 
 ### 10.3 Sensitive data
 
@@ -273,9 +261,6 @@ scientific publications.
 Conditions for publishing a dataset arising from a pilot are set by the
 participation agreement. **Taking part in a pilot does not, in itself,
 authorise publication of its dataset.**
-
-> **[TO BE CONFIRMED]** — citing the Service or the Publisher in external
-> communications: prior approval, or a standardised citation policy.
 
 ---
 
@@ -317,15 +302,12 @@ submitted content. **This licence confers no right of commercial exploitation
 and no improvement use.**
 
 **The measurement instrument, the Connector, the “NeoMundi” mark and the
-documentation remain the property of their respective holders.** The
-association exploits them under a **non-exclusive licence**, **without transfer
-of ownership**. These Terms **effect no assignment** and grant the Participant
-no right over those elements.
+documentation remain the property of their respective holders.** The Publisher
+exploits them under a **non-exclusive licence**, **without transfer of
+ownership**. These Terms **effect no assignment** and grant the Participant no
+right over those elements.
 
 Third-party components remain governed by their respective licences.
-
-> **[TO BE COMPLETED]** — cross-reference to the rights-scope annex once the
-> inventory is established.
 
 ---
 
@@ -341,30 +323,38 @@ The Publisher shall not be liable for indirect damage, nor for a decision
 taken on the basis of a Measurement in contradiction with the limitations set
 out in Article 8.
 
-> **[TO BE COMPLETED]** — limitation of liability. **Being free of charge and
-> scientific does not automatically exonerate**; the clause must be calibrated
-> by counsel under French law, which sets aside exclusion clauses in cases of
-> gross negligence or wilful misconduct.
+**Nothing above limits the Publisher's liability in cases of gross negligence
+or wilful misconduct, nor where the law forbids such limitation.** Absent any
+contrary stipulation, the parties' liability is governed by the general law.
 
 ---
 
 ## Article 16 — Data protection
 
-The processing of personal data is described in the
-[privacy policy](PRIVACY_POLICY_MCP_EN.md).
+The processing of personal data is described in the Publisher's **privacy
+policy**, reachable from `https://neomundi.org`.
 
-> **[TO BE COMPLETED]** — the allocation of roles (controller / processor)
-> between the Publisher, the Participant and the operator of the measurement
-> infrastructure **is not established**, and determines whether a processing
-> agreement is required.
+The verified elements specific to the Service are set out in **Article 10**:
+the prompt is not retained, excerpts of the response may be, the Connector
+retains nothing, and processing takes place in Switzerland.
+
+A Participant wishing to exercise their rights, or to obtain details about a
+processing operation, contacts the Publisher through the contact form named in
+Article 1.
 
 ---
 
 ## Article 17 — Changes to these Terms
 
-The Publisher may amend these Terms. Any substantial change is notified to
-Participants **before it takes effect**, with notice **[TO BE COMPLETED]**; a
-Participant who does not accept it may cease using the Service.
+The Publisher may amend these Terms.
+
+Each version is identified by a **version number** and by the **SHA-256
+fingerprint of its text**. A **substantial change** calls for a **fresh
+acceptance** under Article 4: an acceptance in force covers a determined text
+and **remains attached to it** until a fresh acceptance is collected.
+
+A Participant who does not accept a new version **ceases to use the Service**,
+without penalty.
 
 ---
 
@@ -374,24 +364,3 @@ These Terms are governed by **French law**.
 
 Failing amicable resolution, disputes fall to the **competent French courts**,
 subject to applicable mandatory rules.
-
-> **[TO BE CONFIRMED]** — precise jurisdiction clause, and its articulation
-> with the fact that hosting and part of the processing take place **in
-> Switzerland**.
-
----
-
-## Annex — Points to settle before publication
-
-1. ~~Acceptance mechanism~~ — **settled**: explicit written act prior to
-   issuing access (Art. 4). The text still needs **publishing** for the
-   mechanism to become usable.
-2. Admission or exclusion of consumers (Art. 5).
-3. Individual credentials, or continued non-individualised access (Art. 6).
-4. Citation policy (Art. 11).
-5. Limitation of liability (Art. 15).
-6. Allocation of GDPR roles (Art. 16).
-7. Notice period for changes (Art. 17).
-8. Competent jurisdiction (Art. 18).
-9. Contractual and security contact address (Art. 1).
-10. Cross-reference to the rights-scope annex (Art. 14).

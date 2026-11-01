@@ -50,14 +50,14 @@ test('listing metadata stays inside the platform limits, and claims no policy th
 
   // Every URL declared here resolved when it was written. A URL that does not
   // resolve is a stated rejection reason, so none may be invented to fill a
-  // field: `termsOfServiceURL` is ABSENT on purpose, because Neomundi
-  // Recherche publishes legal notices and a privacy policy but no terms of
-  // service. Adding one here would claim a document that does not exist.
+  // field. `termsOfServiceURL` was deliberately absent for as long as no terms
+  // existed; version 1.0 was published on 2026-11-01, so it is now required --
+  // and it must keep pointing at the French text, which is the one that
+  // prevails.
   assert.equal(openai.websiteURL, 'https://neomundi.org');
   assert.equal(openai.privacyPolicyURL, 'https://neomundi.org/politique-de-confidentialite');
   assert.equal(openai.supportURL, 'https://neomundi.org/contact');
-  assert.equal(Object.hasOwn(openai, 'termsOfServiceURL'), false,
-    'do not add termsOfServiceURL until a terms document actually exists');
+  assert.equal(openai.termsOfServiceURL, 'https://neomundi.org/cgu');
 
   // The association carries the plugin, so the identity shown is the
   // association's and the site is the .org that publishes the evidence --
