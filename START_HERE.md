@@ -1,3 +1,183 @@
+# CLÔTURE DE SESSION — 1er novembre 2026
+
+**Première phase du chantier clôturée.** Un audit indépendant de l'écosystème
+Station / SDK / MCP est confié à **Codex**, à partir du rapport et des modules de
+**Pradeep Kumar**. Cette section prépare la reprise après cet audit.
+
+> ## Les quatre documents de reprise
+>
+> | Document | Rôle |
+> |---|---|
+> | **cette section** | état de clôture, et la prochaine action |
+> | [`PLUGIN_CHECKPOINT_2026-11-01.md`](PLUGIN_CHECKPOINT_2026-11-01.md) | état figé de chaque composant, et `AUDIT_PRADEEP_PENDING` |
+> | [`PLUGIN_NEXT_ROADMAP.md`](PLUGIN_NEXT_ROADMAP.md) | P0 / P1 / P2, dépendances et critères |
+> | [`RESTART.md`](RESTART.md) | **prompt de reprise autonome**, pièges du poste |
+>
+> **Tout ce qui suit cette section est un journal antichronologique.** En cas de
+> contradiction, cette section et le point de clôture priment.
+
+## 1. État Git
+
+| | |
+|---|---|
+| `origin/main` | **`da71f5d327da83247c5f4a69dfc1b6ea6e80f048`** |
+| Modifications locales | **aucune** — hors `AGENTS.md`, non suivi et étranger au chantier |
+| Branche de clôture | `chore/cloture-session-20261101` |
+
+**`main` est exactement ce qui tourne en production.** Et il faut le savoir :
+**tout le corpus documentaire et juridique du 1er novembre est absent de
+`main`**. Il attend dans trois PR empilées, en brouillon.
+
+### Les trois PR empilées — ordre de fusion
+
+```
+#12  docs/cloture-juridique-20261101   ->  audit/cgu-prepublication-20261101
+#11  audit/cgu-prepublication-20261101 ->  docs/mise-en-service-20261101
+#10  docs/mise-en-service-20261101     ->  main
+```
+
+**Dans cet ordre, et seulement dans cet ordre.** PR #12 est `mergeable: clean`,
+11 commits, **+2 795 / −9 sur 16 fichiers**. **Aucune fusion n'a été faite, et
+aucune ne doit l'être sans validation.**
+
+**16 PR au total : 13 fusionnées, 3 en brouillon.** Les quatre PR juridiques
+(#13 à #16) sont déjà dans `docs/cloture-juridique-20261101`.
+
+> **Ne pas supprimer les trois branches de la pile** : elles portent trois PR
+> non fusionnées.
+
+## 2. Versions et déploiement
+
+| | |
+|---|---|
+| Servi sur `https://mcp.neomundi.org/mcp` | **`0.3.0-rc.1`**, depuis le 2026-11-01 11:38 UTC |
+| Révision | **`da71f5d`** — identique à `origin/main` |
+| Image | `sha256:a50a2679d18e…`, base `node@sha256:8a32c8cf…` |
+| HTTPS | Let's Encrypt, valide du **7 septembre** au **6 décembre 2026** |
+| Authentification | `401` sur `/`, `/health` **et** `/mcp` sans jeton |
+| Retour arrière | `0.1.0` à `0cbd369`, **armé et vérifié**, deux commandes |
+
+**Version de mesure.** La production déclare `3.3.1`, le connecteur est épinglé
+sur `3.3.0` : **toute** mesure ressort `version_agreement: divergent`.
+Comportement voulu ; lever l'épinglage est un **arbitrage produit**, pas un
+correctif — `D-8`.
+
+## 3. Tests réellement exécutés
+
+| Contrôle | Résultat, le 2026-11-01 |
+|---|---|
+| `npm test` | **304 cas, 304 réussis, 0 échec**, 21 fichiers |
+| `node check-publication.mjs` | **PASS**, 111 fichiers publiables |
+| `node scripts/cgu-fingerprint.mjs` | **OK**, version acceptable : 1.0 |
+| Paquet construit deux fois | **empreinte identique** — reproductible octet pour octet |
+| Quatre pages juridiques | **`200`** |
+| Certificat et authentification du serveur | vérifiés depuis l'extérieur |
+
+**Aucun appel réel dans la suite** : substituts injectés, aucun credential lu,
+aucun point d'entrée contacté. La sonde d'appel réel est **exclue du dépôt**
+(`ML-010`).
+
+### La CI n'est pas où on croit
+
+`checks.yml` ne se déclenche que sur les PR dont la **base est `main`**. Les PR
+empilées n'ont **aucune exécution** — par construction, pas par défaut.
+
+> **La seule porte verte est PR #10 vers `main`**, et elle mesurera le contenu
+> accumulé des trois PR. `mergeable: clean` ne veut **pas** dire « vérifié ».
+
+## 4. Documents et preuves
+
+Mesure réelle de bout en bout : `request_id`
+**`2ca02f65-e2de-4f21-a35d-0e845329d4b2`**, HTTP 200 en 1,84 s, décision `ALLOW`
+sur fondement `measured_thresholds`, mesure `complete`, **3 contrôles sur 3**,
+cinq signaux mesurés, `contract_validation` = `validated`, évaluateurs réels.
+**Aucun signal ni provenance modifié.**
+
+| Corpus | Référence |
+|---|---|
+| CGU v1.0 FR/EN, publiées et épinglées | [`legal/README.md`](legal/README.md), [`LEGAL_STATUS_V1.md`](LEGAL_STATUS_V1.md) |
+| Politique de confidentialité FR/EN, publiée | idem — elle **couvre le service** depuis le 2026-11-01 |
+| Limites connues, backend et connecteur | [`KNOWN_LIMITATIONS.md`](KNOWN_LIMITATIONS.md) |
+| Candidature : prêt et bloquant | [`docs/PUBLICATION.md`](docs/PUBLICATION.md) §4 |
+| Déploiement, empreintes, retour arrière | [`docs/DEPLOIEMENT_HTTPS.md`](docs/DEPLOIEMENT_HTTPS.md) §0 |
+
+**Séparation public / interne vérifiée.** Recherche sur neuf motifs
+(`convention`, `licence`, `PV`, `NDA`, `statut`, `acceptation`, `interne`,
+`draft`…) dans l'index Git : **zéro résultat**. Les projets vivent hors dépôt,
+en statut PROJET, échéance de consolidation **11 novembre 2026**.
+
+## 5. Blocages confirmés
+
+| # | Blocage | Qui le lève |
+|---|---|---|
+| `P-6` | **Bloc `auth` absent de `mcp.json`** — première marche avant toute connexion | une session |
+| `P-7` | **Imbrication `extensions.com.openai`** : dépôt sous `interface`, documentation à plat. **Aucune des deux validée contre le schéma** | une session |
+| `P-4` · `P-5` | **Vérification d'identité de l'organisation et du domaine** | **Sébastien** |
+| `P-8` · `P-9` | Cas de test depuis l'hôte, vidéo, dossier, capture de la carte | après `P-6` |
+| `D-4` · `P-10` | **Pas multi-utilisateur** : credential partagé, une seule clé API dépensée pour tous | **Sébastien** |
+
+> ### Le point le plus facile à mal lire
+>
+> **ChatGPT n'a jamais été connecté.** Un seul hôte MCP a été vérifié — Claude
+> Code 2.1.247 — et **avec un amont substitué**. Cela valide le transport, **pas
+> la conformité de contrat face à un déploiement** : `LIVE_API_VALIDATED` reste
+> non décerné. Ne jamais présenter cela comme une connexion ChatGPT validée.
+
+## 6. Audit Codex en cours
+
+Cinq points : compatibilité des statuts Station / SDK / MCP, sérialisation vers
+Station, validation CI des schémas, variance des évaluateurs, invariance au
+découpage du streaming.
+
+**Deux de ces cinq points sont déjà des limites documentées ici** :
+**`ML-008`** (la variance du juge n'est pas caractérisée — aucune différence
+entre deux valeurs ne peut être dite significative) et **`BL-002`** (la décision
+en flux dépend du découpage, les fenêtres étant comptées en fragments). S'il les
+confirme, l'audit **confirme notre documentation** ; il ne découvre pas un défaut
+caché.
+
+**Aucun correctif de Pradeep n'est intégré, et aucun ne doit l'être** avant que
+les **quatre questions** du §14 du point de clôture aient une réponse écrite.
+Les **huit contrats à préserver** y sont listés : un correctif qui les casse est
+à refuser, pas à adapter.
+
+> **L'audit ne bloque aucune tâche P0.** La candidature peut avancer pendant
+> l'audit : aucun de ses cinq points ne porte sur le chemin de publication.
+
+## 7. Roadmap priorisée
+
+**P0 — publier** : `auth` dans `mcp.json`, puis imbrication du manifeste, puis
+**connexion réelle depuis ChatGPT**, puis authentification validée depuis
+l'hôte, puis huit cas de test, puis capture, vidéo et dossier, puis vérification
+finale des URL. En parallèle et sans dépendance : **vérification de
+l'organisation et du domaine**.
+
+**P1 — exploitation** : utilisateurs pilotes et clés individuelles, quotas,
+robustesse des transports, observabilité et **durée de conservation**,
+corrections confirmées par l'audit.
+
+**P2 — évolutions** : ergonomie de la carte, intégration Station, consultation,
+interopérabilité, stratégie open source.
+
+Détail, dépendances, preuves et critères : [`PLUGIN_NEXT_ROADMAP.md`](PLUGIN_NEXT_ROADMAP.md).
+
+## 8. Prochaine action de reprise
+
+**Lire les conclusions de l'audit Codex.**
+
+- **Si elles existent** : les confronter aux huit contrats à préserver **avant**
+  de toucher une ligne de `runtime/`.
+- **Si elles n'existent pas encore** : démarrer **P0-1** — déclarer le bloc
+  `auth` dans `mcp.json`, validé contre le **schéma officiel téléchargé**, avec
+  un test qui tombe si le bloc disparaît.
+
+Le prompt de reprise complet est dans [`RESTART.md`](RESTART.md).
+
+**Ni l'API, ni le moteur de mesure, ni l'infrastructure n'ont été modifiés
+pendant cette session.**
+
+---
+
 # POLITIQUE DE CONFIDENTIALITÉ — elle couvre enfin le service, 1er novembre 2026
 
 **Les deux pages publiées décrivent désormais le service de mesure**, et plus
