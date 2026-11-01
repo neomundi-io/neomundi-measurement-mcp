@@ -15,6 +15,37 @@ Faits issus de : [audit des données](MCP_DATA_PROCESSING_AUDIT.md) ·
 
 ---
 
+## 0bis. Mise à jour du 2026-11-01 — E-1 est tranché
+
+**Neomundi Recherche, association loi 1901, est l'entité éditrice.** L'écart
+`E-1`, qui bloquait tous les autres, est **levé** : la seconde lecture du §0
+est retenue — il faut un texte **porté par l'association**, et non une
+extension des CGU ControlTower.
+
+Trois conséquences immédiates sur la matrice :
+
+- **le droit applicable et le for changent** : le brouillon prévoit le droit
+  suisse et le for vaudois pour une Sàrl de Morges. L'éditeur est une
+  association **française**. **À reprendre entièrement avec un juriste** ;
+- **l'article 1 doit nommer l'association** — identité déjà publiée et
+  vérifiée : RNA `W563015824`, siège parisien, directeur de publication ;
+- **l'article 5 devient contradictoire** : il réserve le service aux
+  professionnels, alors qu'un catalogue public expose des particuliers. La
+  question `10` reste entière, et devient prioritaire.
+
+**`E-2` et `E-4` sont désormais chiffrés** par le
+[rapport aval](MCP_DOWNSTREAM_DATA_REPORT.md), qui établit ce qui est
+réellement conservé — **y compris un point que l'audit précédent avait tenu
+pour acquis à tort** : des extraits verbatim de la **réponse** sont conservés
+(21 870 lignes sur 338 578). Les formulations correspondantes y sont proposées
+en FR et en EN.
+
+**`E-6` est levé** : la conservation en aval est maintenant mesurée —
+**indéfinie** pour les mesures, **14 jours** pour les sauvegardes et les
+journaux nginx.
+
+---
+
 ## 0. L'écart qui précède tous les autres
 
 **Le brouillon ne décrit pas ce service.**

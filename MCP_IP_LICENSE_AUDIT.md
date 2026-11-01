@@ -10,6 +10,39 @@ n'attribue pas.
 
 ---
 
+## 0bis. Décision du 2026-11-01 — et ce qu'elle ne règle pas
+
+**Neomundi Recherche, association loi 1901, est l'entité éditrice** et porte le
+service MCP dans le cadre de ses activités expérimentales et scientifiques.
+Cela **tranche** la question posée au §0 : l'ambiguïté entre l'association et
+la société suisse est levée **pour l'édition du service**.
+
+**Cela ne crée aucun droit.** Être éditeur d'un service, c'est en assumer la
+responsabilité devant les tiers ; ce n'est **pas** détenir la propriété
+intellectuelle de ce qu'on exploite. Restent donc entièrement ouverts, et
+**aucun n'est présumé résolu par la décision** :
+
+| Question | Effet de la décision |
+|---|---|
+Qui détient le **connecteur** ? | **inchangé** — aucun transfert n'est attesté |
+Qui détient l'**instrument de mesure** ? | **inchangé** — il vit hors de ce dépôt |
+Qui détient la **marque** et *Law E* ? | **inchangé** — explicitement ouvert, y compris dans le projet de CGU |
+L'association a-t-elle le **droit d'exploiter** l'instrument ? | **non établi** — et c'est désormais le point le plus exposé, puisqu'elle est l'éditeur déclaré |
+
+> **La décision augmente l'exposition de l'association** plutôt qu'elle ne la
+> réduit : elle apparaît maintenant sans ambiguïté comme éditeur d'un service
+> qui appelle un instrument dont rien n'établit qu'elle a le droit de
+> l'exploiter. **Une licence écrite, même minimale et interne, devient
+> nécessaire** — c'est `P-E`, et son urgence a changé.
+
+**Conséquence documentaire immédiate :** le dépôt vit sous l'organisation
+GitHub `neomundi-io`, alors que l'éditeur est l'association. Ce n'est pas
+contradictoire en soi — un dépôt peut être hébergé par un tiers — mais cela
+**doit être écrit quelque part**, faute de quoi le lecteur déduira une
+titularité qui n'est pas établie.
+
+---
+
 ## 0. Trois entités apparaissent, et elles ne se recouvrent pas
 
 C'est le constat qui gouverne tout le reste.

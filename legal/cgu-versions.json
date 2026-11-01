@@ -1,0 +1,40 @@
+{
+  "$comment": [
+    "Registre des versions de CGU. Source de verite lisible par machine.",
+    "Chaque entree epingle une version par l'EMPREINTE DE SON TEXTE CANONIQUE,",
+    "c'est-a-dire le fichier Markdown de ce depot — pas la page HTML publiee,",
+    "dont le balisage change avec le theme sans que le texte bouge.",
+    "",
+    "Une acceptation enregistre cette empreinte. On peut donc prouver, des",
+    "annees plus tard, QUEL texte exact a ete accepte, sans archiver une copie",
+    "du document aupres de chaque participant.",
+    "",
+    "Regle: on ne modifie JAMAIS une entree publiee. Un changement de texte",
+    "cree une nouvelle entree avec une nouvelle version et une nouvelle",
+    "empreinte. tests/cgu-versions.test.mjs echoue si une empreinte ne",
+    "correspond plus a son fichier.",
+    "Les empreintes portent sur les octets tels que versionnes: fins de ligne LF, imposees par .gitattributes (eol=lf). Une empreinte calculee sur une copie de travail en CRLF ne correspondrait a aucun clone."
+  ],
+  "versions": [
+    {
+      "version": "1.0",
+      "statut": "publie",
+      "date_entree_en_vigueur": "2026-11-01",
+      "documents": {
+        "fr": {
+          "fichier": "legal/CGU_MCP_FR.md",
+          "sha256": "01e5191f5b0f55785a8c43cd86f3286164a55387b95b3d7a83bf330b7a79034d",
+          "url_publiee": "https://neomundi.org/cgu"
+        },
+        "en": {
+          "fichier": "legal/CGU_MCP_EN.md",
+          "sha256": "346de3fc524d0ac0c2efa17c12ab384b0e264ca0bbe7c5084cb079a294e4473d",
+          "url_publiee": "https://neomundi.org/en/terms-of-use"
+        }
+      },
+      "langue_faisant_foi": "fr",
+      "acceptable": true,
+      "note": "Premiere version publiee. Sans retroactivite: elle s'applique a compter du 2026-11-01. Les versions 0.1 a 0.4 etaient des projets, n'ont jamais ete publiees ni acceptees, et ne figurent pas ici. Toute modification du texte change son empreinte et appelle une NOUVELLE version, jamais une correction de celle-ci."
+    }
+  ]
+}

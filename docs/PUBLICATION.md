@@ -121,16 +121,17 @@ Interface personnalisée (MCP Apps) | **oui** — ressource `ui://`, type `text/
 Pas de secret ni de PII en retour d'outil | **oui** — une charge contenant un credential configuré est retenue **entière** plutôt que réécrite |
 Nom en kebab-case, limites de longueur | **oui**, et tenus par un test |
 Icône carrée ≥ 48 px | **oui** — 512/256/128/48, dérivées de la marque |
-Politique de confidentialité | **oui** — `https://neomundi.org/politique-de-confidentialite` |
+Politique de confidentialité | **oui**, et elle **couvre le service de mesure** depuis le 2026-11-01 — `https://neomundi.org/politique-de-confidentialite` ; section « Service de mesure NeoMundi », qui déclare nommément ce que l'outil retourne |
+Conditions générales | **oui** — v1.0 publiées le 2026-11-01, `https://neomundi.org/cgu`, et `termsOfServiceURL` est renseigné |
 Site et support | **oui** — `https://neomundi.org`, `https://neomundi.org/contact` |
 
 ### 4.2 Bloquant
 
 | # | Manque | Qui le lève |
 |---|---|---|
-**P-1** | **La production sert `0.1.0`.** Publier cela publierait une mesure sans ses garde-fous | **Sébastien** — §3.1 |
-**P-2** | **Conditions générales inexistantes.** `termsOfServiceURL` est demandé à la soumission. Neomundi Recherche publie des mentions légales et une politique de confidentialité, **pas** de CGU. Le champ est **volontairement absent** du manifeste, et un test échoue si quelqu'un l'invente | **Sébastien** |
-**P-3** | **La politique de confidentialité doit couvrir ce que l'outil retourne.** Retourner des données non déclarées dans la politique est un motif de rejet explicite. Elle n'a jamais été relue face au contenu de l'enveloppe | **Sébastien** |
+**P-1** | ~~La production sert `0.1.0`.~~ **Levé** — `0.3.0-rc.1` est en service depuis le 2026-11-01 ; voir la section de mise en service de `START_HERE.md` | — |
+**P-2** | ~~Conditions générales inexistantes.~~ **Levé** — CGU **v1.0 publiées** le 2026-11-01 et `termsOfServiceURL` renseigné vers la page française, celle qui fait foi. Le test qui gardait l'**absence** du champ garde maintenant sa **présence** | — |
+**P-3** | ~~La politique de confidentialité doit couvrir ce que l'outil retourne.~~ **Levé** — la section « Service de mesure NeoMundi » déclare les signaux, l'état de la mesure et la cause de chaque non-mesure, la provenance, la décision, les **longueurs** de l'invite et de la réponse, et les **extraits de réponse conservés**. Ce dernier point était le risque réel : il est désormais déclaré | — |
 **P-4** | **Vérification d'identité de l'organisation** sur le tableau de bord de la plateforme, sous le nom de publication. État inconnu depuis ce dépôt | **Sébastien** |
 **P-5** | **Défi de vérification de domaine** pour `mcp.neomundi.org` | une session, après P-1 |
 **P-6** | **Bloc `auth` dans `mcp.json`**, forme à vérifier sur le schéma officiel | une session |

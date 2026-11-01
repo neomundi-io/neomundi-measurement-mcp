@@ -1,3 +1,528 @@
+# POLITIQUE DE CONFIDENTIALITÉ — elle couvre enfin le service, 1er novembre 2026
+
+**Les deux pages publiées décrivent désormais le service de mesure**, et plus
+seulement le site. C'était le dernier écart entre les CGU et le reste du corpus :
+leur article 16 renvoyait à une politique qui ne décrivait pas le service.
+
+État complet : [`LEGAL_STATUS_V1.md`](LEGAL_STATUS_V1.md) §2bis.
+
+## Les deux adresses
+
+| | Français — **fait foi** | Anglais — information |
+|---|---|---|
+| Page | **`https://neomundi.org/politique-de-confidentialite`** | **`https://neomundi.org/en/privacy-policy`** |
+| Identifiant | 916 | 919 |
+| Statut | `publish` (inchangé) | `publish` (inchangé) |
+| Copie canonique | [`legal/POLITIQUE_CONFIDENTIALITE_FR.md`](legal/POLITIQUE_CONFIDENTIALITE_FR.md) | [`legal/PRIVACY_POLICY_EN.md`](legal/PRIVACY_POLICY_EN.md) |
+| Empreinte SHA-256 | `c6e9b0a9a732986b01968cbbd66cf9f83d3387857de972a9029a884332456ec2` | `29b50bfab4c554eb10eb7a5ee991a3d3ed96479195bc0aae6fd11a05fa6340d7` |
+
+## Ce qui a été écrit, et ce qui n'a pas bougé
+
+**Trois écritures seulement par page** : un paragraphe de périmètre, la section
+« Service de mesure NeoMundi » — **quatorze sous-sections** — et la date de mise
+à jour. Les **douze sections préexistantes** sont conservées **telles quelles**,
+boutons de formulaire de contact compris.
+
+Ce n'est pas une précaution de style : les correctifs ont été appliqués **côté
+serveur, par remplacement d'un fragment identifié**, et non en réécrivant le
+champ entier. Le texte déjà publié ne pouvait donc pas bouger d'un caractère.
+
+> **Le sens de versionnage est inversé par rapport aux CGU, et c'est voulu.**
+> Les copies du dépôt sont **dérivées des pages servies**, rendues en texte.
+> Une divergence fichier/page est impossible par construction. Une politique de
+> confidentialité n'est pas acceptée par empreinte : rien n'oblige la page à
+> suivre un fichier, contrairement aux CGU.
+
+## Les quatre phrases qui comptent
+
+- **le contenu soumis est transmis, l'invite comprise.** La page l'affirme en
+  gras, dès le deuxième paragraphe. Prétendre le contraire était la tentation à
+  écarter ;
+- **l'invite n'est jamais conservée, des extraits de la réponse peuvent
+  l'être** — avec le seuil, le plafond de cinq extraits, et un chiffre daté ;
+- **aucune durée de conservation des mesures n'est annoncée**, parce qu'aucune
+  n'est configurée. La page l'écrit au lieu de se taire ;
+- **les rôles RGPD dépendent du traitement**, et la page **refuse de publier
+  une qualification non arrêtée**.
+
+Deux sous-sections nomment les limites : **« Ce que nous ne pouvons pas
+affirmer »** — six phrases que l'association n'écrit pas — et **« Points en
+cours de consolidation »**.
+
+## Vérifié sur les pages servies
+
+- **HTTP 200**, **27 titres** par page (13 h3 préexistants + la section de
+  mesure et ses 14 sous-titres), structure **symétrique** FR/EN ;
+- **liens vers les CGU dans le corps ET en pied de page**, dans les deux
+  langues ;
+- **aucun tableau, aucun bloc préformaté, aucune largeur fixe** — choix
+  délibéré pour le mobile ;
+- **débordement horizontal mesuré à 0 px** dans un conteneur de 360 px, sur
+  **222 éléments** en français et **219** en anglais, et aucun texte ne déborde
+  de son bloc.
+
+> **Les captures d'écran ont échoué** trois fois dans cet environnement
+> (`Page.captureScreenshot` expire). Le contrôle mobile ci-dessus est une
+> **mesure de débordement**, pas un coup d'œil — c'est plus précis, mais ce
+> n'est pas la même chose, et il faut le savoir.
+
+## Ce que cela débloque pour la candidature
+
+Trois points de [`docs/PUBLICATION.md`](docs/PUBLICATION.md) §4.2 sont levés :
+**P-1** (la production servait `0.1.0`), **P-2** (CGU inexistantes) et surtout
+**P-3** — *« la politique de confidentialité doit couvrir ce que l'outil
+retourne »*, qui était un **motif de rejet explicite**. La section de mesure
+déclare nommément les signaux, les états, la provenance, la décision, les
+longueurs **et les extraits conservés**.
+
+**Restent P-4 à P-10** : vérification d'identité de l'organisation, vérification
+de domaine, forme du bloc `auth`, imbrication `extensions.com.openai`, jeu de
+cas de test et vidéo, capture de la carte, et multi-utilisateur.
+
+## Prochaine action
+
+**Trancher la qualification des rôles RGPD.** C'est devenu le seul point
+juridique sur le chemin critique : les items 3 et 4 du registre de consolidation
+en dépendent, et c'est lui qui permettra de faire porter à l'article 16 des CGU
+un **lien direct** vers la politique — donc une **v1.1**, avec de nouvelles
+empreintes et une **nouvelle acceptation** à recueillir.
+
+**Ni l'API, ni le moteur de mesure, ni l'infrastructure n'ont été modifiés.**
+
+---
+
+# CGU v1.0 PUBLIÉES — 1er novembre 2026
+
+**Les conditions d'utilisation du service MCP sont en ligne et en vigueur.**
+Sans rétroactivité : le texte le dit lui-même, en tête.
+
+État complet : [`LEGAL_STATUS_V1.md`](LEGAL_STATUS_V1.md).
+
+## Les deux adresses
+
+| | Français — **fait foi** | Anglais — information |
+|---|---|---|
+| Page | **`https://neomundi.org/cgu`** | **`https://neomundi.org/en/terms-of-use`** |
+| Identifiant | 3772 | 3773 |
+| Statut | **`publish`** | **`publish`** |
+| Empreinte SHA-256 | `01e5191f5b0f55785a8c43cd86f3286164a55387b95b3d7a83bf330b7a79034d` | `346de3fc524d0ac0c2efa17c12ab384b0e264ca0bbe7c5084cb079a294e4473d` |
+
+## Ce qui a débloqué la publication
+
+Les douze clauses non arbitrées qui tenaient les pages en brouillon ont été
+**retirées du texte, pas comblées par invention**. Chacune a été remplacée par
+un fait vérifié ou par une formulation de droit commun : l'article 15 renvoie
+au **droit commun** avec réserve de la faute lourde, l'article 17 remplace le
+préavis par une **nouvelle acceptation adossée à l'empreinte**, et le
+paragraphe « ControlTower » comme l'annexe « Points à trancher » ont été
+**supprimés**.
+
+**Ce qui a été retiré du texte n'a pas été tranché.** C'est l'objet du registre
+de consolidation ci-dessous.
+
+## Vérifié sur les pages servies
+
+Par requête HTTP non authentifiée — donc sur ce qu'un visiteur voit, pas sur
+ce que l'API annonce :
+
+- **HTTP 200** sur les deux adresses ;
+- **18 articles** dans chacune, URL canonique correcte ;
+- la mention de version et la **non-rétroactivité** présentes en tête ;
+- **zéro marqueur résiduel** — aucun « à compléter », « à confirmer », crochet
+  ni avertissement de projet ;
+- **les liens de pied de page existaient déjà** et pointent correctement, dans
+  les deux langues.
+
+Le **manifeste MCP** porte désormais `termsOfServiceURL` vers la page
+**française**, celle qui fait foi.
+
+## Le mécanisme d'acceptation est utilisable
+
+```
+node scripts/cgu-fingerprint.mjs
+# → « OK : 1 version(s). Version acceptable aujourd'hui : 1.0. »
+```
+
+L'outil refusait de désigner une version acceptable tant que rien n'était
+publié. **Il en désigne une maintenant.** La garde reste entière dans l'autre
+sens : **aucun accès ne doit être délivré sans acceptation écrite** de la
+version 1.0, enregistrée avec son empreinte (article 4).
+
+## Le dossier de projets est sorti de ce dépôt
+
+Ce dépôt est public, et la consigne était de ne publier aucun document
+interne. Le dossier `legal/` ne garde donc que **ce qui est publié** — les deux
+textes de CGU — et **ce qui sert à le vérifier** — le registre des versions.
+
+Politique de confidentialité MCP, convention pilote, licence associative,
+annexe de périmètre, PV de bureau, mécanisme et formulaires d'acceptation sont
+conservés **hors dépôt**, en statut **PROJET**. Les sections historiques de ce
+fichier qui les citaient portent la mention *(hors dépôt)*.
+
+> **L'historique Git garde la trace de leur passage.** Ce retrait protège les
+> versions futures, pas les anciennes. Ces projets ne contiennent aucune
+> information nominative ni contractuelle confidentielle, par construction.
+
+## Registre de consolidation — échéance 11 novembre 2026
+
+Six items, suivis hors dépôt :
+
+1. **politique de confidentialité MCP** et **qualification des rôles RGPD** —
+   le plus urgent : l'article 16 renvoie à une politique qui ne décrit pas
+   encore le traitement MCP, **et le texte publié l'assume en ne mettant aucun
+   lien direct** ;
+2. **durées de conservation** — mesurées, non décidées : la base et les
+   journaux de conteneurs conservent **sans limite** ;
+3. **régularisation du DPA Infomaniak** — demandée le 2026-11-01 ;
+4. **convention pilote** et **NDA** — aucun NDA n'est rédigé ;
+5. **licence associative** et **PV de bureau** — le périmètre statutaire
+   « diffusion scientifique » reste **plus étroit** que l'exploitation réelle ;
+6. **clauses contractuelles restantes** — vers une **v1.1**.
+
+**Aucune de ces réserves ne rend la v1.0 inopposable.** Et **aucune relecture
+par un conseil** n'a eu lieu — ni sur les CGU publiées, ni sur les projets.
+
+## Prochaine action
+
+**Trancher la qualification des rôles RGPD**, parce que les items 3 et 4 en
+dépendent, puis publier la politique de confidentialité actualisée en FR et en
+EN. **Alors seulement** l'article 16 pourra porter un lien direct — ce qui
+créera une **v1.1**, avec de nouvelles empreintes et une **nouvelle
+acceptation** à recueillir.
+
+**Ni l'API ni l'instrument de mesure n'ont été modifiés.**
+
+---
+
+# CGU EN BROUILLON SUR LE SITE — 1er novembre 2026
+
+**Cette section prime sur toutes les suivantes.**
+**Rien n'est publié. Les deux pages restent en BROUILLON.**
+
+État complet : [`LEGAL_STATUS_V1.md`](LEGAL_STATUS_V1.md).
+
+## Ce qui a été fait
+
+Les deux brouillons **préexistants** ont été remplis avec la version **0.4** :
+
+| | Français | Anglais |
+|---|---|---|
+Page | **3772** · `cgu` | **3773** · `terms-of-use` |
+Statut | **`draft`** | **`draft`** |
+
+**Seul le champ `content` a été écrit.** Titres, slugs, adresses, menus,
+traductions et réglages de thème sont intacts, et `status` a été explicitement
+maintenu à `draft`. **Aucune page créée.**
+
+## Pourquoi elles restent en brouillon
+
+**Les textes se déclarent eux-mêmes non publiables** — « projet de travail,
+non publiable en l'état » — et portent **12 clauses non arbitrées par langue**
+(7 « à compléter », 5 « à confirmer », identiques FR et EN).
+
+Trois sont structurantes : **date d'entrée en vigueur**, **limitation de
+responsabilité** (la gratuité n'exonère pas de plein droit en droit français),
+**qualification des rôles RGPD**.
+
+S'y ajoute un blocage hors CGU : **la politique de confidentialité publiée ne
+couvre pas le traitement MCP**, alors que les CGU y renvoient deux fois.
+
+## Ce qui a été vérifié
+
+**27 titres** et **18 articles** dans chaque langue, **154 blocs** Gutenberg
+par page, les **12 marqueurs** et l'avertissement de projet **survivent** à la
+conversion, et WordPress a bien stocké les **18 articles**. **Aucun lien mort**
+— les renvois internes au dépôt deviennent du texte, sauf ceux qui ont une
+page réelle.
+
+## Ce qui n'a pas pu être vérifié
+
+**Le rendu visuel, bureau et mobile.** Une page en brouillon n'est pas servie
+publiquement : l'URL de prévisualisation non authentifiée renvoie une **404**,
+ce qui a été constaté. Le thème Astra définit bien des points de rupture à
+921 px et 544 px, et tous les blocs utilisés sont standard — le risque est
+faible, **mais il n'est pas mesuré**.
+
+## Prochaine action
+
+**Trancher les trois clauses structurantes**, puis faire relire par un
+conseil. La suite est mécanique et décrite dans
+[`LEGAL_STATUS_V1.md`](LEGAL_STATUS_V1.md) §5 — avec un point à ne pas
+manquer : modifier le texte **change son empreinte**, donc la publication
+créera une **version 1.0** au registre, jamais une correction de la 0.4.
+
+---
+
+# VOLET ASSOCIATIF — statuts lus, 1er novembre 2026
+
+**Cette section prime sur toutes les suivantes. Aucun document publié, API et
+moteur de mesure non modifiés.**
+
+## Les trois observations sont confirmées — avec une réserve qui compte
+
+| Observation | Vérification |
+|---|---|
+**Art. 7** — Sébastien est président fondateur | **confirmé.** Bureau élu à l'unanimité par l'AG constitutive du **31 mars 2026** ; il accepte le mandat de **Président fondateur** |
+**Art. 8** — le président représente l'association | **confirmé, mot pour mot** : « le président représente l'association dans tous les actes de la vie civile ». **Aucun autre membre n'a ce pouvoir** |
+**Art. 11** — PI aux auteurs, licence d'usage gratuite | **confirmé** — et le modèle retenu est donc **déjà celui des statuts** |
+
+> ⚠ **La réserve, et elle est importante.** L'article 11 concède une licence
+> gratuite **« pour ses activités de diffusion scientifique »**. Héberger un
+> service, le tenir en production et en délivrer l'accès à des participants
+> **excède ce que ces termes couvrent avec certitude**.
+>
+> **Les statuts ne suffisent donc pas à couvrir l'exploitation réelle.** C'est
+> exactement ce que la convention écrite vient faire — et c'est la raison pour
+> laquelle elle reste nécessaire malgré l'article 11.
+
+## Le conflit d'intérêts n'est pas réglé par les statuts
+
+Le Concédant **est** le Président, seul habilité à représenter l'association.
+La même personne se trouve des deux côtés, et **les statuts ne prévoient
+aucune procédure de conflit d'intérêts**.
+
+L'**article 8** donne au **bureau** le pouvoir de prendre « toutes les
+décisions nécessaires à la bonne marche de l'association » : c'est l'organe
+compétent pour autoriser la convention, **sans la voix du Président**.
+
+Un modèle de procès-verbal *(hors dépôt)* est fourni,
+avec deux voies de signature — **mandat spécial** à un autre membre
+(recommandé) ou **signature présidentielle** après délibération prise sans lui.
+
+## Trois points relevés que personne n'avait signalés
+
+1. **Le mandat du bureau court un an** (art. 7). Celui issu de l'AG
+   constitutive **expire fin mars 2027** : c'est le mandat **en cours à la date
+   de signature** qui doit être justifié.
+2. Une **cooptation d'administrateur** a été délibérée le 13 juin 2026. Les
+   statuts ne prévoient **ni cette fonction ni la cooptation** : cette qualité
+   **n'emporte aucun pouvoir de représentation**.
+3. **Aucun règlement intérieur** n'existe, alors que l'**article 13** permet au
+   bureau d'en adopter un. Ce serait le véhicule naturel pour la **durée de
+   conservation** des données et la **politique d'acceptation** des CGU — deux
+   bloquants ouverts.
+
+## Livré
+
+- Licence d'exploitation **V0.3** *(hors dépôt)*
+  — adossée aux statuts réels : articulation avec l'article 11 (art. 1.1),
+  pouvoirs et conflit d'intérêts (art. 12), modalités de diffusion (art. 13) ;
+- modèle de procès-verbal du bureau *(hors dépôt)* ;
+- annexe de périmètre *(hors dépôt)* — la section
+  « pouvoirs » est **renseignée** ; l'inventaire des droits **reste à établir**.
+
+**Les pièces statutaires ne sont pas versées au dépôt** : elles nomment des
+personnes physiques. Le dossier en cite les articles, jamais les noms.
+
+## Ce qui reste pour clore le volet associatif
+
+1. **Tenir la réunion du bureau** et consigner le procès-verbal — une séance ;
+2. **trancher la voie de signature** (mandat spécial ou Président) ;
+3. **établir l'annexe de périmètre** — c'est le dernier vrai chantier, et le
+   seul qui demande un inventaire ;
+4. vérifier que le **mandat du bureau est en cours** à la signature.
+
+---
+
+# ACCEPTATION DES CGU — mécanisme arrêté, 1er novembre 2026
+
+**Cette section prime sur toutes les suivantes. Aucune page WordPress
+modifiée, aucun document publié, API et moteur de mesure non modifiés.**
+
+## Le constat qui change la mission
+
+**Les pages de CGU ne sont pas en ligne.** Vérifié par l'API WordPress : **33
+pages publiées**, aucune relative aux conditions d'utilisation, et **aucune
+modification après le 15 octobre**. Si elles existent, elles sont en
+**brouillon** — l'API ne montre que le publié. **Leur contenu n'a donc pas pu
+être vérifié.**
+
+En revanche `/politique-de-confidentialite`, `/en/privacy-policy`,
+`/mentions-legales` et `/en/legal-notice` répondent bien `200`.
+
+## Le mécanisme d'acceptation — B-1 est levé
+
+**Principe : l'accès est délivré en échange d'une acceptation écrite, et
+l'acceptation désigne un texte identifiable par son empreinte SHA-256.**
+
+Aucune infrastructure : ni compte, ni base, ni formulaire en ligne, ni case à
+cocher. Un échange de courriels et un fichier.
+
+| Document | Rôle |
+|---|---|
+Mécanisme et preuve *(hors dépôt)* | procédure en trois étapes, registre, retrait, changement de version |
+Modèle FR *(hors dépôt)* · EN *(hors dépôt)* | formulaire à renvoyer |
+[`legal/cgu-versions.json`](legal/cgu-versions.json) | registre des versions, **épinglées par empreinte** |
+`scripts/cgu-fingerprint.mjs` | calcule et vérifie les empreintes |
+
+**Preuve de consentement — quatre champs, et rien de plus :** identité du
+signataire, date, **version et empreinte** acceptées, méthode. Pas d'adresse
+personnelle, pas de pièce d'identité, pas d'IP, pas de traceur.
+
+> **Pourquoi l'empreinte évite de collecter davantage.** Sans elle, prouver
+> *quel* texte a été accepté obligerait à archiver une copie du document chez
+> chaque participant. Une chaîne de 64 caractères remplace cela.
+
+## Une garde qui refuse de s'exécuter trop tôt
+
+```bash
+node scripts/cgu-fingerprint.mjs
+# → « Aucune version acceptable aujourd'hui : aucune acceptation ne doit
+#     être recueillie. »
+```
+
+Tant que les CGU sont un **projet non publié**, l'outil **refuse** de désigner
+une version acceptable, et le modèle d'acceptation porte le même avertissement.
+Cinq tests (`tests/cgu-versions.test.mjs`) échouent si une empreinte ne
+correspond plus à son fichier — et **la bonne réaction n'est jamais de
+corriger l'empreinte**, mais de créer une version.
+
+## CGU passées en 0.4
+
+L'article 4 portait un `[À COMPLÉTER]` sur le mécanisme ; il est désormais
+rédigé, en FR et EN. Modifier le texte change son empreinte : j'ai donc
+**appliqué la règle du registre** et bumpé 0.3 → **0.4** plutôt que de
+corriger une empreinte. La 0.3 n'a jamais été publiée ni acceptée.
+
+## Ce qu'il reste pour rendre le mécanisme utilisable
+
+1. **Valider et publier les CGU** — le mécanisme est prêt, le texte ne l'est
+   pas ;
+2. renseigner `url_publiee` et `date_entree_en_vigueur`, puis passer
+   `acceptable` à `true` ;
+3. **fixer la durée de conservation** du registre d'acceptations ;
+4. créer le registre à son emplacement définitif, **hors de ce dépôt public**.
+
+---
+
+# DOSSIER JURIDIQUE — projets rédigés, 1er novembre 2026
+
+**Cette section prime sur toutes les suivantes. Aucun document n'est publié
+ni signé. API, moteur de mesure et production : non modifiés.**
+
+Tout est dans **[`legal/`](legal/README.md)** — huit documents, versionnés.
+
+## Ce qui est rédigé
+
+| Livrable | État |
+|---|---|
+[CGU FR](legal/CGU_MCP_FR.md) · [EN](legal/CGU_MCP_EN.md) | **V0.3** — reprend la structure de la V0.1, change l'entité, le droit applicable et le mode d'accès |
+Politique de confidentialité FR *(hors dépôt)* · EN *(hors dépôt)* | **V0.1** — **sept traitements** détaillés |
+Convention pilote FR *(hors dépôt)* | **V0.1** |
+Licence d'exploitation FR *(hors dépôt)* | **V0.2** — reprend le projet V0.1 du fondateur |
+Annexe de périmètre des droits *(hors dépôt)* | **V0.1** — **incomplète par construction** |
+Décisions ouvertes *(hors dépôt)* · Checklist *(hors dépôt)* | — |
+
+## Deux choses manquaient, et il faut le savoir
+
+**Il n'existe pas de CGU V0.2.** Recherché sur Drive, sur le disque et dans le
+dépôt : seule la **V0.1 « ControlTower / Louis M Sàrl »** existe. Le texte
+transmis sous ce nom était en réalité le **projet de licence d'exploitation**,
+repris comme base de la Phase 4. La CGU V0.3 part donc de la **V0.1 + les
+audits**, sans repartir de zéro.
+
+**Les statuts n'ont pas pu être lus.** L'archive `ASSOCIATION.zip` fournie le
+2026-11-01 fait **122 octets et ne contient qu'un dossier vide**. Les pouvoirs
+de signature sont donc des **champs à compléter**, et **aucun n'est présumé**.
+
+## Les cinq bloquants réels
+
+| # | Bloquant | Effet |
+|---|---|---|
+**A-1** | **Aucune durée de conservation n'est configurée** | La politique ne peut pas être publiée comme conforme |
+**A-4 / A-5** | **DPA Infomaniak** au nom de l'association, et **ce qu'Infomaniak conserve** | Seul point où du contenu sort de nos machines |
+**B-1** | **Aucun mécanisme d'acceptation des CGU** | **Opposabilité non établie** — et c'est le bloquant le plus simple à lever |
+**C-1 / C-2** | **Annexe de périmètre vide** et **statuts non lus** | La licence **ne peut pas être signée** |
+**O-1** | **La politique publiée ne couvre pas le MCP** | **Motif de rejet explicite** de la plateforme |
+
+## Un point que la décision d'entité n'a pas réglé
+
+Le fondateur accorde une licence **sans transfert de propriété** — c'est noté
+et appliqué partout. Mais **le service tourne depuis le 2026-10-25**, soit
+avant que la licence n'existe. L'article 3 de la licence **couvre
+explicitement l'exploitation déjà engagée** plutôt que de laisser une période
+non couverte.
+
+Et le **conflit d'intérêts** fondateur / association est traité à l'article 12,
+avec abstention et signature par une autre personne habilitée : une convention
+signée des deux côtés par la même personne serait fragile.
+
+## Prochaine action
+
+**Lever B-1** — décider comment les CGU sont acceptées. Une décision, aucune
+infrastructure, et l'opposabilité est acquise. Puis **lire les statuts**, qui
+débloquent la signature de la licence.
+
+---
+
+# CLÔTURE JURIDIQUE — traitement en aval mesuré, 1er novembre 2026
+
+**Cette section prime sur toutes les suivantes. Production non modifiée,
+moteur de mesure non modifié, aucun texte juridique publié.**
+
+**Entité éditrice tranchée : Neomundi Recherche, association loi 1901.**
+
+## Le fait qui corrige une conclusion précédente
+
+L'audit de la veille concluait, sur la foi d'un relevé antérieur, que **ni le
+prompt ni la réponse** n'étaient conservés. **La moitié est fausse.**
+
+| | Vérifié par requête sur la base de production |
+|---|---|
+**L'invite** | **jamais conservée** — seule sa longueur l'est |
+**La réponse** | **des extraits verbatim sont conservés** dans `quality.suspect_phrases` |
+
+Le code déployé l'instruit explicitement : *« VERBATIM substrings copied
+EXACTLY from RESPONSE »*, jusqu'à 5 extraits, quand le score de factualité
+dépasse 0,3. **21 870 lignes sur 338 578 (6,5 %)** en portent, 498 caractères
+en moyenne, **chaque mois depuis mai 2026**.
+
+> **Écrire « aucun contenu client n'est conservé » serait faux.** C'est le
+> genre d'erreur qu'il vaut mieux trouver ici que dans une réclamation.
+
+## Conservation réellement configurée
+
+| Donnée | Durée |
+|---|---|
+Mesures en base, **extraits compris** | **indéfinie** — aucune purge, aucun cron, aucun script |
+Sauvegardes de la base | **14 jours** (`pg_dump` nocturne + `-mtime +14 -delete`) |
+Journaux nginx (IP, User-Agent) | **14 jours** |
+Journaux conteneurs et `journald` | **indéfinie** — aucune rotation |
+Côté **connecteur MCP** | **aucune** — confirmé |
+
+## Prestataires — un seul, et deux faux positifs écartés
+
+**Infomaniak est le seul prestataire externe d'une mesure** : il héberge les
+serveurs **et** fournit le modèle de factualité (`api.infomaniak.com`,
+`mistral24b`). **Trois signaux sur cinq ne quittent jamais le serveur** —
+Ollama tourne en conteneur local.
+
+- **« openai » dans les journaux n'est pas OpenAI** : c'est le dialecte
+  compatible OpenAI *d'Infomaniak*. **Ne pas l'inscrire comme sous-traitant.**
+- **« cohere » en base est la sous-chaîne de `co·here·nce_score`.** Configuré
+  n'est pas appelé.
+
+**Hébergement : Suisse** (RDAP : `CH-INFOMANIAK-20250220` et
+`INFOMANIAK-CLOUD`, pays `CH`) — donc **hors UE** pour une association
+française. À énoncer, pas à supposer.
+
+## Livrable
+
+[Rapport aval](MCP_DOWNSTREAM_DATA_REPORT.md) — faits vérifiés avec preuves,
+**sept inconnues** restantes, et les **formulations proposées en FR et EN**
+pour la politique de confidentialité, les CGU et les mentions légales.
+
+## Les quatre décisions qui restent
+
+| # | Décision | Pourquoi elle commande le reste |
+|---|---|---|
+**I-4** | **Garder, tronquer ou supprimer `suspect_phrases`** | C'est le **seul** mécanisme de persistance de contenu client. Le trancher simplifie ou alourdit tout le corpus |
+**I-3** | **Fixer une durée de conservation** | Aujourd'hui aucune n'est configurée ; un texte ne peut pas promettre ce qui n'existe pas |
+**I-1 / I-2** | **DPA Infomaniak**, et **ce qu'Infomaniak conserve** du contenu envoyé à son IA | Seul point où du contenu client sort de nos machines |
+**P-E** | **Droit de l'association d'exploiter l'instrument** | La décision d'entité **augmente** son exposition : elle est éditeur sans licence écrite |
+
+---
+
 # AUDIT PRÉPUBLICATION CGU — 1er novembre 2026
 
 **Cette section prime sur toutes les suivantes. Aucun code n'a été modifié,
