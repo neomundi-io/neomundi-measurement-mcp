@@ -1,3 +1,81 @@
+# AUDIT PRÉPUBLICATION CGU — 1er novembre 2026
+
+**Cette section prime sur toutes les suivantes. Aucun code n'a été modifié,
+rien n'a été publié, et l'infrastructure n'a pas été touchée.**
+
+## Le constat qui commande tout
+
+**Le brouillon de CGU ne décrit pas ce service.** Il porte sur **ControlTower**,
+opéré par **Louis M Sàrl** (société suisse, Morges), en droit suisse, pour des
+**clients professionnels sous contrat**. Le connecteur MCP est déclaré édité
+par **Neomundi Recherche** (association loi 1901, Paris), **gratuit, sans
+compte ni contrat**, sur `mcp.neomundi.org` — point d'accès que le brouillon ne
+mentionne nulle part.
+
+Tant que l'entité éditrice n'est pas tranchée, **aucun article ne peut être
+finalisé**.
+
+## Les trois audits
+
+1. [Traitement des données](MCP_DATA_PROCESSING_AUDIT.md) — ce qui est reçu,
+   envoyé, journalisé, conservé ;
+2. [Accès et limites](MCP_ACCESS_POLICY.md) — authentification, quotas,
+   suspension, abus, coûts ;
+3. [Propriété intellectuelle](MCP_IP_LICENSE_AUDIT.md) — licences, marque,
+   dépendances ;
+4. [Matrice de conformité](CGU_CONFORMITE_MATRICE.md) — articles 4, 7, 8, 9,
+   10, et cohérence avec les documents publiés.
+
+## Ce que l'audit a vérifié, et qui est solide
+
+- **Aucune écriture disque** dans le connecteur ; **aucun journal d'accès**
+  Caddy ; **aucune adresse IP enregistrée** ; **aucun prompt journalisé** —
+  vérifié par recherche sur une mesure réelle, dont le `request_id` n'apparaît
+  dans aucun journal.
+- Le journal du conteneur contient **deux lignes**, toutes deux de démarrage.
+- **Aucune dépendance tierce** : uniquement des modules Node natifs.
+- La discipline de l'**article 8** du brouillon est déjà **tenue par le code et
+  par des tests**, pas seulement promise.
+
+## Les quatre écarts qui bloquent une publication
+
+| # | Écart | Gravité |
+|---|---|---|
+**E-1** | L'entité du brouillon n'est pas celle qui édite le service | **bloquant** |
+**E-2** | La **politique de confidentialité ne couvre pas le traitement MCP**, alors que le manifeste la lui oppose — et c'est aussi un motif de rejet déclaré de la plateforme | **bloquant** |
+**E-3** | **Aucune acceptation des CGU n'est recueillie** : l'opposabilité n'est pas établie | **majeur** |
+**E-4** | L'**article 10 ne dit pas** que le contenu soumis est **transmis à un tiers** pour être mesuré | **majeur** |
+
+## Deux faits à ne pas perdre
+
+**Le dépôt est public et n'a aucune licence** — ni fichier `LICENSE`, ni champ
+`license`, ni mention de copyright. Public sans licence signifie **tous droits
+réservés** : ni ouvert, ni clairement fermé. **L'ambiguïté est le seul choix
+qui n'en est pas un.**
+
+**Un credential partagé rend toute attribution impossible.** Sans identité :
+pas de quota par utilisateur, pas de suspension individuelle, pas de constat
+d'abus, pas d'exercice des droits. Plusieurs articles du brouillon supposent
+un « Client » que l'architecture ne permet **ni d'identifier, ni de
+contacter**.
+
+## Corrigé au passage
+
+La vérification de mise en service avait laissé sur la production
+`/tmp/nm-verif/measure.json` — **prompt et réponse réels**, lisible par tout
+utilisateur local. **Supprimé, absence revérifiée.** C'est ainsi qu'une
+architecture « sans stockage » accumule des données : par l'exploitation, pas
+par le service.
+
+## Prochaine action concrète
+
+**Trancher l'entité éditrice du service MCP** (arbitrage 1 de la
+[matrice](CGU_CONFORMITE_MATRICE.md) §4). Les neuf autres arbitrages en
+dépendent, et deux enquêtes peuvent démarrer en parallèle sans décision : la
+**conservation en aval** chez l'API, et la **liste réelle des sous-traitants**.
+
+---
+
 # MISE EN SERVICE — `0.3.0-rc.1` est en production, 1er novembre 2026
 
 **Cette section prime sur toutes les suivantes.**
