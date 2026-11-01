@@ -1,3 +1,71 @@
+# CLÔTURE JURIDIQUE — traitement en aval mesuré, 1er novembre 2026
+
+**Cette section prime sur toutes les suivantes. Production non modifiée,
+moteur de mesure non modifié, aucun texte juridique publié.**
+
+**Entité éditrice tranchée : Neomundi Recherche, association loi 1901.**
+
+## Le fait qui corrige une conclusion précédente
+
+L'audit de la veille concluait, sur la foi d'un relevé antérieur, que **ni le
+prompt ni la réponse** n'étaient conservés. **La moitié est fausse.**
+
+| | Vérifié par requête sur la base de production |
+|---|---|
+**L'invite** | **jamais conservée** — seule sa longueur l'est |
+**La réponse** | **des extraits verbatim sont conservés** dans `quality.suspect_phrases` |
+
+Le code déployé l'instruit explicitement : *« VERBATIM substrings copied
+EXACTLY from RESPONSE »*, jusqu'à 5 extraits, quand le score de factualité
+dépasse 0,3. **21 870 lignes sur 338 578 (6,5 %)** en portent, 498 caractères
+en moyenne, **chaque mois depuis mai 2026**.
+
+> **Écrire « aucun contenu client n'est conservé » serait faux.** C'est le
+> genre d'erreur qu'il vaut mieux trouver ici que dans une réclamation.
+
+## Conservation réellement configurée
+
+| Donnée | Durée |
+|---|---|
+Mesures en base, **extraits compris** | **indéfinie** — aucune purge, aucun cron, aucun script |
+Sauvegardes de la base | **14 jours** (`pg_dump` nocturne + `-mtime +14 -delete`) |
+Journaux nginx (IP, User-Agent) | **14 jours** |
+Journaux conteneurs et `journald` | **indéfinie** — aucune rotation |
+Côté **connecteur MCP** | **aucune** — confirmé |
+
+## Prestataires — un seul, et deux faux positifs écartés
+
+**Infomaniak est le seul prestataire externe d'une mesure** : il héberge les
+serveurs **et** fournit le modèle de factualité (`api.infomaniak.com`,
+`mistral24b`). **Trois signaux sur cinq ne quittent jamais le serveur** —
+Ollama tourne en conteneur local.
+
+- **« openai » dans les journaux n'est pas OpenAI** : c'est le dialecte
+  compatible OpenAI *d'Infomaniak*. **Ne pas l'inscrire comme sous-traitant.**
+- **« cohere » en base est la sous-chaîne de `co·here·nce_score`.** Configuré
+  n'est pas appelé.
+
+**Hébergement : Suisse** (RDAP : `CH-INFOMANIAK-20250220` et
+`INFOMANIAK-CLOUD`, pays `CH`) — donc **hors UE** pour une association
+française. À énoncer, pas à supposer.
+
+## Livrable
+
+[Rapport aval](MCP_DOWNSTREAM_DATA_REPORT.md) — faits vérifiés avec preuves,
+**sept inconnues** restantes, et les **formulations proposées en FR et EN**
+pour la politique de confidentialité, les CGU et les mentions légales.
+
+## Les quatre décisions qui restent
+
+| # | Décision | Pourquoi elle commande le reste |
+|---|---|---|
+**I-4** | **Garder, tronquer ou supprimer `suspect_phrases`** | C'est le **seul** mécanisme de persistance de contenu client. Le trancher simplifie ou alourdit tout le corpus |
+**I-3** | **Fixer une durée de conservation** | Aujourd'hui aucune n'est configurée ; un texte ne peut pas promettre ce qui n'existe pas |
+**I-1 / I-2** | **DPA Infomaniak**, et **ce qu'Infomaniak conserve** du contenu envoyé à son IA | Seul point où du contenu client sort de nos machines |
+**P-E** | **Droit de l'association d'exploiter l'instrument** | La décision d'entité **augmente** son exposition : elle est éditeur sans licence écrite |
+
+---
+
 # AUDIT PRÉPUBLICATION CGU — 1er novembre 2026
 
 **Cette section prime sur toutes les suivantes. Aucun code n'a été modifié,
