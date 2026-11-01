@@ -36,11 +36,13 @@ Trois niveaux : **⛔ bloquant** — empêche une publication ou une signature ;
 | # | Décision | Pourquoi |
 |---|---|---|
 **⛔ C-1** | **Établir l'annexe de périmètre** | Sans elle, l'objet de la licence est **indéterminé** et la convention ne peut pas être signée |
-**⛔ C-2** | **Lire les statuts** : représentation, pouvoirs, procédure de conflit d'intérêts | **Aucun pouvoir de signature n'est présumé.** L'archive fournie le 2026-11-01 était **vide** |
-**⛔ C-3** | **Traiter le conflit d'intérêts** fondateur / association | Une convention signée des deux côtés par la même personne serait fragile |
+**○ C-2** | ~~Lire les statuts~~ — **fait le 2026-11-01**. Représentation : **Président seul** (art. 8). Organe compétent : **le bureau** (art. 8). **Aucune procédure de conflit d'intérêts** n'existe dans les statuts | Reste à **vérifier que le mandat du bureau est en cours** à la date de signature |
+**⚠ C-3** | **Traiter le conflit d'intérêts** — procédure **proposée** : délibération du bureau sans le Président, puis mandat spécial ou signature présidentielle. Reste à **trancher la voie** et à **tenir la réunion** | [modèle de procès-verbal](PV_BUREAU_LICENCE_MODELE.md) |
 **⚠ C-4** | **Gratuit ou onéreux**, et documentation au regard de la gestion désintéressée | — |
 **⚠ C-5** | **Durée et territoire** | — |
 **⚠ C-6** | **Droits sur la marque** et étendue de l'usage concédé | — |
+**⚠ C-9** | **Périmètre statutaire plus étroit que l'exploitation réelle** : l'article 11 vise la « diffusion scientifique », pas l'hébergement d'un service. La convention le couvre explicitement — à **confirmer par un conseil** | statuts, art. 11 |
+**○ C-10** | **Règlement intérieur** — l'article 13 permet au bureau d'en adopter un ; ce serait le véhicule de la durée de conservation et de la politique d'acceptation | aucun n'existe |
 **⚠ C-7** | **Contributions de tiers** au code concédé | Une contribution non identifiée est un droit non concédé |
 **○ C-8** | **Dater l'exploitation déjà engagée** (service en ligne depuis le 2026-10-25) | La licence la couvre rétroactivement ; il faut la date |
 
@@ -63,8 +65,9 @@ Trois niveaux : **⛔ bloquant** — empêche une publication ou une signature ;
 1. ~~**B-1** — le mécanisme d'acceptation~~ — **fait.** Il ne reste qu'à
    **publier les CGU** : le mécanisme est prêt et refuse de s'exécuter sur un
    projet.
-2. **C-2** — lire les statuts. Une lecture, et C-3 et la signature se
-   débloquent.
+2. ~~**C-2** — lire les statuts~~ — **fait.** Il reste à **tenir la réunion
+   du bureau** (C-3) : une séance, un procès-verbal, et la signature est
+   débloquée.
 3. **A-1** — fixer puis appliquer une durée de conservation. C'est le seul
    bloquant de la politique qui dépende entièrement de nous.
 4. **A-4 / A-5** — déjà engagés auprès d'Infomaniak ; à relancer.
