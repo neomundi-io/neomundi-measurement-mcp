@@ -127,7 +127,13 @@ test('unknown tools/methods and invalid tool arguments never contact NeoMundi', 
   let calls = 0;
   const { client } = await start(t, async () => { calls++; return jsonReply('{}'); });
   await assert.rejects(client.request('tools/call', { name: 'another_tool', arguments: {} }), { code: -32602 });
-  await assert.rejects(client.request('resources/list'), { code: -32601 });
+  // `resources/list` used to be unknown here and asserted -32601. The card is
+  // now served as a resource, so the method exists; what this test still has
+  // to prove is that it reaches no upstream, which the `calls` count below
+  // does. A method that genuinely does not exist keeps its -32601.
+  await assert.rejects(client.request('prompts/list'), { code: -32601 });
+  await assert.rejects(client.request('resources/subscribe', { uri: 'ui://neomundi-measurement/card-v1.html' }), { code: -32601 });
+  await assert.rejects(client.request('resources/read', { uri: 'ui://unknown/other.html' }), { code: -32602 });
   const result = await client.measure({ execution: { raw_metrics: { token_count: false, latency_ms: 1 } } });
   assert.equal(result.isError, true);
   assert.equal(result.structuredContent.adapter_error.code, 'INVALID_ARGUMENTS');

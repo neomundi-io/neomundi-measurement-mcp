@@ -4,6 +4,7 @@ import { pathToFileURL } from 'node:url';
 import { loadConfiguration } from './config.mjs';
 import { isObject, owns, parseInputJson, scalar, toolDefinition } from './contract.mjs';
 import { measureExecution } from './adapter.mjs';
+import { CARD_RESOURCE_URI, cardResource } from './ui/card.mjs';
 
 export const SUPPORTED_PROTOCOLS = Object.freeze(['2025-06-18', '2025-03-26']);
 const digest = (value) => createHash('sha256').update(value).digest();
@@ -84,10 +85,22 @@ export function createMcpServer({ config, fetchImpl = globalThis.fetch }) {
   async function dispatch(request, response) {
     if (closing) { send(response, 503, { error: 'server_closing' }); return; }
     const port = server.address()?.port;
-    const hosts = new Set([`127.0.0.1:${port}`, `localhost:${port}`]);
+    const loopbackHosts = [`127.0.0.1:${port}`, `localhost:${port}`];
+    // Explicitly named hosts only, and never derived from the bind address:
+    // the empty default keeps the loopback-only posture untouched.
+    const configuredHosts = config.allowedHosts ?? [];
+    const hosts = new Set([...loopbackHosts, ...configuredHosts]);
     if (!hosts.has(request.headers.host)) { send(response, 403, { error: 'invalid_host' }); return; }
     const origin = request.headers.origin;
-    if (origin !== undefined && !new Set([...hosts].map((host) => `http://${host}`)).has(origin)) {
+    // Loopback keeps plaintext only. A named host is reached through TLS
+    // termination it does not perform itself, so both schemes are accepted
+    // for it and for it alone. An absent Origin stays allowed: a server-side
+    // MCP client sends none, and the Host check above already ran.
+    const origins = new Set([
+      ...loopbackHosts.map((host) => `http://${host}`),
+      ...configuredHosts.flatMap((host) => [`https://${host}`, `http://${host}`]),
+    ]);
+    if (origin !== undefined && !origins.has(origin)) {
       send(response, 403, { error: 'invalid_origin' }); return;
     }
     const authCount = request.rawHeaders.filter((_entry, i) => i % 2 === 0 && request.rawHeaders[i].toLowerCase() === 'authorization').length;
@@ -148,7 +161,10 @@ export function createMcpServer({ config, fetchImpl = globalThis.fetch }) {
       sessions.set(newId, { protocolVersion, initialized: false, active: new Map(), expiresAt: Date.now() + config.sessionTtlMs });
       rpcResult(response, id, {
         protocolVersion,
-        capabilities: { tools: { listChanged: false } },
+        // `resources` is declared because the measurement card is served as
+        // one. It is read-only and static: no subscriptions, no change
+        // notifications, and the only resource is the card document itself.
+        capabilities: { tools: { listChanged: false }, resources: { listChanged: false, subscribe: false } },
         serverInfo: { name: 'neomundi-measurement-mcp-private', version: '0.3.0-rc.1' },
         instructions: 'NeoMundi supplies raw measurements and metrological context. Preserve all states and null. No measurement grants execution permission or constitutes a compliance, safety, assurance or governance decision. API errors are transport errors, not measurement classifications.',
       }, { 'Mcp-Session-Id': newId });
@@ -179,6 +195,23 @@ export function createMcpServer({ config, fetchImpl = globalThis.fetch }) {
       rpcResult(response, id, { tools: [toolDefinition] });
       return;
     }
+    // The measurement card. Static, credential-free in content, and served
+    // from memory: reading it makes no upstream call and consumes no quota.
+    if (message.method === 'resources/list') {
+      if (owns(params, 'cursor')) { rpcError(response, id, -32602, 'This server has no paginated resources.'); return; }
+      const { text: _text, ...listed } = cardResource();
+      rpcResult(response, id, { resources: [listed] });
+      return;
+    }
+    if (message.method === 'resources/read') {
+      if (params.uri !== CARD_RESOURCE_URI) {
+        rpcError(response, id, -32602, 'Unknown resource URI.'); return;
+      }
+      const { uri, mimeType, text, _meta } = cardResource();
+      rpcResult(response, id, { contents: [{ uri, mimeType, text, _meta }] });
+      return;
+    }
+    if (message.method === 'resources/templates/list') { rpcResult(response, id, { resourceTemplates: [] }); return; }
     if (message.method !== 'tools/call') { rpcError(response, id, -32601, 'Method not found.'); return; }
     if (params.name !== 'measure_execution' || Object.keys(params).some((key) => !['name', 'arguments', '_meta'].includes(key))) {
       rpcError(response, id, -32602, 'Unknown tool or invalid tool call parameters.'); return;
@@ -244,6 +277,12 @@ async function main() {
       // Said plainly, once. The listener is no longer confined to this
       // machine, and the Bearer credential is the only barrier in front of it.
       process.stderr.write(`Listener bound to ${config.bindAddress}, not loopback: the MCP endpoint is reachable from wherever this process is published, and NEOMUNDI_MCP_API_KEY is the only barrier. Publish the port one-to-one, or the forwarded Host header will be refused.\n`);
+    }
+    if (config.hostAllowListExtended) {
+      // Said plainly, once, like the bind warning above. Each named host is a
+      // Host header this process will now answer, and the Bearer credential
+      // stays the only barrier in front of it.
+      process.stderr.write(`Host allow-list extended to ${config.allowedHosts.join(', ')} beyond loopback: requests carrying these Host headers are answered, and NEOMUNDI_MCP_API_KEY is the only barrier. Terminate TLS in front of this process; it serves plain HTTP.\n`);
     }
     // Containers stop by signal, so a clean exit is the normal path, not an
     // edge case: stop accepting, abort in-flight calls, let the loop drain.

@@ -1,3 +1,30 @@
+# Current scope — plugin V1 and measurement card, 1 November 2026
+
+This addendum takes precedence over every entry below it.
+
+- **ML-016 — the hosted deployment serves 0.1.0, not this code.** `mcp.neomundi.org` is live over HTTPS and has been since 25 October, but the revision it serves is `0cbd369` (7 September), 32 commits behind `main`. `presentation.mjs`, `guidance.mjs`, `reference.mjs`, `integrity.mjs`, `response-contracts.mjs` and `stdio.mjs` are **absent from the running code**, verified file by file on the host. Those are the fields that separate a measured ALLOW from one decided with no check attempted. **No figure read through the hosted endpoint today carries the metrological envelope this register describes.**
+- **ML-017 — the measurement card renders only what the envelope published.** It is a projection of `presentation`, which has its own fidelity suite, plus French labels and a reading order. It adds no value, no severity, no colour-coded risk and no traffic light: a green badge on an unevaluated ALLOW is the exact failure it exists to prevent. Absence renders as "non publié" and never as 0 or an empty cell; an unmeasured signal keeps its cause and never joins the measured list; a divergent version is declared not comparable; an adapter error renders as an error and builds no measurement section. Every string it can emit that the server did not publish is in a frozen vocabulary, asserted test-side.
+- **ML-018 — the card requires a host that renders MCP UI resources.** A host that ignores `_meta` still receives the full structured output: the card is an added reading surface, never a precondition. It is a static document; it has no interactivity, performs no call of its own, and loads nothing (CSP allow-lists declared and empty).
+- Two pre-existing defects were corrected, both older than this work: `docker build` failed at `npm test` because the plugin packaging inputs were never added to the image context; and `runStdio` closed the HTTP dispatcher before draining in-flight requests, so a request whose answer was still in flight when stdin ended returned a transport failure for a call that had already been made — and, for a measurement, already been billed. This connector never replays, so that answer was lost.
+- The publication ZIP is reproducible byte for byte and is built without any dependency. The container image's filesystem layers are reproducible; its **image id is not yet bit-stable**, so "same content" is established and "same image digest" is not.
+- `termsOfServiceURL` is **absent from the manifest on purpose**: no terms document exists. A test fails if one is invented. Platform requirements were read on 2026-11-01 and are not knowable from this repository.
+- Offline suite: **299 passed, 0 failed, 0 skipped** with the recordings present.
+
+---
+
+# Current scope — plugin host compatibility, 1 November 2026
+
+This addendum takes precedence over every entry below it.
+
+- **ML-014 — a hosted `Host` header was refused, and is now accepted only when named.** The `Host` allow-list was derived from the listening port, so any reverse-proxied domain received 403 `invalid_host` before any credential was read: no remote assistant could reach this connector at all. `NEOMUNDI_MCP_ALLOWED_HOSTS` adds named hosts, is **empty by default** — behaviour unchanged for every existing deployment — and is **independent of `NEOMUNDI_MCP_BIND`**: widening the listener still widens nothing. Exact match, no wildcard. For a named host, `https://` and `http://` are both accepted as `Origin`, because such a host is reached through TLS this process does not terminate.
+- **ML-015 — reachability is not multi-tenancy.** A hosted endpoint is now technically reachable. There is still **one** shared inbound credential and **one** NeoMundi API key for everyone who reaches it: no per-user identity, no token issuance, no revocation, no scoping, and no usage attribution. A hosted deployment therefore bills every call to one account, and that account's tier decides what every caller gets. This is the largest unbuilt piece, and it is a decision before it is code.
+- The tool now carries a human-readable `title`. It names the action and is held to the presentation layer's rule: a test refuses any verdict, risk, compliance or score vocabulary in that field, because a host shows it to a person.
+- Manifest metadata was brought within the platform's stated limits (`shortDescription` was 43 characters against a documented maximum of 30). `privacyPolicyURL` and `termsOfServiceURL` remain **absent and deliberately not invented**.
+- No measurement semantics changed: schemas, the presentation layer, `reading_aid`, upstream status classification and contract validation are untouched. Offline suite: **279 passed, 0 failed, 0 skipped** with the recordings present.
+- Platform requirements cited in [the gap analysis](PLUGIN_GAP_ANALYSIS.md) were read on 2026-11-01 and are not knowable from this repository: re-verify them at the moment of any decision.
+
+---
+
 # Current scope — connector/plugin 0.3.0-rc.1, 26 October 2026
 
 This addendum takes precedence over the historical entries below.

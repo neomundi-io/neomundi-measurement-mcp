@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs';
+import { CARD_RESOURCE_URI } from './ui/card.mjs';
 
 export const inputSchema = JSON.parse(readFileSync(new URL('./schemas/measure_execution.input.schema.json', import.meta.url)));
 export const outputSchema = JSON.parse(readFileSync(new URL('./schemas/measure_execution.output.schema.json', import.meta.url)));
@@ -83,8 +84,23 @@ export function matches(schema, original, depth = 0) {
 
 export const toolDefinition = {
   name: 'measure_execution',
+  // Human-readable label, distinct from the programmatic name. It states the
+  // action and nothing about an outcome: no verdict word, no risk word, and
+  // no claim of compliance, safety or truth. Hosts that render a title show
+  // this to a person, so it is held to the same rule as the presentation
+  // layer — it names what the tool does, never what the result means.
+  title: 'Measure an AI execution with NeoMundi',
   description: 'Transmit one existing execution or generation request to NeoMundi. Generation requires explicit model and provider matching the provisioned key. Read adapter_error first. integrity describes SSE assembly and supplied metadata checks only, separate from contract and scientific validation. Preserve server values and states verbatim. Envelope contract_version is null when absent; token_count_source is unknown without explicit provenance in the final response. measurement_reference reports the version the answering instance declared beside the one this code was built against: read its agreement before comparing any figure across calls, because divergent means not comparable. Its divergence_scope is null unless something has been established about that exact version pair; when present it states, per transport, what the pair was found to change and what it does not fix, and it never overrides the agreement. presentation is a flat projection for a reader, beside the response and never inside it: every field is copied from the path named in its own field_sources, or is null, and nothing is computed, rescaled, rounded or shortened. Its single derived field, decision_is_measured, restates decision_basis === "measured_thresholds" so that an ALLOW decided on measured thresholds and an ALLOW decided with no check attempted cannot be read as the same statement. It is not a summary and not a substitute for reading response. reading_aid sits beside the response, never inside it: it names the same-name fields and their scales -- quality.stability_score has 1 = stable while metrics.stability_score has 0 = stable -- which aggregates are withheld and what declared it, the cause of each unmeasured signal, the paths that are explicitly null, and the known backend limitations BL-001, BL-002 and BL-003. On an upstream HTTP error, adapter_error.upstream classifies the status, what it implies about billing, and what a caller may do. contract_validation reports validation against an identified bundled REST/SSE schema, its id and SHA-256; legacy or unknown versions are never promoted. Schema validity does not establish scientific validity, measurement completeness, version comparability or execution permission. Transport validation is separate from contract conformance and prompt compliance. No automatic retry, second measurement, or RGC emission.',
   inputSchema,
   outputSchema,
   annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
+  // Links the tool to its UI resource. Two spellings on purpose: `ui.resourceUri`
+  // is the shared MCP Apps field, and `openai/outputTemplate` is the alias
+  // ChatGPT reads. A host that understands neither ignores both and still gets
+  // the full structured output — the card is an added reading surface, never a
+  // precondition for using this tool.
+  _meta: {
+    'ui': { resourceUri: CARD_RESOURCE_URI },
+    'openai/outputTemplate': CARD_RESOURCE_URI,
+  },
 };
