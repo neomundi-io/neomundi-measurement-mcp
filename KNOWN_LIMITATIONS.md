@@ -1,3 +1,16 @@
+# Current scope — 0.3.0-rc.1 in production, 1 November 2026
+
+This addendum takes precedence over every entry below it.
+
+- **ML-016 is closed.** The hosted endpoint no longer serves 0.1.0. `https://mcp.neomundi.org/mcp` serves **`0.3.0-rc.1`** (revision `da71f5d`) since 2026-11-01 11:38 UTC, in a container built from a digest-pinned base. The full envelope — `presentation`, `reading_aid`, `measurement_reference`, `contract_validation`, `integrity` — is served and was verified against a **real, billed measurement** (`request_id` `2ca02f65-e2de-4f21-a35d-0e845329d4b2`).
+- **ML-019 — every hosted measurement currently reports `version_agreement: divergent`.** The deployment declares `measurement_version` `3.3.1`; this connector is pinned to `3.3.0`. The card therefore states the result is not comparable, which is the intended behaviour: `divergence_scope` never overrides the agreement. The published scope nevertheless states that **on the REST path the two versions are declared identical**, so a REST series may be continued across them. The banner is more cautious than the scope. Raising the pin to `3.3.1` is a **product decision, not a fix**, and nothing here should be read as one.
+- **ML-020 — the divergence scope renders as a raw JSON block on the card.** It is long, and nothing is shortened: a truncated scope that did not say so would be a quiet edit of the measurement. It is honest and hard to read. Surfacing its `summary` field while still carrying the whole object would improve it; shortening it would not.
+- **ML-021 — production publishes three root fields this connector does not model**: `token_count_scope`, `token_count_unit`, `stream_contract_metadata`. They are listed by name in `unmodelled_root_fields` and in the card, neither labelled nor dropped. This is an observation about the upstream contract, to be reported rather than absorbed.
+- **Reachability is still not multi-tenancy.** One shared inbound credential opens the endpoint and one NeoMundi API key is spent for everyone who reaches it. ML-015 stands unchanged.
+- `LIVE_API_VALIDATED` is **still not awarded** by this register on the strength of one call. One observed measurement is one observed measurement: it is not a load test, not a reproducibility claim, and not a statement about any other deployment.
+
+---
+
 # Current scope — plugin V1 and measurement card, 1 November 2026
 
 This addendum takes precedence over every entry below it.

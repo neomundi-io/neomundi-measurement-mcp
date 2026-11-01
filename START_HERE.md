@@ -1,3 +1,65 @@
+# MISE EN SERVICE — `0.3.0-rc.1` est en production, 1er novembre 2026
+
+**Cette section prime sur toutes les suivantes.**
+
+`https://mcp.neomundi.org/mcp` sert **`0.3.0-rc.1`** depuis le 2026-11-01,
+11:38 UTC. La PR #9 a été fusionnée (`da71f5d`), contrôles verts.
+
+| | |
+|---|---|
+Révision servie | **`da71f5d327da83247c5f4a69dfc1b6ea6e80f048`** |
+Image | `sha256:a50a2679d18e…`, base `node@sha256:8a32c8cf…` (index OCI) |
+Avant | `0cbd369`, version `0.1.0` — **retour arrière armé et vérifié** |
+Mesure réelle | `request_id` **`2ca02f65-e2de-4f21-a35d-0e845329d4b2`**, HTTP 200 en 1,84 s |
+
+**Preuve de bout en bout** : décision `ALLOW` sur fondement
+`measured_thresholds`, mesure `complete`, **3 contrôles sur 3**, couverture
+`1`, cinq signaux mesurés, aucun non mesuré, `contract_validation` à
+**`validated`**, évaluateurs réels (`nomic-embed-text`, `llama-guard3:1b`).
+Aucun signal ni provenance n'a été modifié.
+
+Détail complet, empreintes et commandes : [déploiement HTTPS](docs/DEPLOIEMENT_HTTPS.md) §0.
+
+## Retour arrière, en deux commandes
+
+```bash
+sudo systemctl disable --now neomundi-mcp-docker.service
+sudo systemctl enable  --now neomundi-mcp.service
+```
+
+L'unité `0.1.0` est conservée, le dépôt de retour arrière est resté à
+`0cbd369`, et il n'y a **ni base, ni état persistant, ni migration**.
+
+## Ce que cette mise en service a révélé
+
+**Toute mesure ressort `version_agreement: divergent`** : la production déclare
+`3.3.1`, le connecteur est épinglé sur `3.3.0`. La carte affiche donc « ce
+résultat n'est pas comparable aux autres » — comportement **voulu**, puisque
+`divergence_scope` n'écrase jamais l'accord. Mais la portée publiée précise
+que **sur le chemin REST les deux versions sont déclarées identiques**. Le
+bandeau est donc plus prudent que la portée. **Lever l'épinglage est un
+arbitrage produit, pas un correctif** — `D-8`.
+
+**Trois champs racine ne sont pas modélisés** et la carte les nomme plutôt que
+de les cacher : `token_count_scope`, `token_count_unit`,
+`stream_contract_metadata` — `D-9`, à remonter au backend.
+
+## Accessible depuis ChatGPT ?
+
+**Techniquement oui** : point d'entrée HTTPS public, Streamable HTTP sur
+`/mcp`, authentification par `Bearer`, outil et ressource d'interface servis
+et vérifiés depuis l'extérieur. Il reste à **déclarer le bloc `auth` dans
+`mcp.json`** (`P-6`) avant d'ajouter le connecteur dans ChatGPT.
+
+**Mais ce n'est pas un connecteur multi-utilisateur** : un credential partagé
+ouvre le serveur et **une seule** clé API NeoMundi est dépensée pour tous.
+Acceptable pour un essai privé porté par l'association ; à ne pas présenter
+autrement — `D-4`.
+
+Ce qui manque pour le **catalogue** : [procédure de publication](docs/PUBLICATION.md) §4.2.
+
+---
+
 # Reprise — plugin V1, carte de mesure et VPS, 1er novembre 2026
 
 **Cette section prime sur toutes les suivantes.**
