@@ -80,21 +80,44 @@ test('P0-1 is answered: the placement the platform documents is ALSO invalid aga
   // `type` value, or a field belonging to another variant makes that server
   // entry invalid." Both sources are normative and they disagree.
   //
-  // Nothing is declared today because nothing is gained today: the
-  // submission portal has no API-key connection flow, and the fixed bearer
-  // token this server accepts is API-key authentication. The block below is
-  // what would have to be added, and the cost of adding it, written down
-  // once so the decision is not rediscovered.
+  // THE BLOCK BELOW IS THE ONE THE SUBMISSION WILL NEED, and it is pinned
+  // here rather than left to be retyped from a web page at the worst moment.
+  // It says `oauth` and not `api_key` because the server now speaks OAuth
+  // 2.1: the portal has no API-key connection flow, and the fixed bearer
+  // token it used to be was not a connection method that exists.
+  //
+  // It is NOT in `mcp.json` yet, and the reason is a date, not a doubt:
+  // `mcp.json` would then name a hosted endpoint that does not yet answer
+  // OAuth. Switching it is the step that FOLLOWS the deployment, and it is
+  // written down in PLUGIN_SUBMISSION_CHECKLIST.md as such.
   const documented = {
     $schema: MCP_SCHEMA_URL,
     mcpServers: {
       neomundi: {
         type: 'streamable-http',
         url: 'https://mcp.neomundi.org/mcp',
-        extensions: { 'com.openai': { auth: { type: 'api_key', headerScheme: 'bearer' } } },
+        extensions: {
+          'com.openai': {
+            auth: {
+              type: 'oauth',
+              client: { mode: 'dcr' },
+              registrationUrl: 'https://mcp.neomundi.org/oauth/register',
+              baseScopes: ['measure'],
+            },
+          },
+        },
       },
     },
   };
+  // The declaration has to match what the server actually advertises, or the
+  // portal configures a flow the server does not run.
+  const advertised = {
+    registration_endpoint: 'https://mcp.neomundi.org/oauth/register',
+    scopes_supported: ['measure'],
+  };
+  assert.equal(documented.mcpServers.neomundi.extensions['com.openai'].auth.registrationUrl, advertised.registration_endpoint);
+  assert.deepEqual(documented.mcpServers.neomundi.extensions['com.openai'].auth.baseScopes, advertised.scopes_supported);
+  assert.equal(documented.mcpServers.neomundi.url, 'https://mcp.neomundi.org/mcp', 'the url must be the canonical resource identifier');
   const errors = validate(documented, schema);
   assert.ok(errors.some((e) => e.includes('"extensions" is not a declared property')), errors.join(' | '));
 

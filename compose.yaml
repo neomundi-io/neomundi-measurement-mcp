@@ -31,6 +31,42 @@ services:
       # only for a loopback host, which from inside a container means the
       # container's own loopback — not the host machine's.
       NEOMUNDI_API_BASE_URL: ${NEOMUNDI_API_BASE_URL:-https://api.neomundi.io}
+      # OAuth 2.1. All three go together or none does; a partial setting is
+      # refused at startup. Left unset — which is the default here — the
+      # server behaves exactly as it did before OAuth existed.
+      #
+      # NEOMUNDI_API_KEY above is the TECHNICAL credential that calls the
+      # instrument. The identities below are the people asking for a
+      # measurement. Two different secrets, two different lifetimes; the
+      # server never blends them and neither should an operator.
+      NEOMUNDI_MCP_PUBLIC_URL: ${NEOMUNDI_MCP_PUBLIC_URL:-}
+      NEOMUNDI_OAUTH_SIGNING_KEY: ${NEOMUNDI_OAUTH_SIGNING_KEY:-}
+      NEOMUNDI_OAUTH_REGISTRY: ${NEOMUNDI_OAUTH_REGISTRY:-}
+      NEOMUNDI_OAUTH_ACCESS_TTL_S: ${NEOMUNDI_OAUTH_ACCESS_TTL_S:-}
+      NEOMUNDI_OAUTH_REFRESH_TTL_S: ${NEOMUNDI_OAUTH_REFRESH_TTL_S:-}
+      # Unset means nothing about anyone is held between two requests.
+      NEOMUNDI_OAUTH_QUOTA_PER_SUBJECT: ${NEOMUNDI_OAUTH_QUOTA_PER_SUBJECT:-}
+      NEOMUNDI_MCP_ALLOWED_HOSTS: ${NEOMUNDI_MCP_ALLOWED_HOSTS:-}
+      NEOMUNDI_MCP_BIND: ${NEOMUNDI_MCP_BIND:-}
+    # The participant registry, mounted READ-ONLY. The server never writes it,
+    # the container filesystem is read-only anyway, and mounting a file rather
+    # than a directory avoids the ownership surprise a fresh named volume
+    # brings when the image has no such path.
+    #
+    # It is a file of identities and scrypt hashes — no secret, nothing
+    # reversible — but it is still the thing that decides who gets in, so it
+    # is bind-mounted from a path the operator controls rather than baked into
+    # the image.
+    #
+    # Left commented because the default here is OAuth off. Uncomment it, and
+    # only it, when the three variables above are set:
+    #
+    # volumes:
+    #   - /etc/neomundi/participants.json:/etc/neomundi/participants.json:ro
+    #
+    # Bind-mount the FILE, not its directory, and keep `:ro`. A named volume
+    # on a path the image does not create comes back owned by root and the
+    # failure surfaces as a PermissionError that nothing in Compose shows.
     # `docker compose stop` sends SIGTERM, which the server handles. The grace
     # period is longer than the default 10s because a measurement call in
     # flight is not retried: cutting it short leaves an outcome unknown, and

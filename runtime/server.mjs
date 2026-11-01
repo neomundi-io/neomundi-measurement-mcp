@@ -5,6 +5,7 @@ import { loadConfiguration } from './config.mjs';
 import { isObject, owns, parseInputJson, scalar, toolDefinition } from './contract.mjs';
 import { measureExecution } from './adapter.mjs';
 import { CARD_RESOURCE_URI, cardResource } from './ui/card.mjs';
+import { MEASURE_SCOPE, challengeHeader, createAuthorizationServer, loadOAuthConfiguration } from './oauth.mjs';
 
 export const SUPPORTED_PROTOCOLS = Object.freeze(['2025-06-18', '2025-03-26']);
 const digest = (value) => createHash('sha256').update(value).digest();
@@ -53,9 +54,16 @@ function acceptsBoth(header) {
  * NeoMundi's upstream SSE is a separate transport consumed by the adapter.
  * No SDK, downloaded package, background API access, or request logging.
  */
-export function createMcpServer({ config, fetchImpl = globalThis.fetch }) {
+export function createMcpServer({ config, oauth = { enabled: false }, registryReader, fetchImpl = globalThis.fetch }) {
   const sessions = new Map();
   const expectedCredential = digest(`Bearer ${config.mcpKey}`);
+  // Built only when OAuth is configured. Left unconfigured, not one byte of
+  // this changes how the server behaves: the static credential stays the only
+  // way in, no discovery document is served, and the 401 challenge keeps the
+  // exact shape it had.
+  const authorizationServer = oauth.enabled
+    ? createAuthorizationServer({ oauth, ...(registryReader ? { registryReader } : {}) })
+    : null;
   let activeCalls = 0;
   let closing = false;
 
@@ -103,12 +111,49 @@ export function createMcpServer({ config, fetchImpl = globalThis.fetch }) {
     if (origin !== undefined && !origins.has(origin)) {
       send(response, 403, { error: 'invalid_origin' }); return;
     }
+    // The OAuth surface sits IN FRONT of the credential gate, and has to.
+    // Every one of its routes is something a client reads before it holds any
+    // credential at all: the discovery documents, the registration endpoint,
+    // the sign-in page, the token endpoint. Putting the bearer check in front
+    // of them is precisely what made OAuth impossible here.
+    const pathname = new URL(request.url, 'http://host.invalid').pathname;
+    if (authorizationServer && await authorizationServer.handle(request, response, pathname)) return;
+
     const authCount = request.rawHeaders.filter((_entry, i) => i % 2 === 0 && request.rawHeaders[i].toLowerCase() === 'authorization').length;
     const supplied = request.headers.authorization;
-    if (authCount !== 1 || typeof supplied !== 'string' || !timingSafeEqual(digest(supplied), expectedCredential)) {
-      send(response, 401, { error: 'unauthorized' }, { 'WWW-Authenticate': 'Bearer realm="neomundi-private-mcp"' }); return;
+    // Two accepted credentials, checked in this order and never blended:
+    //
+    //   1. the static key, which is what Codex, a local client and every
+    //      existing deployment use. It is NOT removed by adding OAuth, and
+    //      removing it would break a working installation to no benefit.
+    //   2. an OAuth access token, which is the only thing ChatGPT can
+    //      present.
+    //
+    // The static key carries no subject: it is one shared credential and the
+    // server does not pretend otherwise by inventing an identity for it.
+    let identity = null;
+    const staticMatch = authCount === 1 && typeof supplied === 'string' && timingSafeEqual(digest(supplied), expectedCredential);
+    if (staticMatch) {
+      identity = { subject: null, scope: MEASURE_SCOPE, via: 'static_key' };
+    } else if (authorizationServer && authCount === 1 && typeof supplied === 'string' && /^Bearer\s/.test(supplied)) {
+      const verdict = authorizationServer.verify(supplied.replace(/^Bearer\s+/, ''));
+      if (verdict.ok) {
+        identity = { subject: verdict.subject, scope: verdict.scope, via: 'oauth' };
+      } else if (verdict.reason === 'insufficient_scope') {
+        // 403, not 401: the token is valid, the permission is not. Answering
+        // 401 would send the client back through a login that would grant it
+        // exactly the same thing.
+        send(response, 403, { error: 'insufficient_scope' },
+          { 'WWW-Authenticate': challengeHeader(oauth, { error: 'insufficient_scope' }) });
+        return;
+      }
     }
-    if (request.url !== '/mcp') { send(response, 404, { error: 'not_found' }); return; }
+    if (!identity) {
+      send(response, 401, { error: 'unauthorized' },
+        { 'WWW-Authenticate': challengeHeader(oauth, oauth.enabled ? { error: 'invalid_token' } : undefined) });
+      return;
+    }
+    if (pathname !== '/mcp') { send(response, 404, { error: 'not_found' }); return; }
     if (!['POST', 'DELETE'].includes(request.method)) {
       send(response, 405, { error: 'method_not_allowed' }, { Allow: 'POST, DELETE' }); return;
     }
@@ -217,6 +262,18 @@ export function createMcpServer({ config, fetchImpl = globalThis.fetch }) {
       rpcError(response, id, -32602, 'Unknown tool or invalid tool call parameters.'); return;
     }
     if (activeCalls >= config.maxConcurrent) { rpcError(response, id, -32000, 'Local concurrent call limit reached.', 429); return; }
+    // Per-participant ceiling, and only when one is configured. A refusal
+    // here says why, and it fabricates nothing: no measurement is produced,
+    // no upstream call is made, and no favourable result is invented out of a
+    // quota decision.
+    if (identity.subject !== null) {
+      const budget = authorizationServer.consume(identity.subject);
+      if (!budget.allowed) {
+        rpcError(response, id, -32000,
+          `Per-participant call ceiling reached (${budget.used}/${budget.limit}). No measurement was attempted, and none was produced.`, 429);
+        return;
+      }
+    }
     const controller = new AbortController();
     const disconnect = () => { if (!response.writableEnded) controller.abort(); };
     response.on('close', disconnect);
@@ -254,6 +311,7 @@ export function createMcpServer({ config, fetchImpl = globalThis.fetch }) {
     async close() {
       closing = true;
       clearInterval(sweep);
+      authorizationServer?.close();
       for (const id of [...sessions.keys()]) endSession(id);
       if (!server.listening) return;
       await new Promise((resolve) => { server.close(resolve); server.closeAllConnections(); });
@@ -265,9 +323,22 @@ async function main() {
   let app;
   try {
     const config = loadConfiguration(process.env);
-    app = createMcpServer({ config });
+    const oauth = loadOAuthConfiguration(process.env);
+    app = createMcpServer({ config, oauth });
     const address = await app.listen();
     process.stdout.write(`Private NeoMundi MCP listening on ${address}\n`);
+    if (oauth.enabled) {
+      // Said once, plainly, like every other widening of exposure here. Four
+      // public routes now exist in front of the credential gate, by design.
+      process.stderr.write(`OAuth 2.1 enabled for issuer ${oauth.issuer}, resource ${oauth.resource}. Discovery, registration, authorization and token endpoints answer WITHOUT a credential, which is what the flow requires. The static NEOMUNDI_MCP_API_KEY still works and is unchanged.\n`);
+      process.stderr.write(`Participant registry read from ${oauth.registryPath} on every authorization and every token check, so a suspension takes effect immediately. It is never written.\n`);
+      if (oauth.quotaPerSubject !== undefined) {
+        // This is the one setting that makes the connector hold something
+        // about a person between two requests. The operator is told, because
+        // the published privacy statement has to match it.
+        process.stderr.write(`Per-participant call ceiling set to ${oauth.quotaPerSubject}. Counts are held IN MEMORY for the lifetime of this process and reset when it restarts; nothing is written to disk. Check that the published privacy statement describes this before relying on it.\n`);
+      }
+    }
     if (config.plaintextLoopback) {
       // Told once, on stderr, so a verification run against a disposable local
       // instance is never mistaken for a call to a real deployment.
