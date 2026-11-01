@@ -17,24 +17,24 @@
   ],
   "versions": [
     {
-      "version": "0.4",
-      "statut": "projet",
-      "date_entree_en_vigueur": null,
+      "version": "1.0",
+      "statut": "publie",
+      "date_entree_en_vigueur": "2026-11-01",
       "documents": {
         "fr": {
           "fichier": "legal/CGU_MCP_FR.md",
-          "sha256": "6bce6e9e73e4f2ac3d9db2822182d248fc0bc3013ba39c75cb1e6ada655e96e4",
-          "url_publiee": null
+          "sha256": "01e5191f5b0f55785a8c43cd86f3286164a55387b95b3d7a83bf330b7a79034d",
+          "url_publiee": "https://neomundi.org/cgu"
         },
         "en": {
           "fichier": "legal/CGU_MCP_EN.md",
-          "sha256": "71b89553059bf210dc966b00f98e91d79eef1870b9a12e0e3c625fd705092430",
-          "url_publiee": null
+          "sha256": "346de3fc524d0ac0c2efa17c12ab384b0e264ca0bbe7c5084cb079a294e4473d",
+          "url_publiee": "https://neomundi.org/en/terms-of-use"
         }
       },
       "langue_faisant_foi": "fr",
-      "acceptable": false,
-      "note": "Projet non publie et non valide juridiquement. Aucune acceptation ne peut etre recueillie sur cette version: `acceptable` passera a true le jour ou le texte est valide, publie, et ou `url_publiee` et `date_entree_en_vigueur` sont renseignees. La 0.3 n'a jamais ete publiee ni acceptee: elle est remplacee par la 0.4, qui arrete le mecanisme d'acceptation a l'article 4."
+      "acceptable": true,
+      "note": "Premiere version publiee. Sans retroactivite: elle s'applique a compter du 2026-11-01. Les versions 0.1 a 0.4 etaient des projets, n'ont jamais ete publiees ni acceptees, et ne figurent pas ici. Toute modification du texte change son empreinte et appelle une NOUVELLE version, jamais une correction de celle-ci."
     }
   ]
 }

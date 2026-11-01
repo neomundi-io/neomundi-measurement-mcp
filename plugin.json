@@ -34,6 +34,7 @@
         "websiteURL": "https://neomundi.org",
         "supportURL": "https://neomundi.org/contact",
         "privacyPolicyURL": "https://neomundi.org/politique-de-confidentialite",
+        "termsOfServiceURL": "https://neomundi.org/cgu",
         "defaultPrompt": [
           "Mesure cette exécution avec NeoMundi et distingue les signaux mesurés de ceux indisponibles."
         ]
