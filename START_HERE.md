@@ -1,3 +1,63 @@
+# DOSSIER JURIDIQUE — projets rédigés, 1er novembre 2026
+
+**Cette section prime sur toutes les suivantes. Aucun document n'est publié
+ni signé. API, moteur de mesure et production : non modifiés.**
+
+Tout est dans **[`legal/`](legal/README.md)** — huit documents, versionnés.
+
+## Ce qui est rédigé
+
+| Livrable | État |
+|---|---|
+[CGU FR](legal/CGU_MCP_FR.md) · [EN](legal/CGU_MCP_EN.md) | **V0.3** — reprend la structure de la V0.1, change l'entité, le droit applicable et le mode d'accès |
+[Politique de confidentialité FR](legal/POLITIQUE_CONFIDENTIALITE_MCP_FR.md) · [EN](legal/PRIVACY_POLICY_MCP_EN.md) | **V0.1** — **sept traitements** détaillés |
+[Convention pilote FR](legal/CONVENTION_PILOTE_FR.md) | **V0.1** |
+[Licence d'exploitation FR](legal/LICENCE_EXPLOITATION_ASSOCIATIVE_FR.md) | **V0.2** — reprend le projet V0.1 du fondateur |
+[Annexe de périmètre des droits](legal/ANNEXE_PERIMETRE_DROITS.md) | **V0.1** — **incomplète par construction** |
+[Décisions ouvertes](legal/DECISIONS_OUVERTES.md) · [Checklist](legal/CHECKLIST_PUBLICATION.md) | — |
+
+## Deux choses manquaient, et il faut le savoir
+
+**Il n'existe pas de CGU V0.2.** Recherché sur Drive, sur le disque et dans le
+dépôt : seule la **V0.1 « ControlTower / Louis M Sàrl »** existe. Le texte
+transmis sous ce nom était en réalité le **projet de licence d'exploitation**,
+repris comme base de la Phase 4. La CGU V0.3 part donc de la **V0.1 + les
+audits**, sans repartir de zéro.
+
+**Les statuts n'ont pas pu être lus.** L'archive `ASSOCIATION.zip` fournie le
+2026-11-01 fait **122 octets et ne contient qu'un dossier vide**. Les pouvoirs
+de signature sont donc des **champs à compléter**, et **aucun n'est présumé**.
+
+## Les cinq bloquants réels
+
+| # | Bloquant | Effet |
+|---|---|---|
+**A-1** | **Aucune durée de conservation n'est configurée** | La politique ne peut pas être publiée comme conforme |
+**A-4 / A-5** | **DPA Infomaniak** au nom de l'association, et **ce qu'Infomaniak conserve** | Seul point où du contenu sort de nos machines |
+**B-1** | **Aucun mécanisme d'acceptation des CGU** | **Opposabilité non établie** — et c'est le bloquant le plus simple à lever |
+**C-1 / C-2** | **Annexe de périmètre vide** et **statuts non lus** | La licence **ne peut pas être signée** |
+**O-1** | **La politique publiée ne couvre pas le MCP** | **Motif de rejet explicite** de la plateforme |
+
+## Un point que la décision d'entité n'a pas réglé
+
+Le fondateur accorde une licence **sans transfert de propriété** — c'est noté
+et appliqué partout. Mais **le service tourne depuis le 2026-10-25**, soit
+avant que la licence n'existe. L'article 3 de la licence **couvre
+explicitement l'exploitation déjà engagée** plutôt que de laisser une période
+non couverte.
+
+Et le **conflit d'intérêts** fondateur / association est traité à l'article 12,
+avec abstention et signature par une autre personne habilitée : une convention
+signée des deux côtés par la même personne serait fragile.
+
+## Prochaine action
+
+**Lever B-1** — décider comment les CGU sont acceptées. Une décision, aucune
+infrastructure, et l'opposabilité est acquise. Puis **lire les statuts**, qui
+débloquent la signature de la licence.
+
+---
+
 # CLÔTURE JURIDIQUE — traitement en aval mesuré, 1er novembre 2026
 
 **Cette section prime sur toutes les suivantes. Production non modifiée,
