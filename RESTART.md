@@ -1,6 +1,6 @@
 # Reprise — connecteur MCP NeoMundi
 
-**Dernière mise à jour : 1er novembre 2026**, après la session de candidature.
+**Dernière mise à jour : 1er novembre 2026**, après la session OAuth.
 
 Ce fichier contient un **prompt de reprise autonome**. Une nouvelle session doit
 pouvoir continuer sans reconstituer l'historique.
@@ -16,41 +16,53 @@ Depot : le clone local de neomundi-io/neomundi-measurement-mcp
 
 ## Avant toute action, lire dans cet ordre
 
-1. START_HERE.md — la section de TETE, « CANDIDATURE ». Elle prime sur tout
+1. START_HERE.md — la section de TETE, « OAUTH 2.1 ». Elle prime sur tout
    le reste du fichier, point de cloture compris.
-2. PLUGIN_RELEASE_READINESS.md — etat de preparation, six blocages nommes
-   B-1 a B-6, avec leurs preuves et leurs sources datees.
-3. PLUGIN_SUBMISSION_CHECKLIST.md — la liste actionnable, dans l'ordre reel.
-4. PLUGIN_NEXT_ROADMAP.md — P0 / P1 / P2, avec P0-9 en premiere marche.
-5. PLUGIN_CHECKPOINT_2026-11-01.md — etat fige par composant. ATTENTION : il
+2. OAUTH_IMPLEMENTATION_REPORT.md — ce qui a ete construit, et ce que chaque
+   test protege.
+3. CHATGPT_CONNECTION_GUIDE.md — la procedure exacte de connexion.
+4. PLUGIN_RELEASE_READINESS.md — etat de preparation, blocages B-1 a B-6.
+5. PLUGIN_SUBMISSION_CHECKLIST.md — la liste actionnable, dans l'ordre reel.
+6. PLUGIN_NEXT_ROADMAP.md — P0 / P1 / P2.
+7. PLUGIN_CHECKPOINT_2026-11-01.md — etat fige par composant. ATTENTION : il
    est anterieur a la session de candidature ; P-6 et P-7 y sont encore
-   presentes comme bloquants, ils ne le sont plus.
+   presentes comme bloquants, ils ne le sont plus, et P0-9 est traite.
 
 Ne pas relancer les audits deja faits. Ne pas re-deriver des faits deja
 etablis dans ces documents. L'audit Codex / Pradeep est TRANCHE : aucun
 module integre, instrument et API inchanges, dossier traite separement.
 P1-5, P2-2 et P2-4 restent fermees.
 
-## Les trois faits qui gouvernent la reprise
+## Les quatre faits qui gouvernent la reprise
 
-1. LE MANIFESTE N'EST PLUS LE BLOCAGE. P0-1 et P0-2 sont resolues. Le bloc
-   auth demande par P0-1 N'EXISTE PAS : le schema officiel ferme mcp.json a
-   $schema et mcpServers, et un mcp.json invalide desactive MCP pour tout le
-   plugin. Les deux schemas officiels sont archives sous schemas/agent-plugins/
-   avec leur SHA-256 ; scripts/validate-manifests.mjs valide contre eux.
+1. OAUTH 2.1 EST ECRIT ET TESTE, PAS DEPLOYE. Branche
+   feat/oauth-chatgpt-20261101, PR #19, brouillon. Decouverte RFC 9728 et
+   8414, DCR RFC 7591, code d'autorisation avec PKCE S256, jetons signes,
+   rotation, revocation, identite par participant, portees, plafond par
+   participant. Aucune dependance, aucune base de donnees, aucune ligne de
+   mesure touchee. 339 cas verts, dont 27 OAuth.
 
-2. LE BLOCAGE EST L'AUTHENTIFICATION DU SERVEUR — c'est P0-9, et c'est un
-   arbitrage de Sebastien. ChatGPT n'offre que OAuth, aucune authentification,
-   ou les deux. Le serveur exige un Bearer fixe, soit une cle d'API, que le
-   portail ne sait pas connecter. Mettre le jeton dans headers et declarer
-   type:"none" sont NOMMEMENT interdits. Trois issues : implementer OAuth 2.1
-   (la seule en libre-service), demander une derogation, ou passer en
-   « bureau seulement » (reserve aux partenaires agrees).
+2. CE QUI MANQUE EST UNE AUTORISATION, PAS UN CHANTIER. Deployer exige
+   l'accord explicite de Sebastien sur un SHA nomme. Caddy n'a PAS besoin
+   d'etre modifie : le proxy relaie deja toutes les routes, verifie sur 4
+   chemins le 2026-11-01.
 
-3. LA VERIFICATION DE DOMAINE ECHOUERAIT, et la solution ne touche pas au
+3. LE MANIFESTE N'EST PAS LE BLOCAGE. P0-1 et P0-2 sont resolues. Le bloc
+   auth demande par P0-1 N'EXISTE PAS au niveau superieur de mcp.json : le
+   schema officiel le ferme a $schema et mcpServers. Les deux schemas sont
+   archives sous schemas/agent-plugins/ avec leur SHA-256. Le bloc a declarer
+   APRES le deploiement est fige dans tests/manifest-schema.test.mjs.
+
+4. LA VERIFICATION DE DOMAINE ECHOUERAIT, et la solution ne touche pas au
    serveur. Le defi doit etre servi en clair ; sur l'hote MCP ce chemin
    repond 401. Publier le jeton sur neomundi.org, qui est un parent eligible
    et repond 404.
+
+ET DEUX ORDRES A NE PAS INVERSER. Mettre la page de confidentialite a jour
+AVANT d'activer NEOMUNDI_OAUTH_QUOTA_PER_SUBJECT, qui fait tenir un compteur
+par participant alors que la page dit « aucune conservation ». Et ne presenter
+le connecteur comme multi-utilisateur qu'APRES le deploiement : l'article 6
+des CGU dit encore que la suspension est collective.
 
 ## Etat Git
 
@@ -64,12 +76,13 @@ P1-5, P2-2 et P2-4 restent fermees.
       #11  audit/cgu-prepublication-20261101 -> docs/mise-en-service-20261101
       #10  docs/mise-en-service-20261101     -> main
   Plus chore/cloture-session-20261101 -> cloture-juridique, puis
-  feat/plugin-candidature-20261101 -> cloture-session, qui porte cette
-  session. Cinq niveaux : la pile est profonde, et c'est un risque assume.
+  feat/plugin-candidature-20261101 -> cloture-session, puis
+  feat/oauth-chatgpt-20261101 -> plugin-candidature. Six niveaux : la pile
+  est profonde, et c'est un risque assume.
 - La CI ne se declenche que sur les PR dont la base est main. Les PR empilees
   n'ont AUCUNE execution, par construction, pas par defaut. La seule porte
   verte est #10 -> main, et elle mesurera le contenu accumule.
-- Suite locale : 312 cas, 312 reussis, 22 fichiers. npm test.
+- Suite locale : 339 cas, 339 reussis, 23 fichiers. npm test.
 - CGU v1.0 et politique de confidentialite publiees, FR et EN, avec empreintes.
 - ChatGPT n'a JAMAIS ete connecte, et on sait desormais POURQUOI. Un seul
   hote MCP a ete verifie : Claude Code, avec un amont SUBSTITUE. La carte a
@@ -78,14 +91,15 @@ P1-5, P2-2 et P2-4 restent fermees.
 
 ## Premiere action attendue
 
-Demander a Sebastien de trancher P0-9. Rien d'autre en P0 ne peut avancer
-sans cela — sauf les taches qui ne dependent que de lui et peuvent demarrer
-en parallele : verification d'identite de l'organisation, jeton de defi de
-domaine sur neomundi.org, et choix d'une origine dediee pour la carte.
+Demander a Sebastien d'autoriser le deploiement d'OAuth sur un SHA nomme.
+Rien d'autre ne peut avancer sans cela — sauf les taches qui ne dependent que
+de lui et peuvent demarrer en parallele : verification d'identite de
+l'organisation, jeton de defi de domaine sur neomundi.org, et choix d'une
+origine dediee pour la carte.
 
-Si la reponse tarde : un essai reel dans ChatGPT reste possible SANS OAuth,
-par le tunnel MCP securise. Cela ne remplace pas le point d'entree public
-exige pour la soumission, mais cela produirait la preuve qui manque a P0-3.
+Ne PAS deployer sans cet accord, et ne pas le deduire d'une PR, d'une CI
+verte ou d'une fusion. La procedure complete, retour arriere compris, est
+dans CHATGPT_CONNECTION_GUIDE.md §2.
 
 ## Regles permanentes, non negociables
 
@@ -108,6 +122,7 @@ exige pour la soumission, mais cela produirait la preuve qui manque a P0-3.
     git rev-parse --abbrev-ref HEAD
     git --no-pager log --oneline -3
     npm test
+    node --test runtime/tests/oauth.test.mjs
     node scripts/validate-manifests.mjs
     node check-publication.mjs
     node scripts/cgu-fingerprint.mjs
@@ -142,6 +157,8 @@ produira rien de nouveau.
 | Procédure de candidature, prêt et bloquant | `docs/PUBLICATION.md` §4 |
 | Déploiement HTTPS, empreintes, retour arrière | `docs/DEPLOIEMENT_HTTPS.md` §0 |
 | **Exigences officielles de publication, vérifiées le 2026-11-01** | `PLUGIN_RELEASE_READINESS.md` §7 |
+| **Conception OAuth, et pourquoi rien n'est stocké** | `OAUTH_IMPLEMENTATION_REPORT.md` §2 |
+| **Le proxy relaie-t-il les routes OAuth ?** | oui, vérifié sur 4 chemins — `OAUTH_IMPLEMENTATION_REPORT.md` §8.1 |
 | **Emplacement du bloc `auth`, et pourquoi il n'existe pas** | `tests/manifest-schema.test.mjs` |
 | **Imbrication `extensions.com.openai`** | idem — le dépôt avait raison |
 
@@ -167,6 +184,8 @@ Ils ont chacun coûté au moins un aller-retour.
 | Document | Rôle |
 |---|---|
 | [`START_HERE.md`](START_HERE.md) | **point d'entrée.** Sa section de tête, « CANDIDATURE », prime sur tout |
+| [`OAUTH_IMPLEMENTATION_REPORT.md`](OAUTH_IMPLEMENTATION_REPORT.md) | **OAuth 2.1** : ce qui est construit, et ce que chaque test protège |
+| [`CHATGPT_CONNECTION_GUIDE.md`](CHATGPT_CONNECTION_GUIDE.md) | **la procédure de connexion**, et l'opération qui exige une autorisation |
 | [`PLUGIN_RELEASE_READINESS.md`](PLUGIN_RELEASE_READINESS.md) | **état de préparation**, six blocages nommés, sources datées |
 | [`PLUGIN_SUBMISSION_CHECKLIST.md`](PLUGIN_SUBMISSION_CHECKLIST.md) | **liste actionnable**, dans l'ordre réel |
 | [`PLUGIN_NEXT_ROADMAP.md`](PLUGIN_NEXT_ROADMAP.md) | ce qui reste, priorisé, avec critères de validation |

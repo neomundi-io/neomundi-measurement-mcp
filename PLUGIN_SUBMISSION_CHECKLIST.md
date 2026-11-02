@@ -13,19 +13,28 @@ jour-là, pas d'instructions antérieures. Les sources sont listées au §7 de
 
 ## 0. L'ordre réel
 
+**B-1 est tranché : OAuth 2.1 est écrit et testé.** Ce qui reste n'est plus un
+chantier, c'est une autorisation.
+
 ```
-ÉTAPE 0   Trancher B-1 : OAuth, dérogation, ou bureau seulement   [SÉBASTIEN]
+ÉTAPE 0   AUTORISER LE DÉPLOIEMENT d'OAuth, sur un SHA nomme   [SÉBASTIEN]
+             + generer la cle de signature
+             + creer le registre des participants
              |                       rien en aval ne bouge avant
-             +--> en parallèle, sans dépendance :
-                  vérification d'identité d'organisation          [SÉBASTIEN]
-                  jeton de défi de domaine sur neomundi.org       [SÉBASTIEN]
-                  origine dédiée de la carte (un nom d'hôte)      [SÉBASTIEN]
-ÉTAPE 1   Brancher et mesurer réellement depuis ChatGPT
-ÉTAPE 2   Rejouer les 8 cas depuis l'hôte, capturer
-ÉTAPE 3   Vidéo, compte de démonstration, dossier
-ÉTAPE 4   Revérifier manifeste, URL et empreintes le jour J
-ÉTAPE 5   Téléverser, résoudre les constats, soumettre
+             +--> en parallele, sans dependance :
+                  verification d'identite d'organisation       [SÉBASTIEN]
+                  jeton de defi de domaine sur neomundi.org    [SÉBASTIEN]
+                  origine dediee de la carte (un nom d'hote)   [SÉBASTIEN]
+ÉTAPE 1   Deployer, puis verifier les 3 sondes du guide §2.3
+ÉTAPE 2   Brancher dans ChatGPT et mesurer reellement
+ÉTAPE 3   Basculer mcp.json en streamable-http + bloc auth
+ÉTAPE 4   Rejouer les 8 cas depuis l'hote, capturer
+ÉTAPE 5   Video, compte de demonstration, dossier
+ÉTAPE 6   Reverifier manifeste, URL et empreintes le jour J
+ÉTAPE 7   Televerser, resoudre les constats, soumettre
 ```
+
+Procédure détaillée : [`CHATGPT_CONNECTION_GUIDE.md`](CHATGPT_CONNECTION_GUIDE.md).
 
 ---
 
@@ -42,7 +51,7 @@ jour-là, pas d'instructions antérieures. Les sources sont listées au §7 de
 | ☑ | Réglages OpenAI sous `extensions.com.openai` | et **`interface` imbriqué** |
 | ☑ | `review` et `publication` **à côté** d'`interface`, jamais dedans | tenu par un test |
 | ☑ | Aucun secret, aucun `headers`, aucun `env` dans `mcp.json` | tenu par un test |
-| ☑ | Paquet reconstruit, reproductible | `9dd06242…6bd6398`, 38 fichiers |
+| ☑ | Paquet reconstruit, reproductible | `8e0e8652…9bf9debf`, 39 fichiers |
 
 ## 2. Métadonnées de référencement — **FAIT**
 
@@ -77,7 +86,7 @@ jour-là, pas d'instructions antérieures. Les sources sont listées au §7 de
 | ☐ | Captures déclarées dans `screenshots` | **après** l'étape 2 — une capture prise dans l'hôte vaut mieux |
 | ☐ | **`_meta.ui.domain`** : origine dédiée, **unique par plugin** | **exigée pour soumettre avec interface** — `B-4` |
 
-## 4. Serveur MCP et authentification — **BLOQUÉ**
+## 4. Serveur MCP et authentification — **ÉCRIT, PAS DÉPLOYÉ**
 
 | | Exigence | État |
 |---|---|---|
@@ -86,9 +95,14 @@ jour-là, pas d'instructions antérieures. Les sources sont listées au §7 de
 | ☑ | Un seul serveur à connecter | un seul outil, `measure_execution` |
 | ☑ | Annotations d'outil présentes et conformes au comportement | `readOnlyHint: false`, `openWorldHint: true` |
 | ☑ | CSP de l'interface déclarée et exacte | `connectDomains: []`, `resourceDomains: []` — la carte ne charge rien |
-| ☐ | **Méthode d'authentification connectable** | **`B-1` — clé d'API non supportée par le portail** |
+| ☑ | **Méthode d'authentification connectable : OAuth 2.1** | **écrite et testée**, 27 cas ; `OAUTH_IMPLEMENTATION_REPORT.md` |
+| ☑ | `code_challenge_methods_supported` annonce **`S256`** | sans lui, la plateforme déclare le serveur non supporté |
+| ☑ | `authorization_response_iss_parameter_supported`, et `iss` réellement renvoyé | ce qui donne droit à l'URI de redirection **stable** |
+| ☑ | `registration_endpoint` pour DCR, client public, **aucun secret client** | rien à faire expirer, donc pas d'`invalid_client` surprise |
+| ☑ | Le proxy relaie les routes OAuth **sans modification** | 4 chemins sondés le 2026-11-01 |
+| ☐ | **Déployer** | **`B-1` résiduel — autorisation de Sébastien, sur un SHA nommé** |
 | ☐ | **Défi de domaine servi en clair** | **`B-2`** — `401` sur l'hôte MCP ; **publier sur `neomundi.org`** |
-| ☐ | Point d'entrée **distant** déclaré dans `mcp.json` | aujourd'hui `stdio` — ne basculer qu'après `B-1` |
+| ☐ | Point d'entrée **distant** déclaré dans `mcp.json` | aujourd'hui `stdio` — basculer **après** le déploiement ; bloc figé par un test |
 | ☐ | Projet **sans résidence de données UE** | la plateforme refuse les soumissions MCP depuis un tel projet |
 
 ## 5. Dossier de revue
@@ -99,7 +113,7 @@ jour-là, pas d'instructions antérieures. Les sources sont listées au §7 de
 | ☑ | **Exactement 3 cas négatifs** | les trois qui prouvent que rien n'est inventé |
 | ☑ | Aucun `test_credentials` ni `reviewer_instructions` dans le ZIP | **rejeté** par la plateforme ; tenu par un test |
 | ☑ | `publication.release_notes` | présent |
-| ☐ | **Les 8 cas rejoués depuis ChatGPT**, avec capture | après `B-1` |
+| ☐ | **Les 8 cas rejoués depuis ChatGPT**, avec capture | après le déploiement |
 | ☐ | **`review.demo_recording_url`** — vidéo accessible au relecteur | **`B-5`** |
 | ☐ | **Compte de démonstration, identifiant + mot de passe, sans MFA** | **`B-6`** — saisi dans le formulaire sécurisé, jamais dans le paquet |
 | ☐ | Justification si une iframe est utilisée | sans objet : la carte n'en ouvre aucune |
@@ -123,6 +137,8 @@ jour-là, pas d'instructions antérieures. Les sources sont listées au §7 de
 ## 7. À rejouer le jour de la soumission
 
 ```
+curl -s https://mcp.neomundi.org/.well-known/oauth-authorization-server | head -c 400
+curl -sI -X POST https://mcp.neomundi.org/mcp | grep -i www-authenticate
 curl -s -o /dev/null -w "%{http_code}\n" https://neomundi.org/cgu
 curl -s -o /dev/null -w "%{http_code}\n" https://neomundi.org/politique-de-confidentialite
 curl -s -o /dev/null -w "%{http_code}\n" https://neomundi.org/contact
@@ -155,8 +171,16 @@ suite verte, et l'empreinte du ZIP consignée.
 - **Ne pas** produire une capture à partir d'un enregistrement réel : ce
   serait faire entrer des données d'exécution dans un dépôt public par
   l'image.
-- **Ne pas** présenter le connecteur comme multi-utilisateur. L'accès n'est
-  pas individualisé, **donc la suspension est collective** — et les CGU le
-  disent déjà à l'article 6.
+- **Ne pas** présenter le connecteur comme multi-utilisateur **tant qu'OAuth
+  n'est pas déployé**. Le code le permet désormais — identité par participant,
+  portées, révocation unitaire — mais l'accès servi reste un jeton partagé, et
+  les CGU disent encore à l'article 6 que la suspension est collective.
+  **Déployer d'abord, puis mettre l'article à jour, puis le dire.**
+- **Ne pas** activer `NEOMUNDI_OAUTH_QUOTA_PER_SUBJECT` avant d'avoir mis à
+  jour la page de confidentialité : elle affirme aujourd'hui « *Connecteur
+  MCP : aucune conservation* », et un compteur par participant la rend fausse.
+- **Ne pas** confondre `NEOMUNDI_API_KEY`, la clé technique qui appelle
+  l'instrument, avec l'identité d'un participant. Deux secrets, deux durées de
+  vie.
 - **Ne pas** déployer, ni fusionner, sans autorisation explicite sur un SHA
   nommé.

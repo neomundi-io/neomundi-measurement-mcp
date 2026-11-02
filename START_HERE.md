@@ -1,8 +1,46 @@
+# OAUTH 2.1 — état au 1er novembre 2026
+
+> **Cette section prime sur toutes les suivantes.** Elle lève le blocage décrit
+> juste en dessous.
+
+**Le blocage `B-1` n'est plus technique.** ChatGPT ne connectait pas ce serveur
+parce qu'il exigeait un jeton `Bearer` fixe — une méthode que l'hôte ne propose
+pas. **OAuth 2.1 est désormais écrit et testé** : découverte RFC 9728 et RFC
+8414, inscription dynamique RFC 7591, code d'autorisation avec **PKCE S256**,
+jetons signés, rotation du rafraîchissement, révocation, **identité
+individuelle par participant**, portées, et plafond de consommation par
+participant.
+
+**Sans aucune dépendance ajoutée, sans base de données, sans toucher à la
+mesure.** 27 nouveaux cas de test, **339 au total**, et un essai de bout en
+bout sur une instance réelle.
+
+| | |
+|---|---|
+| Branche | `feat/oauth-chatgpt-20261101`, **PR #19**, brouillon |
+| Déployé | **NON.** C'est la seule chose qui manque, et elle exige **votre autorisation sur un SHA nommé** |
+| Caddy | **aucune modification nécessaire** — le proxy relaie déjà toutes les routes, vérifié sur 4 chemins |
+| Clé statique et Codex | **intacts**. `stdio.mjs` n'importe pas `oauth.mjs`, et OAuth est **désactivé par défaut** |
+| ChatGPT | **toujours jamais branché.** Les captures sont d'un navigateur **local** |
+
+| Document | Rôle |
+|---|---|
+| [`OAUTH_IMPLEMENTATION_REPORT.md`](OAUTH_IMPLEMENTATION_REPORT.md) | **ce qui a été construit**, pourquoi, et ce que chaque test protège |
+| [`CHATGPT_CONNECTION_GUIDE.md`](CHATGPT_CONNECTION_GUIDE.md) | **la procédure exacte**, de la clé de signature à la première mesure |
+
+**Deux ordres à ne pas inverser.** Mettre la page de confidentialité à jour
+**avant** d'activer un plafond par participant — elle dit aujourd'hui
+« Connecteur MCP : aucune conservation ». Et ne présenter le connecteur comme
+multi-utilisateur **qu'après** le déploiement : l'article 6 des CGU dit encore
+que la suspension est collective.
+
+---
+
 # CANDIDATURE — état au 1er novembre 2026, après vérification des exigences officielles
 
-> **Cette section prime sur toutes les suivantes, y compris sur le point de
+> **Cette section prime sur celles qui la suivent, y compris sur le point de
 > clôture juste en dessous.** Elle le corrige sur deux points, et elle déplace
-> la première marche du chantier.
+> la première marche du chantier. Son §B est **levé** par la section ci-dessus.
 
 **L'audit Codex / Pradeep est tranché : aucun module n'est intégré, l'instrument
 et l'API sont inchangés, et le dossier Pradeep est traité séparément.**

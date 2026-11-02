@@ -4,6 +4,24 @@
 en vigueur ce jour-là. Les sources sont citées et horodatées : ce document ne
 reprend aucune instruction ancienne.
 
+> ## Mise à jour du 1er novembre 2026 — `B-1` est traité dans le code
+>
+> **OAuth 2.1 est implémenté et testé** : découverte, inscription dynamique,
+> code d'autorisation avec PKCE S256, jetons, rotation, révocation, identité
+> individuelle et portées — sans dépendance ajoutée, sans base de données, et
+> sans toucher à la mesure. **27 nouveaux cas de test**, et un essai de bout en
+> bout sur une instance réelle.
+>
+> **Il n'est pas déployé.** Le blocage n'est donc plus technique : c'est une
+> autorisation. Détail : [`OAUTH_IMPLEMENTATION_REPORT.md`](OAUTH_IMPLEMENTATION_REPORT.md).
+> Procédure : [`CHATGPT_CONNECTION_GUIDE.md`](CHATGPT_CONNECTION_GUIDE.md).
+>
+> **Une précondition est confirmée sans rien avoir changé en production** : le
+> proxy transmet déjà toutes les routes au serveur Node, donc **aucune
+> modification de Caddy n'est nécessaire**.
+>
+> Le constat ci-dessous reste vrai de l'**état servi aujourd'hui**.
+
 > ## Le fait qui gouverne tout le reste
 >
 > **Le manifeste n'était pas le blocage. L'authentification du serveur l'est.**
@@ -38,8 +56,11 @@ reprend aucune instruction ancienne.
 | Carte de mesure : `_meta` à jour | **VALIDÉ** | `runtime/tests/card-view-model.test.mjs` |
 | **Carte vue et capturée** | **FAIT**, charge synthétique | voir §5 |
 | Paquet de distribution reconstruit | **VALIDÉ**, reproductible | §5 |
-| Suite complète | **312 cas, 312 réussis** | `npm test` |
-| Séparation public / interne | **VALIDÉ** | `node check-publication.mjs` → 120 fichiers |
+| **OAuth 2.1 : serveur d'autorisation et de ressource** | **ÉCRIT ET TESTÉ**, non déployé | `runtime/tests/oauth.test.mjs`, 27 cas |
+| **Identité individuelle, portées, révocation** | **ÉCRIT ET TESTÉ** | idem, et `scripts/participant-credential.mjs` |
+| **Compatibilité Codex et clé statique** | **PRÉSERVÉE** | test dédié ; `stdio.mjs` n'importe pas `oauth.mjs` |
+| Suite complète | **339 cas, 339 réussis** | `npm test` |
+| Séparation public / interne | **VALIDÉ** | `node check-publication.mjs` → 125 fichiers |
 
 ### 1.1 `P0-1` — la tâche demandait quelque chose d'impossible
 
@@ -60,10 +81,11 @@ donc cassé un artefact qui fonctionne.
 l'authentification à `mcpServers.<nom>.extensions["com.openai"].auth`. La
 spécification portable ferme chaque variante de serveur : « *un champ inconnu
 […] rend cette entrée de serveur invalide* ». **Les deux sources sont
-normatives et se contredisent.** Rien n'est déclaré aujourd'hui parce que rien
-ne serait gagné aujourd'hui — le portail ne sait pas consommer une clé d'API.
-Le bloc exact et son coût sont figés dans un test, pour ne pas être
-redécouverts.
+normatives et se contredisent.** Le bloc exact est figé dans un test, pour ne
+pas être redécouvert — et il dit désormais `oauth`, pas `api_key`, puisque le
+serveur parle OAuth. Il n'est pas encore dans `mcp.json` parce que `mcp.json`
+nommerait alors un point d'entrée qui ne répond pas encore en OAuth : c'est la
+première étape **après** le déploiement.
 
 ### 1.2 `P0-2` — le dépôt avait raison, la lecture de la documentation avait tort
 
@@ -91,33 +113,34 @@ Trois défauts réels sont tombés en vérifiant :
 
 | # | Blocage | Vérifié le 2026-11-01 | Qui le lève |
 |---|---|---|---|
-| **B-1** | **Authentification par clé d'API non connectable** | `401` sur `/`, `/health`, `/mcp` ; ChatGPT n'offre qu'OAuth / aucune | **Sébastien** : arbitrage, puis chantier |
+| **B-1** | ~~Authentification par clé d'API non connectable~~ → **OAuth 2.1 écrit et testé, PAS DÉPLOYÉ** | 339 cas verts, essai de bout en bout, proxy confirmé sans changement | **Sébastien** : **autoriser le déploiement**, sur un SHA nommé |
 | **B-2** | **Vérification de domaine impossible en l'état** | `https://mcp.neomundi.org/.well-known/openai-apps-challenge` → **`401`** | **Sébastien** — mais voir §2.2, c'est facile |
 | **B-3** | **Identité d'organisation non vérifiée** | état inconnu depuis ce dépôt | **Sébastien**, tableau de bord |
 | **B-4** | **Origine dédiée de la carte non décidée** | `_meta.ui.domain` absent ; exigé pour soumettre un plugin **avec interface** | **Sébastien** : un nom d'hôte |
 | **B-5** | **Vidéo de démonstration absente** | `review.demo_recording_url` non renseigné — exigé pour la revue MCP | après B-1 |
 | **B-6** | **Compte de démonstration** | la plateforme exige « *un identifiant et un mot de passe pour un compte de démonstration pleinement fonctionnel* » ; notre accès est un jeton partagé | **Sébastien** |
 
-### 2.1 B-1 — les trois issues, aucune n'est gratuite
+### 2.1 B-1 — l'issue retenue, et ce qu'il en reste
 
-| Issue | Ce qu'elle exige | Ce qu'elle donne |
-|---|---|---|
-| **A — implémenter OAuth 2.1** sur `mcp.neomundi.org` | métadonnées de ressource protégée, serveur d'autorisation, DCR ou CIMD, `resource` répercuté | **la seule issue en libre-service.** Débloque la soumission publique *et* l'essai dans ChatGPT |
-| **B — demander une dérogation** pour la clé d'API | « *Contactez OpenAI si votre soumission exige cette méthode* » | dépend d'une réponse ; délai inconnu |
-| **C — soumission « bureau seulement »** (serveur local stdio) | **mise en liste blanche de l'organisation par un représentant OpenAI** | badge *Desktop only*, installation depuis l'application de bureau uniquement |
+Trois issues existaient. **L'issue A a été prise et construite.**
 
-> **L'issue C est celle vers laquelle le dépôt penche aujourd'hui** —
-> `mcp.json` déclare un serveur `stdio` et `requires_local_executor` vaut
-> `true` — **et c'est la plus fermée des trois** : elle est « *limitée aux
-> partenaires agréés* ». L'association n'a pas de représentant OpenAI.
+| Issue | État |
+|---|---|
+| **A — implémenter OAuth 2.1** sur `mcp.neomundi.org` | **FAIT, testé, non déployé.** La seule en libre-service : elle ne dépend d'aucune relation avec OpenAI |
+| **B — demander une dérogation** pour la clé d'API | abandonnée : dépend d'une réponse, délai inconnu |
+| **C — soumission « bureau seulement »** | abandonnée : « *limitée aux partenaires agréés* », et l'association n'a pas de représentant OpenAI |
 
-**Un essai réel dans ChatGPT reste possible dès maintenant, sans OAuth**, par
-le **tunnel MCP sécurisé** : `tunnel-client` tourne dans le réseau, joint le
-serveur MCP en `stdio` ou en HTTP, et ChatGPT l'appelle par un point d'entrée
-hébergé. La plateforme précise que **cela ne remplace pas** le point d'entrée
-public exigé pour la soumission — mais cela produirait exactement la preuve
-qui manque à `P0-3` : une mesure réelle, revenue dans ChatGPT, avec un
-`request_id` retrouvable des deux côtés.
+Ce qui reste de `B-1` n'est plus un chantier, c'est **une autorisation de
+déploiement et deux secrets à provisionner** — §1 et §2 du guide de connexion.
+
+**Et la soumission publique redevient possible** : elle exigeait un point
+d'entrée HTTPS public avec une méthode d'authentification que le portail sait
+connecter. Les deux seront vrais une fois déployé.
+
+> **Le tunnel MCP sécurisé n'est plus nécessaire.** Il restait l'issue de
+> secours pour un essai sans OAuth ; OAuth existant, l'essai réel passe par le
+> chemin qui sera aussi celui de la soumission, ce qui évite de prouver une
+> chose et d'en soumettre une autre.
 
 ### 2.2 B-2 — un blocage facile, et une solution qui ne touche pas au serveur
 
@@ -141,19 +164,20 @@ l'hôte authentifié.** C'est la voie recommandée.
 
 ## 3. Le plugin fonctionne-t-il réellement dans ChatGPT ?
 
-**Non, et il n'a jamais été branché.** Cette réponse n'a pas changé depuis la
-clôture du 1er novembre, et la session n'a rien fait qui permette de la
-changer : aucun compte ChatGPT n'a été utilisé, aucun connecteur n'a été
-ajouté, aucune mesure n'est revenue d'un hôte.
+**Non, et il n'a toujours jamais été branché.** Aucun compte ChatGPT n'a été
+utilisé, aucun connecteur n'a été ajouté, aucune mesure n'est revenue d'un
+hôte.
 
-Ce qui a changé, c'est qu'on sait **pourquoi** : le serveur parle une méthode
-d'authentification que l'hôte ne propose pas. Ce n'était pas écrit avant.
+Ce qui a changé en deux temps : on sait **pourquoi** (le serveur parlait une
+méthode que l'hôte ne propose pas), et **l'obstacle est levé dans le code** —
+il ne reste qu'un déploiement à autoriser.
 
 | Vérifié où | Ce que cela prouve | Ce que cela ne prouve pas |
 |---|---|---|
 | **Claude Code 2.1.247**, amont **substitué** (`ML-009`) | le transport MCP, la découverte d'outils | rien sur ChatGPT, rien sur un amont réel |
 | **Navigateur local**, charge **synthétique** | la carte s'affiche, et affiche la bonne chose | rien sur le rendu *dans* ChatGPT |
-| **`mcp.neomundi.org` depuis l'extérieur** | TLS, `401` sur tous les chemins | rien sur une mesure de bout en bout |
+| **Instance locale réelle + navigateur**, flux OAuth complet | inscription, PKCE, `iss`, jeton lié à la bonne audience, `200` sur `initialize`, clé statique intacte | **rien sur ChatGPT** : c'est un navigateur local contre une instance locale |
+| **`mcp.neomundi.org` depuis l'extérieur** | TLS, `401` sur tous les chemins, **proxy qui relaie tout** | rien sur une mesure de bout en bout |
 
 > `LIVE_API_VALIDATED` reste **non décerné**. Ne jamais présenter la carte
 > capturée en §5 comme une capture prise dans ChatGPT.
@@ -169,7 +193,9 @@ d'authentification que l'hôte ne propose pas. Ce n'était pas écrit avant.
 | **`review.demo_recording_url` absent** | **ne jamais inventer une URL pour remplir un champ.** Une URL qui ne résout pas est un motif de rejet déclaré |
 | **`license` absent** | aucun fichier de licence au dépôt. Déclarer un identifiant SPDX serait une affirmation juridique sans support |
 | **`_meta.ui.domain` absent** | c'est une décision de nom d'hôte, pas de code |
-| **`mcp.json` laissé en `stdio`** | le basculer en `streamable-http` aujourd'hui casserait l'installation locale qui marche, **sans rien débloquer** tant que B-1 tient |
+| **`mcp.json` laissé en `stdio`** | le basculer aujourd'hui nommerait un point d'entrée qui ne répond pas encore en OAuth. C'est la première étape **après** le déploiement, et le bloc exact est figé par un test |
+| **CIMD, OIDC, `private_key_jwt` non implémentés** | DCR suffit et est explicitement supporté ; CIMD obligerait le serveur à aller chercher un document chez le client, pour un gain qui n'existe qu'à grande échelle |
+| **Plafond par participant désactivé par défaut** | compter, c'est tenir quelque chose sur une personne entre deux requêtes, et la politique publiée dit « aucune conservation ». Mettre la page à jour d'abord, activer ensuite |
 | **Aucun module Pradeep intégré** | décision de la mission. `P1-5`, `P2-2` et `P2-4` restent fermées |
 
 ---
@@ -177,12 +203,13 @@ d'authentification que l'hôte ne propose pas. Ce n'était pas écrit avant.
 ## 5. Preuves produites par cette session
 
 ```
-npm test                          312 cas, 312 réussis, 0 échec, 22 fichiers
+npm test                          339 cas, 339 réussis, 0 échec, 23 fichiers
+                                  dont 27 cas OAuth
 node scripts/validate-manifests.mjs   OK plugin.json · OK mcp.json
-node check-publication.mjs        PASS, 120 fichiers publiables
+node check-publication.mjs        PASS, 125 fichiers publiables
 node scripts/cgu-fingerprint.mjs  OK, version acceptable : 1.0
-node scripts/build-package.mjs    38 fichiers, 175 768 octets
-                                  sha256 9dd06242c0827b29788e707ddd6d1111a5d8291976c89984a0e4d1b376bd6398
+node scripts/build-package.mjs    39 fichiers, 190 729 octets
+                                  sha256 8e0e8652299b5c70b7363d4a5dd52474b82bceda27eced6efdec48309bf9debf
                                   construit deux fois, empreinte identique
 ```
 
@@ -199,6 +226,7 @@ node scripts/build-package.mjs    38 fichiers, 175 768 octets
 NEOMUNDI_WORKSPACE/plugin-candidature-20261101/captures/
   carte-mesure-complete-synthetique.jpg
   carte-allow-sans-controle-synthetique.jpg
+  oauth-page-autorisation.jpg      <- navigateur LOCAL, pas ChatGPT
 ```
 
 Elles sont reproductibles : `node scripts/card-capture-harness.mjs <dossier>`.
