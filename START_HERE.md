@@ -1,3 +1,43 @@
+# CARTE V2 — écrite le 2 novembre 2026, **non déployée**
+
+> **Cette section prime sur toutes les suivantes.**
+
+**Le plugin fonctionne réellement dans ChatGPT depuis le 2026-11-02.** Première
+mesure de bout en bout : `request_id` `47121561-2738-47c0-ab28-1d5a83895296`,
+`ALLOW` sur fondement `measured_thresholds`, mesure `complete`, 3 contrôles sur
+3, cinq signaux mesurés, contrat REST validé.
+
+La carte est passée en **V2 « AI Weather »** : un anneau en tête qui dit **ce
+qui a été mesuré**, deux compteurs, les signaux en pastilles avec leur cause
+d'absence, et tout le détail technique replié.
+
+| | |
+|---|---|
+| Nouvelle URI de ressource | `ui://neomundi-measurement/card-v2.html` |
+| Langue | **anglais par défaut**, français en un bouton |
+| Suite | **356 cas, 356 réussis** — dont 23 sur la carte |
+| Déployé | **NON.** Validation visuelle demandée d'abord |
+
+> ### L'invariant sur lequel repose toute la V2
+>
+> **L'anneau représente la couverture de mesure, jamais la décision.** Un
+> `ALLOW` décidé sans aucun contrôle obtient donc **l'anneau le plus vide de la
+> carte** — la règle de marque « pas de feu tricolore » n'est pas contournée,
+> elle est rendue visible. `ALLOW`, `FLAG` et `BLOCK` à mesure identique
+> produisent la **même** météo. Deux tests tiennent les deux moitiés.
+
+**La version attendue `3.3.0` n'est PAS déplacée**, et c'est délibéré : la
+compatibilité est démontrée pour le **contrat REST**, pas pour la base de
+validation du connecteur, qui est de 11 réponses enregistrées en `3.3.0`. Ce
+qui change est l'affichage de la portée, pas la métrologie.
+
+| Document | Rôle |
+|---|---|
+| [`CARD_V2_REPORT.md`](CARD_V2_REPORT.md) | **audit, règles de la météo, avant/après, feuille de route** |
+| [`docs/GUIDE_UTILISATEUR.md`](docs/GUIDE_UTILISATEUR.md) | « Mesurer une réponse d'IA en quelques secondes » |
+
+---
+
 # OAUTH 2.1 — **DÉPLOYÉ le 2 novembre 2026**
 
 > **Cette section prime sur toutes les suivantes.**
