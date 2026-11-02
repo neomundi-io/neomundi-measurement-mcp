@@ -71,11 +71,32 @@ décide qui entre.
 NEOMUNDI_MCP_PUBLIC_URL=https://mcp.neomundi.org
 NEOMUNDI_OAUTH_SIGNING_KEY=<la clé de 1.1>
 NEOMUNDI_OAUTH_REGISTRY=/etc/neomundi/participants.json
+NEOMUNDI_MCP_ALLOWED_HOSTS=mcp.neomundi.org
 ```
 
-Les **trois ou aucune** : une configuration partielle est refusée au démarrage
-plutôt qu'à moitié activée. Laissez `NEOMUNDI_OAUTH_QUOTA_PER_SUBJECT` **vide**
-— voir §6.
+Les **trois premières ou aucune** : une configuration partielle est refusée au
+démarrage plutôt qu'à moitié activée. Laissez
+`NEOMUNDI_OAUTH_QUOTA_PER_SUBJECT` **vide** — voir §6.
+
+> ### La quatrième n'est pas optionnelle, et la raison est mesurée
+>
+> **Sans `NEOMUNDI_MCP_ALLOWED_HOSTS`, la soumission du formulaire
+> d'identification est refusée avec `403 invalid_origin`.** Personne ne peut
+> s'authentifier, et le symptôme ne ressemble pas à sa cause.
+>
+> Pourquoi. Caddy réécrit l'en-tête `Host` en `127.0.0.1:8787`, donc le
+> contrôle d'hôte passe par la paire loopback — mais il **ne réécrit pas**
+> `Origin`, et le navigateur envoie `Origin: https://mcp.neomundi.org`. Les
+> origines acceptées sont dérivées de la paire loopback **et des hôtes
+> explicitement nommés** ; sans nommer celui-ci, l'origine du navigateur n'est
+> dans aucune des deux listes.
+>
+> La nommer ajoute `https://mcp.neomundi.org` aux origines acceptées. Cela
+> ajoute aussi cet hôte à la liste des `Host` acceptés, ce qui est sans effet
+> ici puisque Caddy en envoie un autre.
+>
+> Mesuré le 2026-11-02 contre le code déployé : `403 invalid_origin` sans la
+> variable, requête traitée avec elle.
 
 Et dans Compose, décommentez le montage, **en lecture seule, sur le fichier et
 pas son dossier** :
@@ -245,6 +266,7 @@ l'instrument.
 
 | Symptôme | Cause la plus probable |
 |---|---|
+| **`403 invalid_origin` en validant le formulaire** | `NEOMUNDI_MCP_ALLOWED_HOSTS` n'est pas renseignée — voir §1.3 |
 | ChatGPT ne propose pas OAuth | les métadonnées ne sont pas servies : vérifier §2.3 étape 1 |
 | « serveur non supporté » | `code_challenge_methods_supported` n'annonce pas `S256` |
 | `invalid_client` à la connexion | la clé de signature a changé depuis l'inscription du client. Reconnecter le serveur dans ChatGPT |
