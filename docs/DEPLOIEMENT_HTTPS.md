@@ -1,8 +1,133 @@
 # Déploiement HTTPS — `mcp.neomundi.org`
 
-**Relevé du 2026-11-01**, établi par commande sur le serveur. Tout ce qui suit
-est un **constat** ou une **procédure préparée** : rien n'a été déployé,
-redémarré ni modifié sur la machine au cours de cette passe.
+# 0. MISE EN SERVICE EFFECTUÉE — 2026-11-01
+
+**`0.3.0-rc.1` est en production.** Autorisée par Sébastien, exécutée le
+2026-11-01 entre 11:31 et 11:38 UTC. Les sections 1 à 5 qui suivent décrivent
+l'état **antérieur** et restent comme relevé historique.
+
+## 0.1 Empreintes
+
+| | |
+|---|---|
+Révision déployée | **`da71f5d327da83247c5f4a69dfc1b6ea6e80f048`** — fusion de la PR #9, contrôles verts |
+Révision précédente | `0cbd369ebc1192400b199fa3d5c794eb810b15e3` — version **`0.1.0`**, servie depuis le 2026-10-25 |
+Image | **`sha256:a50a2679d18e488df303706aaa1e47f8eff0f5a4c8aa1bb8e598de6aa05eefe9`**, étiquetée `neomundi-measurement-mcp:da71f5d` |
+Base de l'image | `node@sha256:8a32c8cf649a49915a66e81e7a609223c708d0adabf288ee3f4077d765542f85` (index OCI multi-plateforme) |
+Suite **dans** l'image | **221 passés, 0 échec, 18 sautés** — les sautés sont le rejeu des enregistrements, absents de l'image par conception |
+Docker | installé pour l'occasion : `29.1.3-0ubuntu3~24.04.2`, dépôt Ubuntu |
+
+## 0.2 Ce qui a changé sur la machine
+
+- **Docker installé** (`apt install docker.io`), activé au démarrage ;
+- **clone neuf en `/opt/neomundi-mcp`** à `da71f5d`, utilisé comme source de
+  construction. `~/neomundi-measurement-mcp` est **laissé intact à
+  `0cbd369`** : c'est le chemin de retour arrière ;
+- **nouvelle unité `neomundi-mcp-docker.service`**, activée, qui publie le
+  conteneur sur `127.0.0.1:8787` **un pour un** ;
+- **`neomundi-mcp.service` arrêté et désactivé**, son unité conservée ;
+- **Caddy n'a pas été touché.** `header_up Host 127.0.0.1:8787` reste en place
+  et continue de fonctionner, le port étant publié à l'identique. Une
+  sauvegarde `/etc/caddy/Caddyfile.avant-0.3.0` a été prise.
+
+Le conteneur tourne `--read-only`, `--cap-drop ALL`,
+`--security-opt no-new-privileges`, avec `TimeoutStopSec=60` et
+`docker stop -t 45` : une mesure en vol n'est jamais rejouée, donc on lui
+laisse le temps de finir plutôt que de laisser son issue inconnue.
+
+> **Choix assumé.** Ce document recommandait `systemd` + Node plutôt que
+> Docker, Docker étant absent de la machine. Sébastien a demandé
+> explicitement le déploiement par image. Les deux coexistent donc : le
+> conteneur sert, le service Node reste armé comme retour arrière.
+
+## 0.3 Vérifications, dans l'ordre où elles ont été faites
+
+**Depuis l'Internet public :**
+
+| Contrôle | Résultat |
+|---|---|
+Certificat | `CN=mcp.neomundi.org`, Let's Encrypt, valide jusqu'au **2026-12-06** |
+`POST /mcp` sans credential | **401**, `WWW-Authenticate: Bearer realm="neomundi-private-mcp"` |
+`POST /mcp` credential invalide | **401** |
+En-têtes | `Server: Caddy`, `Alt-Svc: h3=":443"` |
+
+**Via l'URL publique, authentifié** — donc à travers TLS, Caddy et le conteneur :
+
+| Contrôle | Résultat |
+|---|---|
+`initialize` | protocole **`2025-06-18`**, `serverInfo.version` = **`0.3.0-rc.1`** |
+Capacités | **`tools`** et **`resources`** |
+`tools/list` | `measure_execution`, `title` présent, `outputSchema` présent, annotations exactes |
+`_meta` | `ui.resourceUri` **et** `openai/outputTemplate` → `ui://neomundi-measurement/card-v1.html` |
+`resources/read` | **19 360 octets**, `text/html;profile=mcp-app`, SHA-256 `a6b85945c4491e258fee50869eb6da91230c5e6fcdc12d04c97998e37b0a4424` |
+Carte | **autonome** (aucune URL externe), **aucun `innerHTML`**, CSP déclarée vide |
+
+## 0.4 Mesure réelle — la preuve de bout en bout
+
+Un appel **réellement facturé**, mode `OBS` sur un échange déjà exécuté. Aucun
+fournisseur appelé, donc aucune génération facturée côté fournisseur.
+
+| | |
+|---|---|
+Horodatage | 2026-11-01T11:38:19Z |
+Transport | **HTTP 200 en 1,84 s** |
+`request_id` | **`2ca02f65-e2de-4f21-a35d-0e845329d4b2`** |
+`adapter_error` | `null` |
+Enveloppe | `presentation`, `reading_aid`, `measurement_reference`, `contract_validation`, `integrity` — **toutes présentes** |
+Décision | `ALLOW`, fondement **`measured_thresholds`**, `decision_is_measured` **`true`** |
+Mesure | `complete`, **3 contrôles tentés / 3 réussis / 3 émis**, couverture `1`, agrégats publiables |
+Signaux mesurés | `stability_score`, `coherence_score`, `semantic_risk`, `factual_hallucination_score`, `semantic_instability_score` — **aucun non mesuré** |
+Évaluateurs | `runtime_engine.process`, `embedding_detector.compute_coherence` (`nomic-embed-text`), `semantic_risk.moderate` (`llama-guard3:1b`) |
+Validation de contrat | **`validated`** contre `govern-rest-1.0`, schéma SHA-256 `bcd5588e…` |
+Empreinte de l'enveloppe | `41fa201ec84c0eb746cde0802305e357a2a755a7739f73b006efe86a0c224c20` |
+
+**Aucun signal ni provenance n'a été modifié** : l'enveloppe a été lue, jamais
+réécrite.
+
+### Ce que cette mesure a révélé, et qui mérite une décision
+
+**`version_agreement` vaut `divergent`.** Le déploiement déclare
+`measurement_version` **`3.3.1`** tandis que le connecteur est épinglé sur
+**`3.3.0`**. La carte affiche donc, correctement :
+
+> « Versions de mesure divergentes : ce résultat n'est pas comparable aux
+> autres. »
+
+C'est le comportement voulu — `divergence_scope` **n'écrase jamais**
+l'accord — et la portée publiée précise que, **sur le chemin REST, les deux
+versions sont déclarées identiques** : une série REST peut donc être
+poursuivie. Le bandeau est plus prudent que la portée. **Lever l'épinglage
+vers `3.3.1` est un arbitrage produit, pas un correctif** (§5, D-8).
+
+**Trois champs racine ne sont pas modélisés** par le connecteur, et la carte
+les nomme au lieu de les cacher : `token_count_scope`, `token_count_unit`,
+`stream_contract_metadata`. C'est une observation sur le contrat amont, à
+remonter plutôt qu'à absorber.
+
+## 0.5 Retour arrière — armé, vérifié, non déclenché
+
+Vérifié après la bascule, sans rien basculer :
+
+- unité `neomundi-mcp.service` **présente**, `inactive` / `disabled` ;
+- dépôt de retour arrière **à `0cbd369`**, conforme ;
+- `Caddyfile` inchangé, sauvegarde présente.
+
+```bash
+# Retour arriere vers 0.1.0, en deux commandes :
+sudo systemctl disable --now neomundi-mcp-docker.service
+sudo systemctl enable  --now neomundi-mcp.service
+# Verifier :
+sudo systemctl is-active neomundi-mcp.service
+```
+
+Il n'y a **ni base de données, ni état persistant, ni migration** : le retour
+arrière est un échange de services, et rien d'autre.
+
+---
+
+**Relevé du 2026-11-01**, établi par commande sur le serveur. Les sections 1 à
+5 décrivent l'état **avant** la mise en service du §0 et sont conservées comme
+relevé historique.
 
 ---
 
@@ -215,7 +340,10 @@ Caddyfile et `sudo systemctl reload caddy`.
 
 | # | Point | Qui tranche |
 |---|---|---|
-**D-1** | **La bascule de version elle-même.** La production sert `0.1.0` sans les garde-fous métrologiques | **Sébastien**, sur un SHA |
+**D-1** | ~~La bascule de version~~ — **faite le 2026-11-01**, §0. La production sert `0.3.0-rc.1` | — |
+**D-8** | **Épinglage `3.3.0` face au `3.3.1` servi.** Toute mesure ressort `divergent`, et la carte la déclare non comparable — alors que la portée publiée dit le chemin REST identique. Lever l'épinglage est un **arbitrage produit**, pas un correctif | **Sébastien** |
+**D-9** | **Trois champs racine non modélisés** remontés par la production : `token_count_scope`, `token_count_unit`, `stream_contract_metadata`. Observation sur le contrat amont | **chantier backend** |
+**D-10** | **La portée de divergence s'affiche en bloc JSON brut** sur la carte — honnête, puisque rien n'est raccourci, mais difficile à lire. Mettre en avant son champ `summary` sans rien retirer serait une amélioration ; raccourcir serait une faute | une session |
 **D-2** | **34 mises à jour système en attente**, dont une de sécurité | **Sébastien** |
 **D-3** | **`ufw` inactif.** Seuls 22, 80 et 443 sont exposés aujourd'hui, mais rien ne le garantit | **Sébastien** |
 **D-4** | **Un seul credential partagé** ouvre le point d'entrée, et **une seule** clé API NeoMundi est dépensée pour tous. Le rendre joignable depuis ChatGPT ne change pas cela | **Sébastien** — c'est le plus gros arbitrage restant |

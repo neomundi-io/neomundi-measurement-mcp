@@ -59,6 +59,21 @@ COPY .codex-plugin/ ./.codex-plugin/
 COPY .agents/ ./.agents/
 COPY plugin.json mcp.json .mcp.json README.md README_FR.md ./
 
+# The published terms and their fingerprint registry. Not used by the running
+# server either, and copied for exactly the same reason as the block above:
+# `tests/cgu-versions.test.mjs` reads `legal/cgu-versions.json` and the files
+# it pins, so without this line `RUN npm test` fails with ENOENT on
+# `/app/legal/cgu-versions.json` and NO IMAGE CAN BE BUILT AT ALL.
+#
+# That is not hypothetical. It is exactly what happened on 2026-11-02, during
+# an authorised deployment: the build failed on five tests with one cause, and
+# the deployment had to stop at the door. The same failure mode is already
+# described above for the packaging inputs -- a test landed, the file list did
+# not follow, and nobody noticed because the image had not been rebuilt since.
+# Keep this list in step with what the repository-level tests READ, not with
+# what the server imports.
+COPY legal/ ./legal/
+
 # The offline suite, in the image, at build time. A build that cannot pass its
 # own tests does not produce a runnable image. No credential is read and no
 # network call is made: the suite drives the adapter with injected mocks.

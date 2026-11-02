@@ -313,6 +313,23 @@ test('the resource is self-contained, correctly typed, and deterministic', () =>
   // The host applies a strict policy; the card must request nothing.
   assert.deepEqual(resource._meta.ui.csp, { connectDomains: [], resourceDomains: [] });
 
+  // One display mode, declared, because that is the only one the card has.
+  assert.deepEqual(resource._meta['openai/ui'].availableDisplayModes, ['inline']);
+
+  // The summary handed to the model has to carry the distinction the card
+  // exists for. If it ever stops saying this, the model is free to narrate an
+  // unmeasured signal as a measured one.
+  const summary = resource._meta['openai/widgetDescription'];
+  assert.match(summary, /basis/);
+  assert.match(summary, /not\s+published/);
+  assert.match(summary, /grants no\s+execution permission/);
+
+  // No dedicated component origin is declared, and that is deliberate: it is
+  // a hostname decision, tracked as a submission prerequisite rather than
+  // invented here.
+  assert.equal(resource._meta.ui.domain, undefined);
+  assert.equal(resource._meta['openai/widgetDomain'], undefined);
+
   const html = cardHtml();
   for (const pattern of [/https?:\/\//, /<link\b/i, /<img\b/i, /\bsrc\s*=/i, /@import/i, /fonts\.googleapis/i]) {
     assert.equal(pattern.test(html), false, `the card must not reference ${pattern}`);

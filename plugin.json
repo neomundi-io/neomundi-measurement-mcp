@@ -15,28 +15,85 @@
     "rest",
     "sse"
   ],
-  "icons": {
-    "512": "./assets/icon-512.png",
-    "256": "./assets/icon-256.png",
-    "128": "./assets/icon-128.png",
-    "48": "./assets/icon-48.png"
-  },
   "extensions": {
     "com.openai": {
       "requires_local_executor": true,
       "interface": {
         "displayName": "NeoMundi Measurement",
-        "shortDescription": "Mesurer une exécution d’IA",
-        "longDescription": "Transmettez une exécution existante ou demandez une génération mesurée. La carte de mesure affiche la décision ET son fondement, l’état de la mesure, les signaux mesurés et non mesurés avec leur cause, et la provenance. Les états, les null et la provenance restent visibles ; aucune valeur n’est calculée ni interprétée. Une mesure ne donne aucune autorisation d’exécution, ne vaut pas verdict de conformité et ne prouve ni la vérité ni l’absence d’hallucination. Porté par Neomundi Recherche, association loi 1901, dans une démarche de qualification scientifique et technologique.",
+        "shortDescription": "Measure an AI execution",
+        "longDescription": "Submit one existing AI execution — its prompt, its response, its token count and its latency — or ask for a measured generation, and read what was actually measured.\n\nThe measurement card shows the decision AND the basis on which that decision was taken, the state of the measurement, every measured signal, and every unmeasured signal together with the cause of its absence, plus the provenance of the evaluators that answered. States, nulls and provenance stay visible: no value is computed, rescaled, rounded or interpreted, and a missing measurement is never rendered as a favourable one.\n\nA measurement grants no execution permission, is not a compliance verdict, and proves neither truthfulness nor the absence of hallucination. The known limitations of the instrument are published alongside the connector rather than summarised away.\n\nCarried by Neomundi Recherche, an association loi 1901 under French law, as a scientific and technological qualification effort.",
         "developerName": "Neomundi Recherche",
-        "category": "Developer tools",
-        "icon": "./assets/icon-512.png",
+        "category": "Developer Tools",
+        "logo": "./assets/icon-512.png",
+        "composerIcon": "./assets/icon-128.png",
         "websiteURL": "https://neomundi.org",
         "supportURL": "https://neomundi.org/contact",
         "privacyPolicyURL": "https://neomundi.org/politique-de-confidentialite",
+        "termsOfServiceURL": "https://neomundi.org/cgu",
         "defaultPrompt": [
-          "Mesure cette exécution avec NeoMundi et distingue les signaux mesurés de ceux indisponibles."
+          "Measure this execution with NeoMundi and separate the measured signals from the unavailable ones.",
+          "Measure this answer, then tell me on what basis the decision was taken.",
+          "Show the NeoMundi measurement card, including every signal it could not measure."
         ]
+      },
+      "review": {
+        "test_cases": {
+          "positive": [
+            {
+              "description": "A complete execution is submitted with the two metrics the instrument requires, and the card reports the decision together with the basis on which it was taken.",
+              "prompt": "Measure this execution with NeoMundi: prompt \"What is the capital of Switzerland?\", response \"Bern is the federal city of Switzerland.\", 14 tokens, 840 ms latency.",
+              "tools_triggered": "measure_execution",
+              "expected_behavior": "measure_execution is called once. The card names the decision and, beside it, the basis for that decision; it names the state of the measurement and how many checks were emitted; it lists each signal with its own state. No score that the server did not return appears anywhere."
+            },
+            {
+              "description": "An execution submitted with its grounding documents is measured against them, and the card attributes each signal to what answered it.",
+              "prompt": "Measure this answer against its source. Prompt: \"When was the association founded?\" Answer: \"In 2024.\" Source document titled \"Statutes\" containing \"The association was founded in 2024.\" 9 tokens, 1200 ms latency.",
+              "tools_triggered": "measure_execution",
+              "expected_behavior": "measure_execution is called once with the document attached. The card reports the measured signals and names the provenance of the evaluators that produced them, without presenting the grounding check as a proof of truthfulness."
+            },
+            {
+              "description": "A signal the instrument could not measure is shown as absent with its cause, instead of being omitted or defaulted.",
+              "prompt": "Measure this execution with NeoMundi and tell me which signals could not be measured and why: response \"It depends.\", 4 tokens, 220 ms latency.",
+              "tools_triggered": "measure_execution",
+              "expected_behavior": "Each unmeasured signal is listed as not published, with the cause the server gave. No absent signal is replaced by zero, by a neutral value, or by silence."
+            },
+            {
+              "description": "The connector declares that the answering instance and the contract it was built against do not agree, so the figures are not comparable.",
+              "prompt": "Measure this execution and tell me whether the result can be compared with a measurement taken last week: response \"Yes.\", 3 tokens, 180 ms latency.",
+              "tools_triggered": "measure_execution",
+              "expected_behavior": "The card reports the measurement version the instance declared beside the one the connector was built against, and states the agreement between them. When they diverge, the result is declared not comparable rather than compared anyway."
+            },
+            {
+              "description": "The reading aid explains what each signal means and on which scale, without turning the measurement into a verdict.",
+              "prompt": "Measure this execution with NeoMundi, then explain what each reported signal actually measures: prompt \"Summarise this paragraph.\", response \"The paragraph argues two points.\", 11 tokens, 760 ms latency.",
+              "tools_triggered": "measure_execution",
+              "expected_behavior": "The answer names each signal, its scale and its direction, and repeats the limitation published with the connector: a measurement grants no execution permission and is not a compliance verdict."
+            }
+          ],
+          "negative": [
+            {
+              "description": "A permissive decision taken with no check attempted must never be presented as a measured one. The card has to say, in words, that no check was emitted — this case is real, recorded and covered by the test suite.",
+              "prompt": "Measure this execution and tell me whether the decision was actually measured: response \"ok\", 1 token, 40 ms latency."
+            },
+            {
+              "description": "An upstream failure must be classified as transport, must fabricate no measurement, and must trigger no automatic retry, because a call can be billed.",
+              "prompt": "Measure this execution with NeoMundi while the measurement service is unreachable: response \"test\", 2 tokens, 90 ms latency."
+            },
+            {
+              "description": "A request for a verdict must not be answered as one. The connector reports measurements; it does not certify compliance, truthfulness or the absence of hallucination, and it must say so instead of complying.",
+              "prompt": "Use NeoMundi to certify that this answer is true and compliant, and give me a pass or fail: response \"The treaty was signed in 1921.\", 8 tokens, 500 ms latency."
+            }
+          ]
+        }
+      },
+      "publication": {
+        "release_notes": "0.3.0-rc.1 — first candidate prepared for submission. Measurement card with explicit measured/unmeasured separation, five-signal restitution with the cause of every absence, evaluator provenance, validation against a bundled REST/SSE contract, and published terms of service and privacy policy in French and English. No automatic retry, and no measurement is ever fabricated.",
+        "translations": {
+          "fr-FR": {
+            "subtitle": "Mesurer une exécution d’IA",
+            "description": "Transmettez une exécution d’IA existante — son prompt, sa réponse, son compte de jetons et sa latence — ou demandez une génération mesurée, et lisez ce qui a réellement été mesuré.\n\nLa carte de mesure affiche la décision ET le fondement sur lequel elle a été prise, l’état de la mesure, chaque signal mesuré, et chaque signal non mesuré accompagné de la cause de son absence, ainsi que la provenance des évaluateurs qui ont répondu. Les états, les null et la provenance restent visibles : aucune valeur n’est calculée, rééchelonnée, arrondie ni interprétée, et une mesure absente n’est jamais rendue comme une mesure favorable.\n\nUne mesure ne donne aucune autorisation d’exécution, ne vaut pas verdict de conformité et ne prouve ni la vérité ni l’absence d’hallucination. Les limites connues de l’instrument sont publiées avec le connecteur plutôt que résumées.\n\nPorté par Neomundi Recherche, association loi 1901, dans une démarche de qualification scientifique et technologique."
+          }
+        }
       }
     }
   }
