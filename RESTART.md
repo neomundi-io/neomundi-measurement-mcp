@@ -35,17 +35,30 @@ P1-5, P2-2 et P2-4 restent fermees.
 
 ## Les quatre faits qui gouvernent la reprise
 
-1. OAUTH 2.1 EST ECRIT ET TESTE, PAS DEPLOYE. Branche
-   feat/oauth-chatgpt-20261101, PR #19, brouillon. Decouverte RFC 9728 et
-   8414, DCR RFC 7591, code d'autorisation avec PKCE S256, jetons signes,
-   rotation, revocation, identite par participant, portees, plafond par
-   participant. Aucune dependance, aucune base de donnees, aucune ligne de
-   mesure touchee. 339 cas verts, dont 27 OAuth.
+1. OAUTH 2.1 EST DEPLOYE depuis le 2026-11-02T05:35:36Z, autorise par
+   Sebastien. Image neomundi-measurement-mcp:b30d631,
+   sha256:2c92de45...ead43c9, revision b30d631. Deux participants :
+   sebastien et pilote-1. Plafond par participant NON configure. Registre
+   complet : OAUTH_DEPLOYMENT_RECORD_2026-11-02.md.
+   Verifie APRES bascule, par le vrai chemin HTTPS : authentification,
+   isolation entre participants, rotation par epoch, revocation, cle
+   statique intacte, surface MCP complete.
 
-2. CE QUI MANQUE EST UNE AUTORISATION, PAS UN CHANTIER. Deployer exige
-   l'accord explicite de Sebastien sur un SHA nomme. Caddy n'a PAS besoin
-   d'etre modifie : le proxy relaie deja toutes les routes, verifie sur 4
-   chemins le 2026-11-01.
+2. IL RESTE UNE SEULE CHOSE, ET ELLE EST A SEBASTIEN : brancher le plugin
+   dans ChatGPT. Procedure exacte en 12 lignes dans
+   CHATGPT_CONNECTION_GUIDE.md §3. Son code de participant est
+   « sebastien » ; le secret se lit sur le VPS par
+   sudo cat /root/neomundi-mcp-backup-20261102/secret-sebastien
+   NE PAS ecrire que le plugin fonctionne dans ChatGPT avant que ce soit fait.
+
+2b. DEUX PRECONDITIONS ONT ETE TROUVEES EN ROUTE, les deux silencieuses.
+   d1a6296 ne pouvait PAS etre construit : le Dockerfile ne copiait pas
+   legal/, que tests/cgu-versions.test.mjs lit. Corrige par b30d631, dont le
+   runtime/ est octet pour octet identique a d1a6296 ; un test empeche la
+   recidive. Et sans NEOMUNDI_MCP_ALLOWED_HOSTS personne n'aurait pu
+   s'authentifier : Caddy reecrit Host mais pas Origin, donc le formulaire
+   repartait en 403 invalid_origin.
+   Caddy lui-meme n'a PAS ete modifie.
 
 3. LE MANIFESTE N'EST PAS LE BLOCAGE. P0-1 et P0-2 sont resolues. Le bloc
    auth demande par P0-1 N'EXISTE PAS au niveau superieur de mcp.json : le
@@ -91,15 +104,22 @@ des CGU dit encore que la suspension est collective.
 
 ## Premiere action attendue
 
-Demander a Sebastien d'autoriser le deploiement d'OAuth sur un SHA nomme.
-Rien d'autre ne peut avancer sans cela — sauf les taches qui ne dependent que
-de lui et peuvent demarrer en parallele : verification d'identite de
-l'organisation, jeton de defi de domaine sur neomundi.org, et choix d'une
-origine dediee pour la carte.
+Demander a Sebastien s'il a branche le plugin dans ChatGPT
+(CHATGPT_CONNECTION_GUIDE.md §3). Si oui : relever le request_id, la decision
+et son fondement, les signaux non mesures, et l'affichage de la carte, puis
+basculer mcp.json en streamable-http avec le bloc auth fige dans
+tests/manifest-schema.test.mjs. Si non : il n'y a rien a faire en aval, et
+rien d'autre ne debloque la candidature.
 
-Ne PAS deployer sans cet accord, et ne pas le deduire d'une PR, d'une CI
-verte ou d'une fusion. La procedure complete, retour arriere compris, est
-dans CHATGPT_CONNECTION_GUIDE.md §2.
+En parallele, sans dependance : verification d'identite de l'organisation,
+jeton de defi de domaine sur neomundi.org (PAS sur l'hote MCP, qui repond
+401), origine dediee pour la carte, et mise a jour de l'article 6 des CGU qui
+dit encore que la suspension est collective alors qu'elle ne l'est plus.
+
+Le deploiement d'OAuth est FAIT. Tout autre deploiement exige a nouveau
+l'accord explicite de Sebastien sur un SHA nomme ; ne pas le deduire d'une
+PR, d'une CI verte ou d'une fusion. Retour arriere en trois commandes :
+OAUTH_DEPLOYMENT_RECORD_2026-11-02.md §5.
 
 ## Regles permanentes, non negociables
 

@@ -113,11 +113,13 @@ Trois défauts réels sont tombés en vérifiant :
 
 | # | Blocage | Vérifié le 2026-11-01 | Qui le lève |
 |---|---|---|---|
-| **B-1** | ~~Authentification par clé d'API non connectable~~ → **OAuth 2.1 écrit et testé, PAS DÉPLOYÉ** | 339 cas verts, essai de bout en bout, proxy confirmé sans changement | **Sébastien** : **autoriser le déploiement**, sur un SHA nommé |
+| **B-1** | ~~Authentification non connectable~~ → **OAuth 2.1 DÉPLOYÉ le 2026-11-02** | authentification, isolation, rotation, révocation vérifiées en production par HTTPS | **LEVÉ** |
 | **B-2** | **Vérification de domaine impossible en l'état** | `https://mcp.neomundi.org/.well-known/openai-apps-challenge` → **`401`** | **Sébastien** — mais voir §2.2, c'est facile |
 | **B-3** | **Identité d'organisation non vérifiée** | état inconnu depuis ce dépôt | **Sébastien**, tableau de bord |
 | **B-4** | **Origine dédiée de la carte non décidée** | `_meta.ui.domain` absent ; exigé pour soumettre un plugin **avec interface** | **Sébastien** : un nom d'hôte |
-| **B-5** | **Vidéo de démonstration absente** | `review.demo_recording_url` non renseigné — exigé pour la revue MCP | après B-1 |
+| **B-5** | **Vidéo de démonstration absente** | `review.demo_recording_url` non renseigné — exigé pour la revue MCP | après la connexion ChatGPT |
+| **B-7** | **ChatGPT pas encore branché** | OAuth répond ; personne n'a encore ouvert `chatgpt.com/plugins` | **Sébastien** — 12 lignes, guide §3 |
+| **B-8** | **L'article 6 des CGU dit la suspension collective** | elle est désormais unitaire, et c'est prouvé en production | **Sébastien** |
 | **B-6** | **Compte de démonstration** | la plateforme exige « *un identifiant et un mot de passe pour un compte de démonstration pleinement fonctionnel* » ; notre accès est un jeton partagé | **Sébastien** |
 
 ### 2.1 B-1 — l'issue retenue, et ce qu'il en reste

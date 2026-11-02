@@ -1,7 +1,49 @@
-# OAUTH 2.1 — état au 1er novembre 2026
+# OAUTH 2.1 — **DÉPLOYÉ le 2 novembre 2026**
 
-> **Cette section prime sur toutes les suivantes.** Elle lève le blocage décrit
-> juste en dessous.
+> **Cette section prime sur toutes les suivantes.**
+
+**`mcp.neomundi.org` parle OAuth 2.1 depuis le `2026-11-02T05:35:36Z`.**
+Autorisé par Sébastien. Registre complet :
+[`OAUTH_DEPLOYMENT_RECORD_2026-11-02.md`](OAUTH_DEPLOYMENT_RECORD_2026-11-02.md).
+
+| | |
+|---|---|
+| Image servie | `neomundi-measurement-mcp:b30d631`, `sha256:2c92de45…ead43c9` |
+| Révision | `b30d6314a55689b19c4e02da8d19853cfd442180` |
+| Participants | **2** — `sebastien`, `pilote-1`, portée `measure` |
+| Plafond par participant | **non configuré** : rien n'est retenu entre deux requêtes |
+| Retour arrière | **exercé**, trois commandes, image `da71f5d` conservée |
+| ChatGPT | **toujours pas branché** — c'est la seule chose qui reste, et elle est à Sébastien |
+
+**Deux préconditions ont été trouvées en route, et toutes deux auraient fait
+échouer la mise en service en silence :**
+
+1. **`d1a6296` ne pouvait pas être construit** — le `Dockerfile` ne copiait pas
+   `legal/`, que `tests/cgu-versions.test.mjs` lit. Corrigé par `b30d631`, dont
+   le `runtime/` est **octet pour octet identique**. Un test empêche désormais
+   la récidive ; c'était la **deuxième** occurrence du même mode de panne.
+2. **Sans `NEOMUNDI_MCP_ALLOWED_HOSTS`, personne n'aurait pu s'authentifier** :
+   Caddy réécrit `Host` mais pas `Origin`, et le formulaire repartait en
+   `403 invalid_origin`. Mesuré avant la bascule.
+
+**Vérifié après bascule, par le vrai chemin HTTPS** : deux participants
+s'identifient indépendamment ; suspendre l'un laisse l'autre intact,
+immédiatement et sans redémarrage ; un `epoch` incrémenté invalide les jetons
+émis ; la révocation explicite fonctionne ; la clé statique — donc Codex —
+répond toujours `200` ; `tools/list`, `resources/list` et `resources/read`
+rendent l'outil et la carte.
+
+> **`O-9`, nouveau et à traiter.** Le service est maintenant multi-utilisateur
+> avec révocation unitaire. **L'article 6 des CGU dit encore que la suspension
+> est collective.** Ne pas présenter le connecteur comme multi-utilisateur
+> avant que ce texte soit à jour.
+
+---
+
+# OAUTH 2.1 — état au 1er novembre 2026 *(écriture du code)*
+
+> Conservé pour le contexte. Son « non déployé » est **périmé** par la section
+> ci-dessus.
 
 **Le blocage `B-1` n'est plus technique.** ChatGPT ne connectait pas ce serveur
 parce qu'il exigeait un jeton `Bearer` fixe — une méthode que l'hôte ne propose

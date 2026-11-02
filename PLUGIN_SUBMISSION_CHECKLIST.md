@@ -13,20 +13,20 @@ jour-là, pas d'instructions antérieures. Les sources sont listées au §7 de
 
 ## 0. L'ordre réel
 
-**B-1 est tranché : OAuth 2.1 est écrit et testé.** Ce qui reste n'est plus un
-chantier, c'est une autorisation.
+**B-1 est levé : OAuth 2.1 est déployé et vérifié en production.** Ce qui reste
+tient en une ligne — brancher dans ChatGPT — et c'est à Sébastien.
 
 ```
-ÉTAPE 0   AUTORISER LE DÉPLOIEMENT d'OAuth, sur un SHA nomme   [SÉBASTIEN]
-             + generer la cle de signature
-             + creer le registre des participants
-             |                       rien en aval ne bouge avant
+ÉTAPE 0   [FAIT 2026-11-02] OAuth deploye, image b30d631
+             cle de signature posee, 2 participants, retour arriere exerce
+             |
              +--> en parallele, sans dependance :
                   verification d'identite d'organisation       [SÉBASTIEN]
                   jeton de defi de domaine sur neomundi.org    [SÉBASTIEN]
                   origine dediee de la carte (un nom d'hote)   [SÉBASTIEN]
-ÉTAPE 1   Deployer, puis verifier les 3 sondes du guide §2.3
-ÉTAPE 2   Brancher dans ChatGPT et mesurer reellement
+                  article 6 des CGU : suspension plus collective [SÉBASTIEN]
+ÉTAPE 1   [FAIT] verification post-bascule : auth, isolation, revocation
+ÉTAPE 2   Brancher dans ChatGPT et mesurer reellement   [SÉBASTIEN]
 ÉTAPE 3   Basculer mcp.json en streamable-http + bloc auth
 ÉTAPE 4   Rejouer les 8 cas depuis l'hote, capturer
 ÉTAPE 5   Video, compte de demonstration, dossier
@@ -86,7 +86,7 @@ Procédure détaillée : [`CHATGPT_CONNECTION_GUIDE.md`](CHATGPT_CONNECTION_GUID
 | ☐ | Captures déclarées dans `screenshots` | **après** l'étape 2 — une capture prise dans l'hôte vaut mieux |
 | ☐ | **`_meta.ui.domain`** : origine dédiée, **unique par plugin** | **exigée pour soumettre avec interface** — `B-4` |
 
-## 4. Serveur MCP et authentification — **ÉCRIT, PAS DÉPLOYÉ**
+## 4. Serveur MCP et authentification — **DÉPLOYÉ le 2026-11-02**
 
 | | Exigence | État |
 |---|---|---|
@@ -100,7 +100,10 @@ Procédure détaillée : [`CHATGPT_CONNECTION_GUIDE.md`](CHATGPT_CONNECTION_GUID
 | ☑ | `authorization_response_iss_parameter_supported`, et `iss` réellement renvoyé | ce qui donne droit à l'URI de redirection **stable** |
 | ☑ | `registration_endpoint` pour DCR, client public, **aucun secret client** | rien à faire expirer, donc pas d'`invalid_client` surprise |
 | ☑ | Le proxy relaie les routes OAuth **sans modification** | 4 chemins sondés le 2026-11-01 |
-| ☐ | **Déployer** | **`B-1` résiduel — autorisation de Sébastien, sur un SHA nommé** |
+| ☑ | **Déployé** | **2026-11-02T05:35:36Z**, image `b30d631` — `OAUTH_DEPLOYMENT_RECORD_2026-11-02.md` |
+| ☑ | Authentification, isolation, rotation, révocation | **vérifiées en production**, par HTTPS |
+| ☑ | Retour arrière | **exercé**, trois commandes, image `da71f5d` conservée |
+| ☐ | **Brancher dans ChatGPT** | **Sébastien** — 12 lignes, guide §3. Rien d'autre ne débloque la candidature |
 | ☐ | **Défi de domaine servi en clair** | **`B-2`** — `401` sur l'hôte MCP ; **publier sur `neomundi.org`** |
 | ☐ | Point d'entrée **distant** déclaré dans `mcp.json` | aujourd'hui `stdio` — basculer **après** le déploiement ; bloc figé par un test |
 | ☐ | Projet **sans résidence de données UE** | la plateforme refuse les soumissions MCP depuis un tel projet |

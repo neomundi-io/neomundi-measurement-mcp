@@ -3,11 +3,23 @@
 **Écrit le 1er novembre 2026**, contre les exigences officielles lues ce
 jour-là. Implémentation : [`OAUTH_IMPLEMENTATION_REPORT.md`](OAUTH_IMPLEMENTATION_REPORT.md).
 
-> **État : rien de ceci n'a été fait.** Le code est écrit et testé ; le serveur
-> hébergé **ne parle pas encore OAuth**, parce qu'il n'a pas été déployé et que
-> le déploiement exige votre autorisation. Les étapes ci-dessous sont à
-> exécuter **dans cet ordre** ; §1 et §2 sont à vous, §3 et §4 se font une fois
-> §2 fait.
+> ## État au 2 novembre 2026 — **§1 et §2 sont FAITS**
+>
+> **`mcp.neomundi.org` parle OAuth 2.1 depuis le 2026-11-02T05:35:36Z.** La clé
+> de signature est posée, deux participants existent, et le flux complet a été
+> vérifié par le vrai chemin — voir
+> [`OAUTH_DEPLOYMENT_RECORD_2026-11-02.md`](OAUTH_DEPLOYMENT_RECORD_2026-11-02.md).
+>
+> **Allez directement au §3.** C'est la seule partie qui demande vos mains :
+> elle se passe dans ChatGPT, où personne ne peut se connecter à votre place.
+> §1 et §2 restent ici comme référence et comme procédure de reprise.
+>
+> Votre code de participant est **`sebastien`**. Pour lire son secret, depuis
+> le VPS :
+>
+> ```bash
+> sudo cat /root/neomundi-mcp-backup-20261102/secret-sebastien
+> ```
 
 ---
 
@@ -155,34 +167,47 @@ la suite ne peut pas aboutir.
 
 ---
 
-## 3. Connecter dans ChatGPT — intervention humaine
+## 3. Connecter dans ChatGPT — **à faire par Sébastien**
 
-1. Ouvrir **ChatGPT → Plugins** (`chatgpt.com/plugins`).
-2. Bouton **+**, puis **Add custom MCP server**.
-3. **Nom** : `NeoMundi Measurement`. **Description** : *Mesurer une exécution
-   d'IA et lire ce qui a réellement été mesuré.*
-4. **Connection** : point d'entrée public, URL **`https://mcp.neomundi.org/mcp`**
-   — avec le chemin `/mcp`.
-5. **Authentication** : choisir **OAuth**. ChatGPT lit les métadonnées, trouve
-   `registration_endpoint`, et s'inscrit tout seul par DCR. **Aucun secret
-   client à saisir** : le serveur n'en émet pas.
-6. Lire l'avertissement de risque, puis **I understand and want to continue**.
-7. **Create as a plugin**.
-8. ChatGPT ouvre la page d'autorisation NeoMundi. Saisir **le code de
-   participant et le secret** de §1.2. *(C'est l'écran capturé dans
-   `captures/oauth-page-autorisation.jpg`.)*
-9. Relire les outils découverts : il doit y en avoir **un**,
-   `measure_execution`.
+C'est la seule étape qui demande une intervention humaine.
 
-### Ce qu'il faut consigner à ce moment-là
+| | Geste | Ce que vous devez voir |
+|---|---|---|
+| 1 | Ouvrir [`chatgpt.com/plugins`](https://chatgpt.com/plugins) | la page Plugins |
+| 2 | Bouton **+** → **Add custom MCP server** | un formulaire de connexion |
+| 3 | **Nom** : `NeoMundi Measurement`<br>**Description** : *Mesurer une exécution d'IA et lire ce qui a réellement été mesuré.* | |
+| 4 | **Connection** : URL **`https://mcp.neomundi.org/mcp`** — avec le chemin `/mcp` | |
+| 5 | **Authentication** : choisir **OAuth** | **aucun secret client à saisir** : ChatGPT s'inscrit seul par DCR, et le serveur n'émet pas de secret |
+| 6 | Lire l'avertissement de risque → **I understand and want to continue** | |
+| 7 | **Create as a plugin** | |
+| 8 | ChatGPT ouvre **la page d'autorisation NeoMundi** | titre « Autoriser l'accès à la mesure NeoMundi », et un tableau disant **Client demandeur : ChatGPT** |
+| 9 | Saisir **`sebastien`** et le secret lu plus haut | retour automatique vers ChatGPT |
+| 10 | Relire les outils découverts | **un seul**, `measure_execution` |
+| 11 | Installer le plugin, puis ouvrir l'onglet **Work** | |
+| 12 | Nouvelle conversation, taper `@` et choisir le plugin | |
+
+> **Si l'étape 8 n'affiche pas « ChatGPT » comme client demandeur,
+> arrêtez-vous.** La page nomme le client qui demande ; un autre nom veut dire
+> que vous n'êtes pas sur la demande que vous croyez.
+
+### Première mesure, et ce qu'il faut relever
+
+> *Mesure cette exécution avec NeoMundi : prompt « Quelle est la capitale de la
+> Suisse ? », réponse « Berne est la ville fédérale de la Suisse. », 14 jetons,
+> 840 ms de latence.*
 
 | À relever | Pourquoi |
 |---|---|
-| L'outil est-il découvert, et un seul ? | découverte des outils |
-| L'écran d'autorisation s'affiche-t-il, et dit-il « ChatGPT » comme client ? | authentification individuelle |
-| Le `request_id` de la première mesure | il doit se retrouver côté API |
-| La carte s'affiche-t-elle, et avec quels bandeaux ? | interface graphique |
-| Les signaux non mesurés disent-ils *non publié* **avec leur cause** ? | la propriété centrale |
+| Le `request_id` | il doit se retrouver côté API |
+| La décision **et son fondement**, côte à côte | c'est la propriété centrale de la carte |
+| Le bandeau **« Versions de mesure divergentes »** | **attendu** : `D-8`, le connecteur épingle `3.3.0`, la production déclare `3.3.1` |
+| Les signaux **non mesurés**, avec leur cause | ils doivent dire *non publié*, jamais zéro |
+| L'affichage de la carte | personne ne l'a encore vue dans ChatGPT |
+
+> **Rien de ce qui précède n'a été vérifié dans ChatGPT.** Le flux OAuth l'a
+> été par le vrai chemin HTTPS, et la carte dans un navigateur local. Tant que
+> l'étape 12 n'a pas tourné, **ne pas écrire que le plugin fonctionne dans
+> ChatGPT**.
 
 ---
 
@@ -209,6 +234,11 @@ une demande de verdict, **refusée comme telle**.
 ---
 
 ## 5. Révoquer, suspendre, tourner
+
+Le registre est `/etc/neomundi/participants.json` sur le VPS (`0444`, `root`).
+Il contient aujourd'hui **`sebastien`** et **`pilote-1`**, tous deux actifs.
+Les quatre premières lignes ci-dessous ont été **exercées en production** le
+2026-11-02 : voir le §4.2 du registre de déploiement.
 
 | Geste | Comment | Effet |
 |---|---|---|
