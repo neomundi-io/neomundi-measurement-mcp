@@ -183,6 +183,125 @@ Le registre `/etc/neomundi/participants.json` (`0444`, `root`) **ne contient
 aucun secret** : identifiants, drapeaux et empreintes **scrypt** uniquement.
 Vérifié : le secret en clair n'y apparaît pas.
 
+## 6 bis. Incident du 2026-11-02 — `invalid_origin` à la saisie du secret
+
+**Symptôme.** La page d'autorisation s'affiche correctement, annonce bien
+« Client demandeur : ChatGPT », puis la validation du formulaire rend
+`{"error":"invalid_origin"}`.
+
+**Ce n'était pas propre à ChatGPT.** Reproduit à l'identique dans un Chrome
+ordinaire, contre la production.
+
+### La cause
+
+**C'est notre propre en-tête `Referrer-Policy: no-referrer` sur la page de
+connexion.**
+
+Sous `no-referrer`, un navigateur sérialise l'`Origin` d'une **navigation de
+soumission de formulaire** en la chaîne littérale **`null`** : une telle
+requête n'est pas teintée CORS, et la politique de référent gouverne aussi
+cette sérialisation. Le formulaire arrivait donc avec `Origin: null`, que la
+liste d'origines refuse — à juste titre, car `null` est aussi ce qu'envoie une
+iframe en bac à sable.
+
+### Pourquoi rien ne l'avait attrapé
+
+**Aucun des contrôles n'était un navigateur.** `curl` et `fetch` envoient tous
+deux une `Origin` réelle ; ils ne pouvaient pas produire le défaut. Mesuré
+après coup, depuis la page elle-même :
+
+| Depuis la page servie | Résultat |
+|---|---|
+| `fetch()` (mode `cors`) | **400** — l'origine passe |
+| soumission du formulaire | **403 `invalid_origin`** |
+
+### Le témoin qui ferme la démonstration
+
+Banc isolé, même navigateur, même formulaire, **une seule variable** :
+
+| `Referrer-Policy` | `Origin` reçue |
+|---|---|
+| `no-referrer` | **`"null"`** |
+| absent | `"http://127.0.0.1:8900"` |
+| `same-origin` | `"http://127.0.0.1:8900"`, référent **same-origin uniquement** |
+
+### Le correctif
+
+**`Referrer-Policy: same-origin`** au lieu de `no-referrer`, dans
+`runtime/oauth.mjs`. La propriété de confidentialité qui comptait est
+conservée — le référent va à cette origine et **nulle part ailleurs**, donc
+les paramètres de la demande d'autorisation ne sortent jamais — et l'`Origin`
+est restituée.
+
+**Aucun contrôle n'est assoupli.** `Origin: null`, une origine tierce et une
+origine à casse différente restent **refusées**, ce que trois nouveaux cas de
+test verrouillent.
+
+S'y ajoute une correction de lisibilité : un refus d'origine sur une route
+OAuth rend désormais **une page expliquant la cause** au lieu d'un bloc JSON.
+Le refus est identique ; seul le message change. Le point d'entrée MCP garde
+son refus machine `{"error":"invalid_origin"}`, parce que ce n'est pas une
+surface de navigateur.
+
+### Le second défaut, miroir du premier
+
+En vérifiant les endpoints appelés par le backend ChatGPT, la mesure a
+**corrigé la prémisse** : une requête **sans `Origin` passait déjà**. C'est
+l'inverse qui était cassé.
+
+| Endpoint | sans `Origin` | `Origin` tierce |
+|---|---|---|
+| `/oauth/token` | **401 `invalid_client`** — atteint le gestionnaire | **403 `invalid_origin`** |
+| `/oauth/register` | **201** | **403** |
+| `/oauth/revoke` | **200** | **403** |
+
+**L'en-tête bloquait le cas honnête et laissait passer tout le reste.** Sur ces
+routes, `Origin` n'est pas un contrôle d'accès : elles ne portent **aucune
+autorité ambiante**, donc une page qui les appelle n'a pas plus de pouvoir que
+`curl`. Ce qui les protège est ce que le protocole dit : PKCE et la liaison du
+code à son client et à son URI de redirection sur `/oauth/token`, la
+possession du jeton sur `/oauth/revoke`, et rien du tout sur des documents
+faits pour être publics.
+
+### Le correctif consolidé — `b43b0e0`
+
+**Trois classes de routes, trois règles.**
+
+| Classe | Routes | Règle |
+|---|---|---|
+| **protocole** | les deux `/.well-known/*`, `/oauth/register`, `/oauth/token`, `/oauth/revoke` | **aucune restriction d'origine** |
+| **page** | `/oauth/authorize` | **l'origine propre de la page**, ou absente — et **rien d'autre** |
+| **api** | `/mcp` | la liste configurée, **inchangée** |
+
+**La route navigateur est resserrée, pas ouverte** : la forme `http://` de
+l'émetteur et tout second hôte configuré, que la porte partagée acceptait, ne
+sont plus acceptés.
+
+Deux protections contre l'abus s'y ajoutent :
+
+- **La page de consentement affiche où part le code** et marque le nom du
+  client comme *déclaré*. L'inscription est ouverte par conception : n'importe
+  qui peut forger un client se nommant « ChatGPT » avec sa propre URI de
+  redirection dessous. La destination est le seul champ qu'il ne peut pas
+  falsifier — elle est affichée, et jamais rendue cliquable.
+- **La vérification du secret quitte la boucle d'événements.** `scryptSync`
+  coûtait ~50 ms et bloquait tout pendant ce temps, mesures en vol comprises,
+  et personne n'a besoin d'être authentifié pour envoyer de faux secrets. Elle
+  passe au pool de threads, **deux au plus en vol** ; au-delà le serveur dit
+  qu'il est saturé et **n'évalue pas** le credential — dire « secret
+  incorrect » serait un autre fait, et un faux.
+
+### Vérification
+
+| Contrôle | Résultat |
+|---|---|
+| Soumission de formulaire **dans un vrai navigateur** | atteint le gestionnaire (« Demande expirée »), plus le `403` de la porte |
+| Flux complet avec `Origin` présente à chaque étape serveur-à-serveur | `register` 201 · `authorize` 302 avec `iss` · `token` Bearer · **MCP 200** · `revoke` 200 puis **401** |
+| Clé statique (chemin Codex) | **200** |
+| `stdio.mjs` | charge sans configuration OAuth, **0 référence** à `oauth.mjs` |
+| `npm test` | **347 cas, 347 réussis** |
+| Paquet | 39 fichiers, 194 101 octets, `sha256 ad169807…44e7533f`, construit deux fois à l'identique |
+
 ## 7. Ce qui n'a pas changé
 
 - **Aucune modification de l'API ni de l'instrument.** `NEOMUNDI_API_KEY` est

@@ -42,7 +42,7 @@
  * connector uses to call the instrument. Those are two different secrets with
  * two different lifetimes, and this file never reads the second one.
  */
-import { createHash, createHmac, randomUUID, randomBytes, scryptSync, timingSafeEqual } from 'node:crypto';
+import { createHash, createHmac, randomUUID, randomBytes, scrypt, timingSafeEqual } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 
 /** The only scope. One tool is exposed, and it does one thing: a second scope
@@ -157,15 +157,26 @@ export function readRegistry(path) {
  * registry written with stronger parameters keeps verifying without a code
  * change. The defaults are the ones `scripts/participant-credential.mjs`
  * writes.
+ *
+ * ASYNCHRONOUS, AND THAT IS THE POINT. `scryptSync` costs around 50 ms and
+ * blocks the event loop for all of it, so every sign-in attempt -- including
+ * every WRONG one -- froze the whole server, measurements in flight included.
+ * On two vCPUs a handful of attempts per second is enough to make that
+ * visible, and nobody has to be authenticated to send them. The async form
+ * hands the work to the thread pool instead, and the caller caps how many run
+ * at once.
  */
-export function secretMatches(record, supplied) {
+export async function secretMatches(record, supplied) {
   if (typeof supplied !== 'string' || supplied.length === 0 || supplied.length > 1024) return false;
   const N = Number.isSafeInteger(record.N) ? record.N : 16384;
   const r = Number.isSafeInteger(record.r) ? record.r : 8;
   const p = Number.isSafeInteger(record.p) ? record.p : 1;
   let derived;
   try {
-    derived = scryptSync(Buffer.from(supplied, 'utf8'), unb64u(record.salt), 32, { N, r, p, maxmem: 64 * 1024 * 1024 });
+    derived = await new Promise((resolve, reject) => {
+      scrypt(Buffer.from(supplied, 'utf8'), unb64u(record.salt), 32, { N, r, p, maxmem: 64 * 1024 * 1024 },
+        (error, key) => (error ? reject(error) : resolve(key)));
+    });
   } catch { return false; }
   const stored = unb64u(record.hash);
   if (stored.length !== derived.length) return false;
@@ -373,11 +384,23 @@ const escapeHtml = (value) => String(value).replace(/[&<>"']/g, (c) => HTML_ESCA
  * because an authorization screen that does not say that is a consent screen
  * in name only.
  */
-function authorizePage({ issuer, clientName, scope, request, error, resource }) {
+function authorizePage({ issuer, clientName, scope, request, error, resource, redirectUri }) {
+  // WHERE THE CODE GOES, shown to the person about to type a secret.
+  //
+  // Registration is dynamic and open, which is what the protocol asks for --
+  // but it means ANY party can mint a client that calls itself whatever it
+  // likes. A page that displays only a self-declared name is a page that can
+  // be made to say "ChatGPT" by someone who is not ChatGPT, with their own
+  // redirect URI underneath. The destination is the one field an attacker
+  // cannot fake, because it is where the authorization code will actually be
+  // sent, so it is shown and the name is labelled as unverified.
+  let destination = 'destination illisible';
+  try { destination = new URL(redirectUri).origin; } catch { /* shown as-is below */ }
   const rows = [
     ['Service', escapeHtml(issuer)],
     ['Ressource', escapeHtml(resource)],
-    ['Client demandeur', escapeHtml(clientName ?? 'client non nommé')],
+    ['Nom déclaré par le client', escapeHtml(clientName ?? 'client non nommé')],
+    ['Retour vers', escapeHtml(destination)],
     ['Autorisation demandée', escapeHtml(scope)],
   ].map(([k, v]) => `<tr><th scope="row">${k}</th><td>${v}</td></tr>`).join('');
   return `<!doctype html>
@@ -397,6 +420,7 @@ function authorizePage({ issuer, clientName, scope, request, error, resource }) 
  input{width:100%;box-sizing:border-box;padding:.6rem .7rem;font:inherit;border:1px solid #c6ccd6;border-radius:8px;background:#fff;color:inherit;margin:0 0 1rem}
  button{width:100%;padding:.7rem;font:inherit;font-weight:600;border:0;border-radius:8px;background:#1b4965;color:#fff;cursor:pointer}
  .error{border-left:3px solid #14161a;background:#f4f6f8;padding:.6rem .8rem;margin:0 0 1.25rem;font-size:.9rem}
+ p.notice{border-left:3px solid #8b929d;background:#f4f6f8;padding:.55rem .8rem;margin:0 0 1.5rem;font-size:.82rem;color:#5b6370}
  footer{margin:1.5rem 0 0;font-size:.8rem;color:#8b929d}
  @media(prefers-color-scheme:dark){
   body{background:#05070d;color:#e8ecf2}
@@ -405,6 +429,7 @@ function authorizePage({ issuer, clientName, scope, request, error, resource }) 
   input{background:#05070d;border-color:#242a36;color:#e8ecf2}
   button{background:#7fb2cc;color:#05070d}
   .error{background:#101520;border-left-color:#e8ecf2}
+  p.notice{background:#101520;border-left-color:#6b7480;color:#9aa3b2}
  }
 </style></head>
 <body><main>
@@ -412,6 +437,7 @@ function authorizePage({ issuer, clientName, scope, request, error, resource }) 
 <p class="lede">Identifiez-vous avec le code de participant remis par l'association.</p>
 ${error ? `<p class="error">${escapeHtml(error)}</p>` : ''}
 <table>${rows}</table>
+<p class="notice">Le nom ci-dessus est <strong>déclaré par le client</strong> et n'est pas vérifié. Si « Retour vers » n'est pas le service que vous vouliez autoriser, n'allez pas plus loin.</p>
 <form method="post" action="/oauth/authorize" autocomplete="off">
 <input type="hidden" name="request" value="${escapeHtml(request)}">
 <label for="participant">Code de participant</label>
@@ -422,6 +448,87 @@ ${error ? `<p class="error">${escapeHtml(error)}</p>` : ''}
 </form>
 <footer>Une mesure ne donne aucune autorisation d'exécution et ne vaut pas verdict de conformité. L'accès est nominatif et révocable.</footer>
 </main></body></html>`;
+}
+
+/** PROTOCOL endpoints: the Origin header is not an access control here.
+ *
+ * These are read by a client's own backend, by a browser-based public client,
+ * and by anyone fetching public metadata. They carry NO ambient authority:
+ * there is no cookie and no session, so a page that calls them acts with no
+ * more power than `curl`. What protects them is what the protocol says
+ * protects them -- PKCE and the code's binding to its client and redirect URI
+ * on `/oauth/token`, possession of the token on `/oauth/revoke`, and nothing
+ * at all on documents that exist to be public.
+ *
+ * Gating them on Origin was a category error inherited from the MCP endpoint.
+ * It refused a caller that stamps one -- a browser-based MCP client, say --
+ * while a caller that sends none walked straight through, which is backwards:
+ * the header was blocking the honest case and waving through everything else.
+ */
+export const OAUTH_PROTOCOL_ROUTES = Object.freeze(new Set([
+  '/.well-known/oauth-protected-resource',
+  '/.well-known/oauth-protected-resource/mcp',
+  '/.well-known/oauth-authorization-server',
+  '/.well-known/oauth-authorization-server/mcp',
+  '/oauth/register',
+  '/oauth/token',
+  '/oauth/revoke',
+]));
+
+/** PAGE endpoints: a human, a browser, and a form carrying a secret.
+ *
+ * Here Origin IS the control, and it is tightened rather than loosened: only
+ * this page's own origin is accepted, not every host the deployment happens
+ * to answer for. An absent Origin stays accepted because a non-browser caller
+ * sends none and browsers always send one on a POST -- so requiring it would
+ * block scripts without stopping any attack a browser could mount.
+ */
+export const OAUTH_PAGE_ROUTES = Object.freeze(new Set(['/oauth/authorize']));
+
+export const OAUTH_ROUTES = Object.freeze(new Set([...OAUTH_PROTOCOL_ROUTES, ...OAUTH_PAGE_ROUTES]));
+
+export const isOAuthPath = (pathname) => OAUTH_ROUTES.has(pathname);
+
+/** Which rule governs the Origin header for a path.
+ *
+ * `protocol` — no Origin restriction.
+ * `page`     — this page's own origin, or absent.
+ * `api`      — the configured allow-list, unchanged. The MCP endpoint, where
+ *              the DNS-rebinding concern the MCP specification raises lives,
+ *              and the one route whose behaviour this file must not alter.
+ */
+export function originPolicy(pathname) {
+  if (OAUTH_PROTOCOL_ROUTES.has(pathname)) return 'protocol';
+  if (OAUTH_PAGE_ROUTES.has(pathname)) return 'page';
+  return 'api';
+}
+
+/** The origins the sign-in page can legitimately post back from: the issuer
+ * it was served as, plus loopback for a local instance. Deliberately NOT the
+ * whole `NEOMUNDI_MCP_ALLOWED_HOSTS` list, and deliberately not the `http://`
+ * form of the issuer -- the page is served over TLS, so a plaintext origin
+ * for it is not a case that exists.
+ */
+export function pageOrigins(oauth, loopbackHosts = []) {
+  return new Set([oauth.issuer, ...loopbackHosts.map((host) => `http://${host}`)]);
+}
+
+/** What a browser gets when the origin gate refuses an OAuth route.
+ *
+ * NOT a relaxation: the request is refused exactly as before. The difference
+ * is that a person sees why. `{"error":"invalid_origin"}` rendered as a page
+ * of JSON is what a user met on 2026-11-02, and it named a header they could
+ * not see, on a request they did not know had one.
+ */
+export function originRefusedPage(origin) {
+  return errorPage(
+    'Demande refusée — origine inattendue',
+    `La soumission a été rejetée parce qu'elle a été émise depuis une origine `
+    + `que ce serveur n'accepte pas (${origin === null ? 'origine absente' : origin}). `
+    + `Reprenez la connexion depuis le client, sans passer par une page intermédiaire. `
+    + `Si cela se reproduit, c'est un défaut de configuration du serveur et non une `
+    + `erreur de votre part : signalez-le.`,
+  );
 }
 
 function errorPage(title, detail) {
@@ -458,6 +565,19 @@ export function createAuthorizationServer({ oauth, registryReader = readRegistry
   // expiries and both are in memory on purpose: see the header.
   const spentCodes = new Map();
   const revoked = new Map();
+  // How many credential verifications may run at once.
+  //
+  // Each costs real CPU by design -- that is what makes a stolen registry
+  // useless -- and the work now runs in the thread pool rather than on the
+  // event loop. The cap is what stops an unauthenticated flood of wrong
+  // secrets from taking every thread and starving measurements. Beyond it the
+  // server says it is saturated; it does NOT evaluate the credential and does
+  // not pretend the secret was wrong, because those are different facts.
+  //
+  // It counts nothing about anyone: the number in flight, and nothing else.
+  const MAX_CONCURRENT_VERIFICATIONS = 2;
+  let verifying = 0;
+
   // Per-participant call counting. `undefined` quota means this map is never
   // written to -- the connector then holds nothing about anyone between
   // requests, which is what its published privacy statement says today.
@@ -486,7 +606,21 @@ export function createAuthorizationServer({ oauth, registryReader = readRegistry
       // The page carries a form and a secret field. It loads nothing, so the
       // policy that describes it is the strictest one that still works.
       'Content-Security-Policy': "default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'",
-      'Referrer-Policy': 'no-referrer',
+      // `same-origin`, and NOT `no-referrer`, for a reason that cost a live
+      // deployment: under `no-referrer` a browser serialises the `Origin`
+      // header of a form-submission navigation as the string `null`, because
+      // such a request is not CORS-tainted and the referrer policy governs
+      // that serialisation too. The sign-in form then arrived with
+      // `Origin: null`, the origin allow-list refused it, and nobody could
+      // authenticate -- while every curl and fetch test passed, because both
+      // send a real Origin.
+      //
+      // `same-origin` keeps the privacy property that mattered: the referrer
+      // is sent to this origin and to nowhere else, so the authorization
+      // request parameters never leave. Measured in a browser, not reasoned
+      // about: `no-referrer` gives `Origin: null`, `same-origin` gives the
+      // real origin and a same-origin-only referrer.
+      'Referrer-Policy': 'same-origin',
       'Content-Type': 'text/html; charset=utf-8',
     });
     response.end(html);
@@ -631,7 +765,7 @@ export function createAuthorizationServer({ oauth, registryReader = readRegistry
       exp: now() + 600,
     });
     sendHtml(response, 200, authorizePage({
-      issuer: oauth.issuer, resource: oauth.resource,
+      issuer: oauth.issuer, resource: oauth.resource, redirectUri: validated.redirectUri,
       clientName: validated.metadata.client_name, scope: validated.scope, request,
     }));
   }
@@ -650,6 +784,7 @@ export function createAuthorizationServer({ oauth, registryReader = readRegistry
     }
     const again = (message) => sendHtml(response, 401, authorizePage({
       issuer: oauth.issuer, resource: oauth.resource, clientName: metadata.client_name,
+      redirectUri: claims.redirect_uri,
       scope: claims.scope, request: body.get('request'), error: message,
     }));
 
@@ -660,7 +795,21 @@ export function createAuthorizationServer({ oauth, registryReader = readRegistry
     // enumerate who holds an access.
     const generic = 'Code de participant ou secret incorrect, ou accès suspendu.';
     if (!participant || !participant.enabled) { again(generic); return; }
-    if (!secretMatches(participant.secret, body.get('secret') ?? '')) { again(generic); return; }
+
+    if (verifying >= MAX_CONCURRENT_VERIFICATIONS) {
+      // Said plainly, and distinct from a refusal: the credential was never
+      // looked at, so calling it wrong would be a lie.
+      sendHtml(response, 503, errorPage(
+        'Service momentanément saturé',
+        "Trop de vérifications d'identification sont en cours. Votre code n'a pas été évalué. Réessayez dans un instant.",
+      ));
+      return;
+    }
+    verifying++;
+    let matches;
+    try { matches = await secretMatches(participant.secret, body.get('secret') ?? ''); }
+    finally { verifying--; }
+    if (!matches) { again(generic); return; }
 
     const granted = claims.scope.split(' ').filter((s) => participant.scopes.includes(s));
     if (!granted.includes(MEASURE_SCOPE)) {
@@ -792,6 +941,7 @@ export function createAuthorizationServer({ oauth, registryReader = readRegistry
    * path is not one of its own and the caller should carry on.
    */
   async function handle(request, response, pathname) {
+    if (!OAUTH_ROUTES.has(pathname)) return false;
     const method = request.method;
     const json = (status, value) => { sendJson(response, status, value); return true; };
 
