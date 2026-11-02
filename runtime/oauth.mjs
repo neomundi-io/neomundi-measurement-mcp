@@ -375,6 +375,29 @@ export function verifyAccessToken(oauth, token, { registry, revoked }) {
 const HTML_ESCAPES = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
 const escapeHtml = (value) => String(value).replace(/[&<>"']/g, (c) => HTML_ESCAPES[c]);
 
+/** A CSP source expression is going into a response header, so it is matched
+ * against a strict shape before it gets there rather than trusted because it
+ * came out of `URL.origin`. Scheme, host, optional port. A space, a semicolon
+ * or a newline would be a header injection, and none can match this.
+ */
+const CSP_ORIGIN = /^https?:\/\/[a-z0-9.-]+(?::\d{1,5})?$/;
+
+/** The `form-action` source list for a page: always `'self'`, plus at most
+ * one destination origin.
+ *
+ * Returns `'self'` alone when there is no destination, or when the candidate
+ * does not match the shape above. Refusing rather than interpolating is the
+ * point: a malformed origin produces a page that cannot redirect, which is
+ * visible, instead of a header that says something unintended.
+ */
+export function formActionSources(redirectTo) {
+  if (typeof redirectTo !== 'string') return "'self'";
+  let origin;
+  try { origin = new URL(redirectTo).origin; } catch { return "'self'"; }
+  if (!CSP_ORIGIN.test(origin)) return "'self'";
+  return `'self' ${origin}`;
+}
+
 /** The sign-in page.
  *
  * Self-contained by necessity and by choice: it loads no font, no script and
@@ -599,13 +622,28 @@ export function createAuthorizationServer({ oauth, registryReader = readRegistry
     });
     response.end(JSON.stringify(value));
   };
-  const sendHtml = (response, status, html) => {
+  const sendHtml = (response, status, html, { redirectTo } = {}) => {
     if (response.destroyed || response.writableEnded) return;
     response.writeHead(status, {
       'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff',
       // The page carries a form and a secret field. It loads nothing, so the
       // policy that describes it is the strictest one that still works.
-      'Content-Security-Policy': "default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'",
+      //
+      // `form-action` IS FOLLOWED ACROSS THE REDIRECT, and that is the whole
+      // reason this takes an argument. A successful sign-in answers the form
+      // POST with a 302 to the client's redirect URI; Chrome checks
+      // `form-action` against the FINAL destination, not just the POST
+      // target. With `'self'` alone the POST reached the server, the 302 was
+      // emitted, and the browser silently refused to follow it -- measured
+      // with a control that differed in this directive and nothing else.
+      //
+      // So the directive names exactly ONE extra origin: the one this
+      // particular authorization request will redirect to. It comes from
+      // `redirect_uri`, which `validateAuthorizationRequest` has already
+      // matched as an exact string against the list signed into the
+      // `client_id`. No wildcard, no standing allow-list, nothing a caller
+      // chooses that registration did not already permit.
+      'Content-Security-Policy': `default-src 'none'; style-src 'unsafe-inline'; form-action ${formActionSources(redirectTo)}; base-uri 'none'; frame-ancestors 'none'`,
       // `same-origin`, and NOT `no-referrer`, for a reason that cost a live
       // deployment: under `no-referrer` a browser serialises the `Origin`
       // header of a form-submission navigation as the string `null`, because
@@ -767,7 +805,7 @@ export function createAuthorizationServer({ oauth, registryReader = readRegistry
     sendHtml(response, 200, authorizePage({
       issuer: oauth.issuer, resource: oauth.resource, redirectUri: validated.redirectUri,
       clientName: validated.metadata.client_name, scope: validated.scope, request,
-    }));
+    }), { redirectTo: validated.redirectUri });
   }
 
   async function handleAuthorizePost(response, body) {
@@ -786,7 +824,7 @@ export function createAuthorizationServer({ oauth, registryReader = readRegistry
       issuer: oauth.issuer, resource: oauth.resource, clientName: metadata.client_name,
       redirectUri: claims.redirect_uri,
       scope: claims.scope, request: body.get('request'), error: message,
-    }));
+    }), { redirectTo: claims.redirect_uri });
 
     const registry = registryReader(oauth.registryPath);
     const participant = registry.participants.get(body.get('participant') ?? '');

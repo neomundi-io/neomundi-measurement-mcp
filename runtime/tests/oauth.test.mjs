@@ -15,7 +15,7 @@ import { createHash, randomBytes } from 'node:crypto';
 import { createMcpServer } from '../server.mjs';
 import {
   MEASURE_SCOPE, OAuthConfigurationError, challengeHeader, createAuthorizationServer,
-  issueAccessToken, loadOAuthConfiguration, readRegistry, sign, verifyAccessToken,
+  formActionSources, issueAccessToken, loadOAuthConfiguration, readRegistry, sign, verifyAccessToken,
 } from '../oauth.mjs';
 import { hashSecret, participantEntry, verifySecret } from '../../scripts/participant-credential.mjs';
 import { apiMock, execution, jsonReply, syntheticMeasurement, testConfig } from './helpers.mjs';
@@ -387,6 +387,112 @@ test('the sign-in page states who is asking and what for, and loads nothing', as
   } finally { await close(); }
 });
 
+test('form-action names the one destination this request will redirect to, and nothing else', async () => {
+  // THE FAILURE THIS CATCHES, measured with a control that differed in this
+  // directive alone: `form-action` is enforced against the FINAL destination
+  // of a form submission, redirects included. A successful sign-in answers
+  // the POST with a 302 to the client's redirect URI, so with `'self'` alone
+  // the POST reached the server, the 302 was emitted, and the browser
+  // silently refused to follow it. Nothing server-side looked wrong.
+  const { base, close } = await boot();
+  const pageCsp = async (redirectUri) => {
+    const { body: client } = await register(base, redirectUri);
+    const query = new URLSearchParams({
+      response_type: 'code', client_id: client.client_id, redirect_uri: redirectUri,
+      code_challenge: pkce().challenge, code_challenge_method: 'S256', scope: MEASURE_SCOPE,
+    });
+    const response = await fetch(`${base}/oauth/authorize?${query}`, { redirect: 'manual' });
+    return /form-action ([^;]+);/.exec(response.headers.get('content-security-policy'))[1];
+  };
+  try {
+    // ChatGPT's real redirect URI: its origin, and only its origin.
+    assert.equal(await pageCsp('https://chatgpt.com/connector_platform_oauth_redirect'), "'self' https://chatgpt.com");
+
+    // A DIFFERENT client gets ITS destination, not a standing allow-list that
+    // accumulates whatever anyone has ever registered.
+    const other = await pageCsp('https://other.example/cb');
+    assert.equal(other, "'self' https://other.example");
+    assert.equal(other.includes('chatgpt.com'), false, 'one request, one destination');
+
+    // The path never reaches the header, only the origin -- and a port is
+    // carried, because an origin with a port is a different origin.
+    assert.equal(await pageCsp('http://127.0.0.1:7777/cb'), "'self' http://127.0.0.1:7777");
+
+    // Checked token by token, not by substring: `https://chatgpt.com`
+    // legitimately contains the characters of a scheme-source, and a
+    // substring test on `https:` would have failed on a correct header.
+    // Every source must be `'self'` or one well-formed origin.
+    for (const redirectUri of ['https://chatgpt.com/cb', 'https://other.example/cb']) {
+      const sources = (await pageCsp(redirectUri)).split(' ');
+      assert.equal(sources.length, 2, 'exactly two sources: self, and one destination');
+      assert.equal(sources[0], "'self'");
+      assert.match(sources[1], /^https?:\/\/[a-z0-9.-]+(?::\d{1,5})?$/, 'the second source is one origin and nothing else');
+      for (const token of sources) {
+        assert.equal(['*', 'https:', 'http:', 'data:', "'unsafe-inline'", "'unsafe-eval'"].includes(token), false,
+          `${token} is a wildcard or scheme-source and must never appear`);
+      }
+    }
+  } finally { await close(); }
+});
+
+test('the destination is only ever the one registration already allowed', () => {
+  // `formActionSources` is handed the redirect URI that
+  // `validateAuthorizationRequest` matched as an EXACT STRING against the
+  // list signed into the client_id. So the header can only ever name an
+  // origin the client registered -- there is no path from a request
+  // parameter to this directive that does not pass that check first.
+  //
+  // What is tested here is the last mile: that nothing malformed, and
+  // nothing that could break out of a header, gets interpolated.
+  assert.equal(formActionSources('https://chatgpt.com/cb'), "'self' https://chatgpt.com");
+  assert.equal(formActionSources('http://127.0.0.1:8787/x'), "'self' http://127.0.0.1:8787");
+  // Refused outright rather than interpolated: the page then cannot redirect,
+  // which is visible, instead of a header that says something unintended.
+  for (const rejected of [
+    undefined, null, '', 'not-a-url', 42,
+    'javascript:alert(1)',
+    'data:text/html,x',
+    'https://a b.test/cb',
+  ]) {
+    assert.equal(formActionSources(rejected), "'self'", `${String(rejected)} must not reach the header`);
+  }
+
+  // Anything appended after the authority lands in the PATH, and the path
+  // never reaches the header -- a payload trying to close the directive is
+  // cut off by URL parsing before this function looks at anything. MEASURED,
+  // not assumed: both of these reduce to the bare origin.
+  for (const payload of ['https://evil.test/cb; form-action *', 'https://evil.test/cb\r\nX-Injected: 1']) {
+    const result = formActionSources(payload);
+    assert.equal(result, "'self' https://evil.test", 'reduced to its origin');
+    for (const character of [';', '*', '\r', '\n']) {
+      assert.equal(result.includes(character), false, `${JSON.stringify(character)} must never reach the header`);
+    }
+  }
+
+  // And why `https://evil.test` appearing there is not a hole: this function
+  // is only ever handed a redirect URI that `validateAuthorizationRequest`
+  // already matched as an EXACT STRING against the list signed into the
+  // client_id. An unregistered destination is refused before any page is
+  // rendered, which the test named "a bad client or redirect URI is NOT
+  // redirected to" holds.
+});
+
+test('an error page carries no form, and keeps the strictest form-action', async () => {
+  const { base, close } = await boot();
+  try {
+    // A bogus request blob renders "Demande expirée": no form, nothing to
+    // redirect to, so no destination is named.
+    const expired = await fetch(`${base}/oauth/authorize`, {
+      method: 'POST', redirect: 'manual',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded', Origin: new URL(base).origin },
+      body: 'request=x',
+    });
+    assert.equal(expired.status, 400);
+    assert.match(expired.headers.get('content-security-policy'), /form-action 'self';/);
+    assert.equal(/<form/i.test(await expired.text()), false);
+  } finally { await close(); }
+});
+
 test('a protocol endpoint is not gated on Origin, whether the caller sends one or not', async () => {
   // The defect this closes is the MIRROR of the one people expect. A caller
   // that sends NO Origin -- ChatGPT's backend -- always walked through. A
@@ -599,6 +705,9 @@ test('an unknown participant, a wrong secret and a suspended access are indistin
       assert.equal(result.status, 401, `${participant} must not be let in`);
       assert.equal(result.location, null, 'a failed sign-in redirects nowhere, so no code leaves');
       messages.add(/<p class="error">([^<]+)<\/p>/.exec(result.body)?.[1]);
+      // The re-render must keep the destination too, otherwise the SECOND
+      // attempt is the one a browser refuses to follow.
+      assert.match(result.page.headers.get('content-security-policy') ?? '', /form-action 'self'/);
     }
     assert.equal(messages.size, 1, `three different failures produced ${messages.size} different messages`);
   } finally { await close(); }
