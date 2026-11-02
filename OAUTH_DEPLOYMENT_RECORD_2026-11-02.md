@@ -2,13 +2,13 @@
 
 **Autorisé par Sébastien.** Bascule à **`2026-11-02T05:35:36Z`**.
 
-> ## Ce qui tourne maintenant — **`ed41658`, depuis 20:13:56Z**
+> ## Ce qui tourne maintenant — **`89f13e0`, depuis 21:22:23Z**
 >
 > | | |
 > |---|---|
-> | Image | `neomundi-measurement-mcp:ed41658` |
-> | Empreinte | `sha256:953d6aa49d50887bd9502e3188603a1b30d4d52be0bbe9d626ba8a5c27cde2fe` |
-> | Révision | `ed41658469aceec415e2f2bcf3e2b26de4d48c97` |
+> | Image | `neomundi-measurement-mcp:89f13e0` |
+> | Empreinte | `sha256:61fa166f1b76b0df7451009fa256bc50cc13dc5f05bbb79ae9080b63e377c10f` |
+> | Révision | `89f13e039dd4d305b25e0ad68833265b58399403` |
 > | OAuth | **actif** — issuer `https://mcp.neomundi.org`, ressource `https://mcp.neomundi.org/mcp` |
 > | Participants | **2**, `sebastien` et `pilote-1`, tous deux `enabled`, `epoch` 1, portée `measure` |
 > | Plafond par participant | **non configuré** — rien n'est retenu entre deux requêtes |
@@ -376,6 +376,90 @@ sudo systemctl daemon-reload && sudo systemctl restart neomundi-mcp-docker
 
 Les images `ed41658`, `b30d631` et `da71f5d` sont toutes présentes sur le VPS.
 **Ne pas lancer `docker image prune`.**
+
+## 6 quater. `form-action` — diagnostic, correctif et déploiement `89f13e0`
+
+**Autorisé par Sébastien. Bascule à `2026-11-02T21:22:23Z`.**
+
+### Le symptôme
+
+La page de connexion s'affichait, le POST partait, le serveur répondait **302**
+vers `https://chatgpt.com/connector_platform_oauth_redirect` avec une `Origin`
+correcte — et **le navigateur ne suivait pas**. Console : violation de
+`form-action 'self'`.
+
+### Provenance de la CSP, vérifiée avant toute chose
+
+Une CSP peut venir d'un proxy. Ici, non : le `Caddyfile` fait trois lignes et
+**n'ajoute aucun en-tête**, et la politique servie par l'application en direct
+est **identique octet pour octet** à celle qui arrive à travers Caddy, en **un
+seul** exemplaire. Le défaut était le nôtre.
+
+### La cause
+
+**`form-action` est contrôlée sur la destination FINALE d'une soumission,
+redirections comprises.** Le POST vers soi-même passait ; la redirection
+cross-origin qu'il produisait, non. Côté serveur, rien ne paraissait anormal.
+
+Témoin, même navigateur, une seule variable :
+
+| `form-action` servie | POST atteint le serveur | Navigateur suit le 302 |
+|---|---|---|
+| `'self'` | ✓ (302 émis, lu au journal du banc) | **non** |
+| `'self' https://chatgpt.com` | ✓ | **oui** |
+
+### Le correctif
+
+La directive nomme **une seule origine supplémentaire : celle vers laquelle
+cette demande redirigera**, dérivée du `redirect_uri` que
+`validateAuthorizationRequest` a déjà comparé en **chaîne exacte** à la liste
+signée dans le `client_id`. L'en-tête ne peut donc nommer qu'une origine que
+l'inscription autorisait déjà.
+
+`formActionSources` **refuse plutôt qu'interpole** : tout ce qui n'est pas une
+origine http(s) bien formée rend `'self'` seul. Une charge ajoutée après
+l'autorité tombe dans le *chemin* et n'atteint jamais l'en-tête — **mesuré**.
+Le réaffichage après mauvais secret porte aussi la destination, sans quoi
+c'est la **seconde** tentative qu'un navigateur aurait refusée. Les pages
+d'erreur n'ont pas de formulaire et gardent `'self'`.
+
+### Vérifié en production après bascule
+
+```
+CSP, par redirect_uri enregistré :
+  ChatGPT (le vrai)   -> form-action 'self' https://chatgpt.com
+  un autre client     -> form-action 'self' https://autre.example
+  une requête, une destination : oui | aucun joker : oui
+  page d'erreur sans formulaire : 'self'
+  reste de la politique inchangé : default-src 'none', base-uri 'none', frame-ancestors 'none'
+
+1. register                 -> 201 | auth none
+2. authorize GET            -> 200 | form-action 'self' https://chatgpt.com | destination affichée
+3. authorize POST           -> 302 | Location https://chatgpt.com/connector_platform_oauth_redirect
+                               state go | iss https://mcp.neomundi.org | code présent
+4. token                    -> Bearer | scope measure | aud .../mcp | sub sebastien
+5. mauvais secret           -> 401 | aucune redirection
+6. rejeu du code            -> invalid_grant
+7. MCP initialize (OAuth)   -> 200
+8. tools/list               -> 1 outil: measure_execution
+9. resources/read (carte)   -> 19 360 octets | text/html;profile=mcp-app | modes ["inline"]
+10. MCP (clé statique)      -> 200 (chemin Codex)
+11. revoke + jeton ensuite  -> 200 / 401
+```
+
+Image `sha256:61fa166f1b76b0df7451009fa256bc50cc13dc5f05bbb79ae9080b63e377c10f`,
+**290 cas dans l'image, 0 échec**. Transfert par bundle Git, digest et taille
+identiques à l'arrivée. Aucun fichier de mesure touché.
+
+### Retour arrière — trois cibles, trois états
+
+| Sauvegarde | Ramène à |
+|---|---|
+| `…-20261102c` | **`ed41658`** — avant ce correctif |
+| `…-20261102b` | `b30d631` — avant les classes d'origine |
+| `…-20261102` | `da71f5d` — avant OAuth |
+
+Les cinq images sont conservées. **Ne pas lancer `docker image prune`.**
 
 ## 7. Ce qui n'a pas changé
 
