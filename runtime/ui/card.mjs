@@ -268,11 +268,40 @@ export function cardHtml() {
 
 export const cardSha256 = () => createHash('sha256').update(cardHtml()).digest('hex');
 
+/** What the host is told about this component before it loads it.
+ *
+ * `inline` and nothing else. The card is a short reading surface meant to sit
+ * beside the answer; it has no fullscreen view and no picture-in-picture
+ * view, so declaring either would advertise a mode that does not exist.
+ * Declaring the one real mode lets the host size the component without first
+ * showing a loading state.
+ */
+export const CARD_DISPLAY_MODES = Object.freeze(['inline']);
+
+/** Handed to the model when the component loads, so it does not narrate the
+ * card back in its own words -- which is exactly where a measured and an
+ * unmeasured signal get flattened into the same sentence.
+ */
+export const CARD_WIDGET_DESCRIPTION =
+  'A measurement card. It shows the decision and, beside it, the basis on which '
+  + 'that decision was taken; the state of the measurement; each measured signal; '
+  + 'and each unmeasured signal with the cause of its absence. Read it as shown: '
+  + 'nothing on it is computed or interpreted, an absent value is displayed as not '
+  + 'published rather than as a favourable one, and a measurement grants no '
+  + 'execution permission.';
+
 /** The resource as MCP serves it.
  *
  * The CSP allow-lists are present and EMPTY on purpose: the card loads
  * nothing, so declaring a domain would widen the policy beyond what the card
  * actually needs. `prefersBorder` is a presentation hint, not a capability.
+ *
+ * NO `ui.domain` HERE, AND THAT IS A KNOWN GAP. The platform requires a
+ * dedicated origin, unique per plugin, when a plugin with UI is SUBMITTED;
+ * absent that field the component is served from the host's default sandbox
+ * origin. A dedicated origin is a hostname decision, not a code decision, so
+ * inventing one here would declare an origin nobody controls. It is tracked
+ * as a submission prerequisite in PLUGIN_SUBMISSION_CHECKLIST.md.
  */
 export function cardResource() {
   return {
@@ -286,6 +315,8 @@ export function cardResource() {
         prefersBorder: true,
         csp: { connectDomains: [], resourceDomains: [] },
       },
+      'openai/ui': { availableDisplayModes: [...CARD_DISPLAY_MODES] },
+      'openai/widgetDescription': CARD_WIDGET_DESCRIPTION,
     },
   };
 }

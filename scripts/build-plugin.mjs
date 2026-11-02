@@ -11,7 +11,10 @@ export const PLUGIN_FILES = Object.freeze([
   'docs/PLUGIN_FR.md', 'docs/PLUGIN.md', 'docs/MCP_PLUGIN_AUDIT.md',
   'docs/RESPONSE_CONTRACTS.md', 'docs/RESPONSE_CONTRACTS_FR.md',
   'skills/measure-execution/SKILL.md',
-  ...['adapter', 'config', 'contract', 'guidance', 'integrity', 'presentation',
+  // `oauth` is NOT optional even though a packaged plugin runs over stdio and
+  // never uses it: `server.mjs` imports it at module load, so a package
+  // without this file fails at import rather than at first use.
+  ...['adapter', 'config', 'contract', 'guidance', 'integrity', 'oauth', 'presentation',
     'reference', 'response-contracts', 'schema-validation', 'server', 'stdio', 'upstream'].map(n => `runtime/${n}.mjs`),
   // The measurement card. NOT optional: contract.mjs imports card.mjs for the
   // tool's _meta and server.mjs serves the resource, so a package without

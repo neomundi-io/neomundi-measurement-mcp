@@ -1,0 +1,22 @@
+[
+  {
+    "url": "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json",
+    "copy": "schemas/agent-plugins/mcp-1.0.0.schema.json",
+    "sha256": "6539175bfcdf43085855183e86da40ea94b166547a72b47ae9a0a390516d3acb",
+    "bytes": 3408,
+    "etag": "3036bf37fd097dbf16082202ee8093bb",
+    "last_modified": "Fri, 30 Oct 2026 22:13:42 GMT",
+    "fetched": "2026-11-01",
+    "why": "P0-1 required validating mcp.json against the downloaded schema, not against a reading of the documentation. This copy is the artefact that was validated against."
+  },
+  {
+    "url": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+    "copy": "schemas/agent-plugins/plugin-1.0.0.schema.json",
+    "sha256": "0a4aad95ce337878ad38802ebf0daa3fde76abe3f65400c86bcbb1ec0b3ab883",
+    "bytes": 1805,
+    "etag": "0cdf13561b86acbee6ab0c9c44cbef96",
+    "last_modified": "Sun, 01 Nov 2026 09:44:38 GMT",
+    "fetched": "2026-11-01",
+    "why": "P0-2 required validating plugin.json against the downloaded schema. This copy settled the extensions nesting question and exposed that top-level icons is not a declared field."
+  }
+]

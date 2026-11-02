@@ -3,6 +3,24 @@
 **Établie le 1er novembre 2026**, à la clôture de la première phase.
 État des composants : [`PLUGIN_CHECKPOINT_2026-11-01.md`](PLUGIN_CHECKPOINT_2026-11-01.md).
 
+> ## Mise à jour du 1er novembre 2026, après vérification des exigences officielles
+>
+> **Mise à jour : `P0-9` est construite.** OAuth 2.1 est écrit et testé ; la
+> première marche est désormais **l'autorisation de déploiement**, pas un
+> chantier. Voir [`OAUTH_IMPLEMENTATION_REPORT.md`](OAUTH_IMPLEMENTATION_REPORT.md).
+>
+> **`P0-1` et `P0-2` sont RÉSOLUES, et `P0-1` était mal posée.** Le détail,
+> avec les sources et les preuves, est dans
+> [`PLUGIN_RELEASE_READINESS.md`](PLUGIN_RELEASE_READINESS.md) ; la liste
+> actionnable est dans
+> [`PLUGIN_SUBMISSION_CHECKLIST.md`](PLUGIN_SUBMISSION_CHECKLIST.md).
+>
+> **Le chemin critique a changé deux fois.** Ce n'était plus le manifeste mais
+> `P0-9`, l'authentification du serveur — ChatGPT ne propose qu'OAuth, aucune
+> authentification, ou les deux, et le serveur exigeait un `Bearer` fixe que le
+> portail ne sait pas connecter. **`P0-9` est maintenant construite**, donc la
+> première marche est **l'autorisation de déploiement**.
+
 > ## Deux règles qui gouvernent cette feuille
 >
 > **Aucun correctif issu de l'audit Pradeep n'est intégré.** Les tâches marquées
@@ -18,37 +36,47 @@
 
 Sept tâches. **Deux seulement dépendent de quelqu'un d'autre que nous.**
 
-### P0-1 — Déclarer le bloc `auth` dans `mcp.json`
+### P0-1 — Déclarer le bloc `auth` dans `mcp.json` — **RÉSOLUE, et mal posée**
 
 | | |
 |---|---|
-| **Statut** | **BLOQUÉ** — c'est `P-6`, et c'est la **première marche** |
-| **Dépendances** | aucune. Rien n'attend |
-| **Preuves disponibles** | `mcp.json` et `.mcp.json` existent et sont servis ; le serveur exige déjà un `Bearer` sur tous les chemins (`401` vérifié) |
-| **Action exacte** | récupérer le schéma officiel `mcp.json`, y vérifier la forme du bloc `auth`, le déclarer, et faire échouer un test si le bloc disparaît |
-| **Critère de validation** | `mcp.json` valide contre le schéma officiel **téléchargé**, pas contre une lecture de documentation ; et un test du dépôt qui tombe si le bloc est retiré |
+| **Statut** | **RÉSOLUE le 2026-11-01.** Le bloc demandé **n'existe pas** et l'ajouter aurait cassé le manifeste |
+| **Ce qui a été trouvé** | le schéma officiel **ferme** `mcp.json` à `$schema` et `mcpServers` ; la spécification écrit « aucun champ portable d'OAuth ou de référence de secret — l'authentification reste gérée par le client ». Un `mcp.json` invalide **désactive MCP pour tout le plugin** |
+| **Le conflit mis au jour** | la plateforme documente l'authentification à `mcpServers.<nom>.extensions["com.openai"].auth`, ce qui est **aussi invalide** contre le schéma portable, qui ferme chaque variante de serveur. **Deux sources normatives qui se contredisent** |
+| **Ce qui a été fait** | les deux schémas sont archivés avec leur SHA-256 sous `schemas/agent-plugins/` ; `scripts/validate-manifests.mjs` valide contre eux ; `tests/manifest-schema.test.mjs` fige les deux invalidités, pour que la tâche ne revienne pas |
+| **Ce qui reste** | rien ici. Le vrai blocage est **`P0-9`** |
 
-> **Pourquoi c'est la première marche.** Sans ce bloc, ChatGPT ne peut pas
-> présenter l'authentification à l'utilisateur. Tout le reste de P0 en dépend.
-
-### P0-2 — Trancher l'imbrication `extensions.com.openai`
+### P0-2 — Trancher l'imbrication `extensions.com.openai` — **RÉSOLUE**
 
 | | |
 |---|---|
-| **Statut** | **BLOQUÉ** — c'est `P-7` |
-| **Dépendances** | aucune |
-| **Preuves disponibles** | le dépôt place les champs sous `interface` ; la documentation lue les décrit **à plat**. **Les deux ne peuvent être vraies, et aucune n'a été validée contre le schéma** |
-| **Action exacte** | valider `plugin.json` contre le schéma officiel et corriger l'imbrication perdante |
-| **Critère de validation** | validation du schéma réussie, et `tests/plugin-package.test.mjs` adapté à la forme retenue |
+| **Statut** | **RÉSOLUE le 2026-11-01. Le dépôt avait raison**, la lecture « à plat » était fausse |
+| **Preuve** | l'exemple de paquet publié par la plateforme imbrique les champs sous `interface`. `review` et `publication`, eux, sont **à côté** d'`interface` |
+| **Défauts réels corrigés au passage** | `icons` au niveau supérieur était une **violation de schéma** → `logo` + `composerIcon` ; `category` valait `"Developer tools"` → `"Developer Tools"` ; le texte de base était en français → **anglais en base, français en `publication.translations["fr-FR"]`** |
+| **Critère de validation** | atteint : `node scripts/validate-manifests.mjs` rend `OK` sur les deux manifestes |
+
+### P0-9 — Méthode d'authentification du serveur — **CONSTRUITE, PAS DÉPLOYÉE**
+
+| | |
+|---|---|
+| **Statut** | **ÉCRITE ET TESTÉE.** Ce qui reste est une **autorisation de déploiement**, pas un chantier |
+| **Issue retenue** | **A — OAuth 2.1**, la seule en libre-service : elle ne dépend d'aucune relation avec OpenAI. B (dérogation) et C (« bureau seulement », réservée aux partenaires agréés) sont abandonnées |
+| **Ce qui est fait** | découverte RFC 9728 / RFC 8414, inscription dynamique RFC 7591, code d'autorisation **PKCE S256**, jetons signés, rotation, révocation RFC 7009, `iss` RFC 9207, identité **par participant**, portées, plafond par participant. **Aucune dépendance, aucune base de données, aucune ligne de mesure touchée.** 27 cas de test |
+| **Ce qui reste** | **Sébastien** : autoriser le déploiement sur un SHA nommé, générer la clé de signature, créer le registre des participants |
+| **Preuve disponible** | essai de bout en bout sur instance réelle ; et le proxy relaie déjà les routes OAuth, **aucune modification de Caddy nécessaire** |
+| **Critère de validation** | une connexion établie **depuis ChatGPT**, par OAuth, avec une mesure réelle |
+
+> **Détail** : [`OAUTH_IMPLEMENTATION_REPORT.md`](OAUTH_IMPLEMENTATION_REPORT.md).
+> **Procédure** : [`CHATGPT_CONNECTION_GUIDE.md`](CHATGPT_CONNECTION_GUIDE.md).
 
 ### P0-3 — Connexion réelle depuis ChatGPT
 
 | | |
 |---|---|
-| **Statut** | **NON TESTÉ** — jamais tenté |
-| **Dépendances** | **P0-1**, puis **P0-2** |
-| **Preuves disponibles** | un hôte MCP réel a été connecté — **Claude Code 2.1.247**, amont **substitué** (`ML-009`). Cela valide le transport, **pas ChatGPT** |
-| **Action exacte** | ajouter le connecteur dans ChatGPT avec le credential, exécuter une mesure sur le **vrai** amont, et consigner `request_id`, durée, décision et fondement |
+| **Statut** | **NON TESTÉ** — jamais tenté, mais **redevenu possible** |
+| **Dépendances** | le **déploiement** de `P0-9`, et rien d'autre |
+| **Preuves disponibles** | un hôte MCP réel a été connecté — **Claude Code 2.1.247**, amont **substitué** (`ML-009`). Cela valide le transport, **pas ChatGPT**. Le flux OAuth complet a été parcouru sur une instance **locale** : cela ne prouve rien de ChatGPT non plus |
+| **Action exacte** | §3 de [`CHATGPT_CONNECTION_GUIDE.md`](CHATGPT_CONNECTION_GUIDE.md) : ajouter le serveur dans ChatGPT en **OAuth**, s'identifier comme participant, exécuter une mesure sur le **vrai** amont, et consigner `request_id`, durée, décision et fondement |
 | **Critère de validation** | une mesure revenue dans ChatGPT avec un `request_id` que l'on retrouve côté API, et **aucun signal ni provenance modifié** |
 
 > **Ne pas déclarer cette tâche faite sur la foi d'une poignée de main.** Le
@@ -58,9 +86,9 @@ Sept tâches. **Deux seulement dépendent de quelqu'un d'autre que nous.**
 
 | | |
 |---|---|
-| **Statut** | **PARTIEL** |
-| **Dépendances** | P0-1 ; se vérifie pendant P0-3 |
-| **Preuves disponibles** | `401` sur `/`, `/health` et `/mcp` sans jeton, vérifié le 2026-11-01 depuis l'extérieur. **Aucun chemin ouvert, pas même un contrôle de santé** |
+| **Statut** | **ÉCRIT ET TESTÉ localement**, à rejouer depuis l'hôte |
+| **Dépendances** | le déploiement de `P0-9` ; se vérifie pendant `P0-3` |
+| **Preuves disponibles** | `401` sur `/`, `/health` et `/mcp` sans jeton, vérifié le 2026-11-01 depuis l'extérieur. Et, en local : jeton absent, jeton falsifié, jeton expiré, mauvaise audience, jeton de rafraîchissement présenté comme jeton d'accès — **tous refusés**, aucun ne fabriquant de mesure. Après déploiement, les routes de découverte seront les **seules** ouvertes sans credential, et c'est le flux qui l'exige |
 | **Action exacte** | depuis ChatGPT : vérifier qu'un jeton absent, un jeton erroné et un jeton valide produisent respectivement un refus, un refus et une mesure — et que **le refus ne fabrique aucune mesure** |
 | **Critère de validation** | les trois cas observés depuis l'hôte, et le message de refus ne divulgue ni le credential ni la forme attendue |
 
@@ -248,10 +276,16 @@ multi-utilisateur.**
 ```
 P0-5  verification organisation + domaine   [Sebastien]  ---- peut demarrer MAINTENANT
                                                               (aucune dependance)
+          le defi de domaine se publie sur neomundi.org, PAS sur l hote MCP :
+          https://mcp.neomundi.org/.well-known/openai-apps-challenge  ->  401
 
-P0-1  bloc auth dans mcp.json
+P0-1  bloc auth dans mcp.json             [RESOLUE : le bloc n existe pas]
+P0-2  imbrication extensions.com.openai   [RESOLUE : le depot avait raison]
   |
-P0-2  imbrication extensions.com.openai
+P0-9  OAuth 2.1  [ECRIT ET TESTE]
+  |
+AUTORISER LE DEPLOIEMENT  [Sebastien]  <--- PREMIERE MARCHE
+  |        + cle de signature + registre des participants
   |
 P0-3  connexion reelle depuis ChatGPT  <--- la premiere preuve qui manque
   |
@@ -281,10 +315,11 @@ AUDIT CODEX  ---- en parallele, ne bloque AUCUNE tache P0
 
 | Tâche | Priorité | Statut | Dépend de |
 |---|---|---|---|
-| P0-1 bloc `auth` | **P0** | BLOQUÉ | — |
-| P0-2 imbrication manifeste | **P0** | BLOQUÉ | — |
-| P0-3 connexion ChatGPT | **P0** | **NON TESTÉ** | P0-1, P0-2 |
-| P0-4 authentification | **P0** | PARTIEL | P0-1 |
+| P0-1 bloc `auth` | **P0** | **RÉSOLUE** — le bloc n'existe pas | — |
+| P0-2 imbrication manifeste | **P0** | **RÉSOLUE** — forme imbriquée | — |
+| **P0-9 méthode d'authentification** | **P0** | **ÉCRITE ET TESTÉE**, non déployée | **Sébastien** : autoriser |
+| P0-3 connexion ChatGPT | **P0** | **NON TESTÉ** — redevenu possible | déploiement de P0-9 |
+| P0-4 authentification | **P0** | **ÉCRITE ET TESTÉE** localement | déploiement de P0-9 |
 | P0-5 organisation + domaine | **P0** | BLOQUÉ | **Sébastien** |
 | P0-6 cas de test | **P0** | PARTIEL | P0-3 |
 | P0-7 capture, vidéo, dossier | **P0** | NON TESTÉ | P0-3, P0-6 |
