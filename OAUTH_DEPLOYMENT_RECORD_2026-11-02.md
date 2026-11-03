@@ -2,17 +2,21 @@
 
 **Autorisé par Sébastien.** Bascule à **`2026-11-02T05:35:36Z`**.
 
-> ## Ce qui tourne maintenant
+> ## Ce qui tourne maintenant — **`89f13e0`, depuis 21:22:23Z**
 >
 > | | |
 > |---|---|
-> | Image | `neomundi-measurement-mcp:b30d631` |
-> | Empreinte | `sha256:2c92de45737346622cd83b534fae8e189078d3f677d463eabd154f38eead43c9` |
-> | Révision | `b30d6314a55689b19c4e02da8d19853cfd442180` |
+> | Image | `neomundi-measurement-mcp:89f13e0` |
+> | Empreinte | `sha256:61fa166f1b76b0df7451009fa256bc50cc13dc5f05bbb79ae9080b63e377c10f` |
+> | Révision | `89f13e039dd4d305b25e0ad68833265b58399403` |
 > | OAuth | **actif** — issuer `https://mcp.neomundi.org`, ressource `https://mcp.neomundi.org/mcp` |
 > | Participants | **2**, `sebastien` et `pilote-1`, tous deux `enabled`, `epoch` 1, portée `measure` |
 > | Plafond par participant | **non configuré** — rien n'est retenu entre deux requêtes |
-> | Retour arrière | **exercé**, pas seulement écrit — voir §5 |
+> | Retour arrière | **exercé**, pas seulement écrit — §5, et §6 ter pour les DEUX cibles |
+>
+> La bascule du 05:35 a mis OAuth en service (`b30d631`) ; celle de 20:13 a
+> corrigé le traitement de l'en-tête `Origin` (`ed41658`). Les deux sont
+> consignées ci-dessous, dans l'ordre.
 
 ---
 
@@ -182,6 +186,280 @@ sudo cat /root/neomundi-mcp-backup-20261102/secret-sebastien
 Le registre `/etc/neomundi/participants.json` (`0444`, `root`) **ne contient
 aucun secret** : identifiants, drapeaux et empreintes **scrypt** uniquement.
 Vérifié : le secret en clair n'y apparaît pas.
+
+## 6 bis. Incident du 2026-11-02 — `invalid_origin` à la saisie du secret
+
+**Symptôme.** La page d'autorisation s'affiche correctement, annonce bien
+« Client demandeur : ChatGPT », puis la validation du formulaire rend
+`{"error":"invalid_origin"}`.
+
+**Ce n'était pas propre à ChatGPT.** Reproduit à l'identique dans un Chrome
+ordinaire, contre la production.
+
+### La cause
+
+**C'est notre propre en-tête `Referrer-Policy: no-referrer` sur la page de
+connexion.**
+
+Sous `no-referrer`, un navigateur sérialise l'`Origin` d'une **navigation de
+soumission de formulaire** en la chaîne littérale **`null`** : une telle
+requête n'est pas teintée CORS, et la politique de référent gouverne aussi
+cette sérialisation. Le formulaire arrivait donc avec `Origin: null`, que la
+liste d'origines refuse — à juste titre, car `null` est aussi ce qu'envoie une
+iframe en bac à sable.
+
+### Pourquoi rien ne l'avait attrapé
+
+**Aucun des contrôles n'était un navigateur.** `curl` et `fetch` envoient tous
+deux une `Origin` réelle ; ils ne pouvaient pas produire le défaut. Mesuré
+après coup, depuis la page elle-même :
+
+| Depuis la page servie | Résultat |
+|---|---|
+| `fetch()` (mode `cors`) | **400** — l'origine passe |
+| soumission du formulaire | **403 `invalid_origin`** |
+
+### Le témoin qui ferme la démonstration
+
+Banc isolé, même navigateur, même formulaire, **une seule variable** :
+
+| `Referrer-Policy` | `Origin` reçue |
+|---|---|
+| `no-referrer` | **`"null"`** |
+| absent | `"http://127.0.0.1:8900"` |
+| `same-origin` | `"http://127.0.0.1:8900"`, référent **same-origin uniquement** |
+
+### Le correctif
+
+**`Referrer-Policy: same-origin`** au lieu de `no-referrer`, dans
+`runtime/oauth.mjs`. La propriété de confidentialité qui comptait est
+conservée — le référent va à cette origine et **nulle part ailleurs**, donc
+les paramètres de la demande d'autorisation ne sortent jamais — et l'`Origin`
+est restituée.
+
+**Aucun contrôle n'est assoupli.** `Origin: null`, une origine tierce et une
+origine à casse différente restent **refusées**, ce que trois nouveaux cas de
+test verrouillent.
+
+S'y ajoute une correction de lisibilité : un refus d'origine sur une route
+OAuth rend désormais **une page expliquant la cause** au lieu d'un bloc JSON.
+Le refus est identique ; seul le message change. Le point d'entrée MCP garde
+son refus machine `{"error":"invalid_origin"}`, parce que ce n'est pas une
+surface de navigateur.
+
+### Le second défaut, miroir du premier
+
+En vérifiant les endpoints appelés par le backend ChatGPT, la mesure a
+**corrigé la prémisse** : une requête **sans `Origin` passait déjà**. C'est
+l'inverse qui était cassé.
+
+| Endpoint | sans `Origin` | `Origin` tierce |
+|---|---|---|
+| `/oauth/token` | **401 `invalid_client`** — atteint le gestionnaire | **403 `invalid_origin`** |
+| `/oauth/register` | **201** | **403** |
+| `/oauth/revoke` | **200** | **403** |
+
+**L'en-tête bloquait le cas honnête et laissait passer tout le reste.** Sur ces
+routes, `Origin` n'est pas un contrôle d'accès : elles ne portent **aucune
+autorité ambiante**, donc une page qui les appelle n'a pas plus de pouvoir que
+`curl`. Ce qui les protège est ce que le protocole dit : PKCE et la liaison du
+code à son client et à son URI de redirection sur `/oauth/token`, la
+possession du jeton sur `/oauth/revoke`, et rien du tout sur des documents
+faits pour être publics.
+
+### Le correctif consolidé — `b43b0e0`
+
+**Trois classes de routes, trois règles.**
+
+| Classe | Routes | Règle |
+|---|---|---|
+| **protocole** | les deux `/.well-known/*`, `/oauth/register`, `/oauth/token`, `/oauth/revoke` | **aucune restriction d'origine** |
+| **page** | `/oauth/authorize` | **l'origine propre de la page**, ou absente — et **rien d'autre** |
+| **api** | `/mcp` | la liste configurée, **inchangée** |
+
+**La route navigateur est resserrée, pas ouverte** : la forme `http://` de
+l'émetteur et tout second hôte configuré, que la porte partagée acceptait, ne
+sont plus acceptés.
+
+Deux protections contre l'abus s'y ajoutent :
+
+- **La page de consentement affiche où part le code** et marque le nom du
+  client comme *déclaré*. L'inscription est ouverte par conception : n'importe
+  qui peut forger un client se nommant « ChatGPT » avec sa propre URI de
+  redirection dessous. La destination est le seul champ qu'il ne peut pas
+  falsifier — elle est affichée, et jamais rendue cliquable.
+- **La vérification du secret quitte la boucle d'événements.** `scryptSync`
+  coûtait ~50 ms et bloquait tout pendant ce temps, mesures en vol comprises,
+  et personne n'a besoin d'être authentifié pour envoyer de faux secrets. Elle
+  passe au pool de threads, **deux au plus en vol** ; au-delà le serveur dit
+  qu'il est saturé et **n'évalue pas** le credential — dire « secret
+  incorrect » serait un autre fait, et un faux.
+
+### Vérification
+
+| Contrôle | Résultat |
+|---|---|
+| Soumission de formulaire **dans un vrai navigateur** | atteint le gestionnaire (« Demande expirée »), plus le `403` de la porte |
+| Flux complet avec `Origin` présente à chaque étape serveur-à-serveur | `register` 201 · `authorize` 302 avec `iss` · `token` Bearer · **MCP 200** · `revoke` 200 puis **401** |
+| Clé statique (chemin Codex) | **200** |
+| `stdio.mjs` | charge sans configuration OAuth, **0 référence** à `oauth.mjs` |
+| `npm test` | **347 cas, 347 réussis** |
+| Paquet | 39 fichiers, 194 101 octets, `sha256 ad169807…44e7533f`, construit deux fois à l'identique |
+
+## 6 ter. Déploiement du correctif consolidé — `ed41658`
+
+**Autorisé par Sébastien. Bascule à `2026-11-02T20:13:56Z`.**
+
+| | |
+|---|---|
+| Image | `neomundi-measurement-mcp:ed41658` |
+| Empreinte | `sha256:953d6aa49d50887bd9502e3188603a1b30d4d52be0bbe9d626ba8a5c27cde2fe` |
+| Révision | `ed41658469aceec415e2f2bcf3e2b26de4d48c97` |
+| Build | **287 cas dans l'image, 0 échec** (20 ignorés : les enregistrements que `.dockerignore` exclut) |
+
+**Transfert par bundle Git, faute de pouvoir pousser.** Le credential GitHub a
+disparu du gestionnaire du poste en cours de session. Un `git bundle` porte le
+SHA et se vérifie de l'autre côté : empreinte et taille identiques à
+l'arrivée, `git bundle verify` concluant, et `git rev-parse HEAD` rendant
+exactement le SHA autorisé. **La branche n'est toujours pas sur `origin`.**
+
+### Vérifié en production, après bascule
+
+Le défaut corrigé, d'abord — `Origin` présente sur les endpoints protocole :
+
+| Endpoint | sans `Origin` | `Origin: chatgpt.com` | `Origin: null` |
+|---|---|---|---|
+| `/oauth/token` | 401 `invalid_client` | **401** | **401** |
+| `/oauth/register` | 201 | **201** | **201** |
+| `/oauth/revoke` | 200 | **200** | **200** |
+
+Et la route navigateur, qui reste stricte :
+
+| `Origin` sur `/oauth/authorize` | Résultat |
+|---|---|
+| `https://mcp.neomundi.org` | **400** — atteint le gestionnaire |
+| `null` · `https://chatgpt.com` · `http://mcp.neomundi.org` | **403** |
+
+Page de connexion : `Referrer-Policy: same-origin`, CSP inchangée, destination
+du code **affichée** (`https://chatgpt.com`), nom du client **marqué déclaré**.
+
+Parcours complet, par le vrai chemin HTTPS :
+
+```
+1. register (Origin chatgpt.com) -> 201
+2. authorize POST (Origin = page) -> 302 | state v2 | iss https://mcp.neomundi.org
+3. token (Origin chatgpt.com)     -> Bearer | expires_in 3600 | scope measure
+   aud https://mcp.neomundi.org/mcp | sub sebastien | epoch 1
+4. wrong secret                   -> 401 | redirected: false
+5. code replay                    -> invalid_grant
+6. MCP initialize (OAuth)         -> 200 {"name":"neomundi-measurement-mcp-private","version":"0.3.0-rc.1"}
+7. tools/list                     -> 1 outil: measure_execution
+8. resources/read                 -> 19360 octets | text/html;profile=mcp-app
+9. MCP initialize (cle statique)  -> 200 (chemin Codex)
+10. revoke + jeton ensuite        -> 200 / 401
+```
+
+### Retour arrière, mis à jour
+
+Deux cibles existent désormais, et **ce sont deux états différents** :
+
+| Sauvegarde | Ramène à |
+|---|---|
+| `/root/neomundi-mcp-backup-20261102b` | **`b30d631`, OAuth actif** — l'état d'avant ce correctif |
+| `/root/neomundi-mcp-backup-20261102` | **`da71f5d`, OAuth absent** — l'état d'avant OAuth |
+
+```bash
+sudo cp -p /root/neomundi-mcp-backup-20261102b/neomundi-mcp-docker.service /etc/systemd/system/
+sudo cp -p /root/neomundi-mcp-backup-20261102b/neomundi-mcp.env /etc/neomundi-mcp.env
+sudo systemctl daemon-reload && sudo systemctl restart neomundi-mcp-docker
+```
+
+Les images `ed41658`, `b30d631` et `da71f5d` sont toutes présentes sur le VPS.
+**Ne pas lancer `docker image prune`.**
+
+## 6 quater. `form-action` — diagnostic, correctif et déploiement `89f13e0`
+
+**Autorisé par Sébastien. Bascule à `2026-11-02T21:22:23Z`.**
+
+### Le symptôme
+
+La page de connexion s'affichait, le POST partait, le serveur répondait **302**
+vers `https://chatgpt.com/connector_platform_oauth_redirect` avec une `Origin`
+correcte — et **le navigateur ne suivait pas**. Console : violation de
+`form-action 'self'`.
+
+### Provenance de la CSP, vérifiée avant toute chose
+
+Une CSP peut venir d'un proxy. Ici, non : le `Caddyfile` fait trois lignes et
+**n'ajoute aucun en-tête**, et la politique servie par l'application en direct
+est **identique octet pour octet** à celle qui arrive à travers Caddy, en **un
+seul** exemplaire. Le défaut était le nôtre.
+
+### La cause
+
+**`form-action` est contrôlée sur la destination FINALE d'une soumission,
+redirections comprises.** Le POST vers soi-même passait ; la redirection
+cross-origin qu'il produisait, non. Côté serveur, rien ne paraissait anormal.
+
+Témoin, même navigateur, une seule variable :
+
+| `form-action` servie | POST atteint le serveur | Navigateur suit le 302 |
+|---|---|---|
+| `'self'` | ✓ (302 émis, lu au journal du banc) | **non** |
+| `'self' https://chatgpt.com` | ✓ | **oui** |
+
+### Le correctif
+
+La directive nomme **une seule origine supplémentaire : celle vers laquelle
+cette demande redirigera**, dérivée du `redirect_uri` que
+`validateAuthorizationRequest` a déjà comparé en **chaîne exacte** à la liste
+signée dans le `client_id`. L'en-tête ne peut donc nommer qu'une origine que
+l'inscription autorisait déjà.
+
+`formActionSources` **refuse plutôt qu'interpole** : tout ce qui n'est pas une
+origine http(s) bien formée rend `'self'` seul. Une charge ajoutée après
+l'autorité tombe dans le *chemin* et n'atteint jamais l'en-tête — **mesuré**.
+Le réaffichage après mauvais secret porte aussi la destination, sans quoi
+c'est la **seconde** tentative qu'un navigateur aurait refusée. Les pages
+d'erreur n'ont pas de formulaire et gardent `'self'`.
+
+### Vérifié en production après bascule
+
+```
+CSP, par redirect_uri enregistré :
+  ChatGPT (le vrai)   -> form-action 'self' https://chatgpt.com
+  un autre client     -> form-action 'self' https://autre.example
+  une requête, une destination : oui | aucun joker : oui
+  page d'erreur sans formulaire : 'self'
+  reste de la politique inchangé : default-src 'none', base-uri 'none', frame-ancestors 'none'
+
+1. register                 -> 201 | auth none
+2. authorize GET            -> 200 | form-action 'self' https://chatgpt.com | destination affichée
+3. authorize POST           -> 302 | Location https://chatgpt.com/connector_platform_oauth_redirect
+                               state go | iss https://mcp.neomundi.org | code présent
+4. token                    -> Bearer | scope measure | aud .../mcp | sub sebastien
+5. mauvais secret           -> 401 | aucune redirection
+6. rejeu du code            -> invalid_grant
+7. MCP initialize (OAuth)   -> 200
+8. tools/list               -> 1 outil: measure_execution
+9. resources/read (carte)   -> 19 360 octets | text/html;profile=mcp-app | modes ["inline"]
+10. MCP (clé statique)      -> 200 (chemin Codex)
+11. revoke + jeton ensuite  -> 200 / 401
+```
+
+Image `sha256:61fa166f1b76b0df7451009fa256bc50cc13dc5f05bbb79ae9080b63e377c10f`,
+**290 cas dans l'image, 0 échec**. Transfert par bundle Git, digest et taille
+identiques à l'arrivée. Aucun fichier de mesure touché.
+
+### Retour arrière — trois cibles, trois états
+
+| Sauvegarde | Ramène à |
+|---|---|
+| `…-20261102c` | **`ed41658`** — avant ce correctif |
+| `…-20261102b` | `b30d631` — avant les classes d'origine |
+| `…-20261102` | `da71f5d` — avant OAuth |
+
+Les cinq images sont conservées. **Ne pas lancer `docker image prune`.**
 
 ## 7. Ce qui n'a pas changé
 

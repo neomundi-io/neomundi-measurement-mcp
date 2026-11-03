@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { PassThrough } from 'node:stream';
 import { runStdio } from '../stdio.mjs';
 import { jsonReply, sseReply } from './helpers.mjs';
+import { CARD_RESOURCE_URI } from '../ui/card.mjs';
 
 async function host(t, fetchImpl) {
   const input = new PassThrough(), output = new PassThrough();
@@ -130,5 +131,8 @@ test('a request still gets its answer when stdin ends immediately after it', asy
     assert.equal(byId.get(id).error, undefined, `request ${id} must not fail in transport`);
   }
   assert.equal(byId.get(2).result.tools[0].name, 'measure_execution');
-  assert.equal(byId.get(3).result.resources[0].uri, 'ui://neomundi-measurement/card-v1.html');
+  // The constant, not a copy of it: the URI is a cache key that is bumped on
+  // a breaking card change, and a literal here would turn that into a
+  // failure in an unrelated transport test.
+  assert.equal(byId.get(3).result.resources[0].uri, CARD_RESOURCE_URI);
 });

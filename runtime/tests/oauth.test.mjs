@@ -15,7 +15,7 @@ import { createHash, randomBytes } from 'node:crypto';
 import { createMcpServer } from '../server.mjs';
 import {
   MEASURE_SCOPE, OAuthConfigurationError, challengeHeader, createAuthorizationServer,
-  issueAccessToken, loadOAuthConfiguration, readRegistry, sign, verifyAccessToken,
+  formActionSources, issueAccessToken, loadOAuthConfiguration, readRegistry, sign, verifyAccessToken,
 } from '../oauth.mjs';
 import { hashSecret, participantEntry, verifySecret } from '../../scripts/participant-credential.mjs';
 import { apiMock, execution, jsonReply, syntheticMeasurement, testConfig } from './helpers.mjs';
@@ -348,13 +348,347 @@ test('the sign-in page states who is asking and what for, and loads nothing', as
     assert.match(html, /Unit test client/);
     assert.match(html, /https:\/\/mcp\.unit-test\.invalid\/mcp/);
     assert.match(html, /measure/);
-    // Nothing is fetched while a secret is being typed.
-    for (const pattern of [/https?:\/\/(?!mcp\.unit-test)/, /<script/i, /<img/i, /src\s*=/i, /@import/i]) {
-      assert.equal(pattern.test(html), false, `the page must not reference ${pattern}`);
+
+    // WHERE THE CODE GOES, and that the name is not vouched for.
+    //
+    // Registration is open, so anyone can mint a client calling itself
+    // "ChatGPT" with their own redirect URI underneath. The destination is
+    // the one field they cannot fake, because it is where the authorization
+    // code is actually sent. Showing it is what lets a person notice.
+    assert.match(html, /Retour vers/);
+    assert.match(html, /https:\/\/chatgpt\.com/, 'the redirect destination must be shown to the person signing in');
+    assert.match(html, /déclaré par le client/, 'the client name must be labelled as unverified');
+
+    // Nothing is FETCHED while a secret is being typed. A URL printed as text
+    // is not a resource reference -- the destination above is one, deliberately
+    // -- so this checks loading positions, not the presence of a string.
+    for (const pattern of [/<script/i, /<img/i, /<link/i, /\bsrc\s*=/i, /@import/i, /url\s*\(/i]) {
+      assert.equal(pattern.test(html), false, `the page must not load anything (${pattern})`);
     }
+    assert.equal(/href\s*=/i.test(html), false, 'no outbound link either: a destination is shown, never made clickable');
     assert.match(response.headers.get('content-security-policy'), /default-src 'none'/);
-    assert.equal(response.headers.get('referrer-policy'), 'no-referrer');
     assert.equal(response.headers.get('cache-control'), 'no-store');
+
+    // THIS LINE USED TO SAY `no-referrer`, AND THAT BROKE A LIVE DEPLOYMENT.
+    //
+    // Under `no-referrer` a browser serialises the `Origin` header of a
+    // form-submission navigation as the string `null` -- such a request is
+    // not CORS-tainted, so the referrer policy governs that serialisation
+    // too. The sign-in form then arrived with `Origin: null`, the origin
+    // allow-list refused it, and nobody could authenticate. Every test
+    // passed throughout, because curl and fetch both send a real Origin and
+    // neither is a browser.
+    //
+    // `same-origin` keeps the property that mattered -- the referrer reaches
+    // this origin and nowhere else -- and restores the Origin header.
+    assert.equal(response.headers.get('referrer-policy'), 'same-origin');
+    assert.notEqual(response.headers.get('referrer-policy'), 'no-referrer',
+      'no-referrer makes a browser send Origin: null on the form POST, which this server refuses');
+  } finally { await close(); }
+});
+
+test('form-action names the one destination this request will redirect to, and nothing else', async () => {
+  // THE FAILURE THIS CATCHES, measured with a control that differed in this
+  // directive alone: `form-action` is enforced against the FINAL destination
+  // of a form submission, redirects included. A successful sign-in answers
+  // the POST with a 302 to the client's redirect URI, so with `'self'` alone
+  // the POST reached the server, the 302 was emitted, and the browser
+  // silently refused to follow it. Nothing server-side looked wrong.
+  const { base, close } = await boot();
+  const pageCsp = async (redirectUri) => {
+    const { body: client } = await register(base, redirectUri);
+    const query = new URLSearchParams({
+      response_type: 'code', client_id: client.client_id, redirect_uri: redirectUri,
+      code_challenge: pkce().challenge, code_challenge_method: 'S256', scope: MEASURE_SCOPE,
+    });
+    const response = await fetch(`${base}/oauth/authorize?${query}`, { redirect: 'manual' });
+    return /form-action ([^;]+);/.exec(response.headers.get('content-security-policy'))[1];
+  };
+  try {
+    // ChatGPT's real redirect URI: its origin, and only its origin.
+    assert.equal(await pageCsp('https://chatgpt.com/connector_platform_oauth_redirect'), "'self' https://chatgpt.com");
+
+    // A DIFFERENT client gets ITS destination, not a standing allow-list that
+    // accumulates whatever anyone has ever registered.
+    const other = await pageCsp('https://other.example/cb');
+    assert.equal(other, "'self' https://other.example");
+    assert.equal(other.includes('chatgpt.com'), false, 'one request, one destination');
+
+    // The path never reaches the header, only the origin -- and a port is
+    // carried, because an origin with a port is a different origin.
+    assert.equal(await pageCsp('http://127.0.0.1:7777/cb'), "'self' http://127.0.0.1:7777");
+
+    // Checked token by token, not by substring: `https://chatgpt.com`
+    // legitimately contains the characters of a scheme-source, and a
+    // substring test on `https:` would have failed on a correct header.
+    // Every source must be `'self'` or one well-formed origin.
+    for (const redirectUri of ['https://chatgpt.com/cb', 'https://other.example/cb']) {
+      const sources = (await pageCsp(redirectUri)).split(' ');
+      assert.equal(sources.length, 2, 'exactly two sources: self, and one destination');
+      assert.equal(sources[0], "'self'");
+      assert.match(sources[1], /^https?:\/\/[a-z0-9.-]+(?::\d{1,5})?$/, 'the second source is one origin and nothing else');
+      for (const token of sources) {
+        assert.equal(['*', 'https:', 'http:', 'data:', "'unsafe-inline'", "'unsafe-eval'"].includes(token), false,
+          `${token} is a wildcard or scheme-source and must never appear`);
+      }
+    }
+  } finally { await close(); }
+});
+
+test('the destination is only ever the one registration already allowed', () => {
+  // `formActionSources` is handed the redirect URI that
+  // `validateAuthorizationRequest` matched as an EXACT STRING against the
+  // list signed into the client_id. So the header can only ever name an
+  // origin the client registered -- there is no path from a request
+  // parameter to this directive that does not pass that check first.
+  //
+  // What is tested here is the last mile: that nothing malformed, and
+  // nothing that could break out of a header, gets interpolated.
+  assert.equal(formActionSources('https://chatgpt.com/cb'), "'self' https://chatgpt.com");
+  assert.equal(formActionSources('http://127.0.0.1:8787/x'), "'self' http://127.0.0.1:8787");
+  // Refused outright rather than interpolated: the page then cannot redirect,
+  // which is visible, instead of a header that says something unintended.
+  for (const rejected of [
+    undefined, null, '', 'not-a-url', 42,
+    'javascript:alert(1)',
+    'data:text/html,x',
+    'https://a b.test/cb',
+  ]) {
+    assert.equal(formActionSources(rejected), "'self'", `${String(rejected)} must not reach the header`);
+  }
+
+  // Anything appended after the authority lands in the PATH, and the path
+  // never reaches the header -- a payload trying to close the directive is
+  // cut off by URL parsing before this function looks at anything. MEASURED,
+  // not assumed: both of these reduce to the bare origin.
+  for (const payload of ['https://evil.test/cb; form-action *', 'https://evil.test/cb\r\nX-Injected: 1']) {
+    const result = formActionSources(payload);
+    assert.equal(result, "'self' https://evil.test", 'reduced to its origin');
+    for (const character of [';', '*', '\r', '\n']) {
+      assert.equal(result.includes(character), false, `${JSON.stringify(character)} must never reach the header`);
+    }
+  }
+
+  // And why `https://evil.test` appearing there is not a hole: this function
+  // is only ever handed a redirect URI that `validateAuthorizationRequest`
+  // already matched as an EXACT STRING against the list signed into the
+  // client_id. An unregistered destination is refused before any page is
+  // rendered, which the test named "a bad client or redirect URI is NOT
+  // redirected to" holds.
+});
+
+test('an error page carries no form, and keeps the strictest form-action', async () => {
+  const { base, close } = await boot();
+  try {
+    // A bogus request blob renders "Demande expirée": no form, nothing to
+    // redirect to, so no destination is named.
+    const expired = await fetch(`${base}/oauth/authorize`, {
+      method: 'POST', redirect: 'manual',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded', Origin: new URL(base).origin },
+      body: 'request=x',
+    });
+    assert.equal(expired.status, 400);
+    assert.match(expired.headers.get('content-security-policy'), /form-action 'self';/);
+    assert.equal(/<form/i.test(await expired.text()), false);
+  } finally { await close(); }
+});
+
+test('a protocol endpoint is not gated on Origin, whether the caller sends one or not', async () => {
+  // The defect this closes is the MIRROR of the one people expect. A caller
+  // that sends NO Origin -- ChatGPT's backend -- always walked through. A
+  // caller that sends one -- a browser-based MCP client, or any host that
+  // stamps it -- was refused, on endpoints where Origin is not an access
+  // control at all. The header was blocking the honest case.
+  //
+  // What protects these is what the protocol says protects them: PKCE and the
+  // code's binding on /oauth/token, possession of the token on /oauth/revoke,
+  // and nothing on documents that exist to be public. None of them carries
+  // ambient authority, so a page calling them has no more power than curl.
+  const { base, close } = await boot();
+  const origins = [undefined, 'https://mcp.unit-test.invalid', 'https://chatgpt.com', 'https://anything.example', 'null'];
+  const header = (origin) => (origin === undefined ? {} : { Origin: origin });
+  try {
+    for (const origin of origins) {
+      const label = origin ?? 'absent Origin';
+
+      for (const path of ['/.well-known/oauth-protected-resource', '/.well-known/oauth-authorization-server']) {
+        const r = await fetch(`${base}${path}`, { headers: header(origin) });
+        assert.equal(r.status, 200, `${path} with ${label}`);
+      }
+
+      const registered = await fetch(`${base}/oauth/register`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json', ...header(origin) },
+        body: JSON.stringify({ redirect_uris: ['https://chatgpt.com/cb'] }),
+      });
+      assert.equal(registered.status, 201, `/oauth/register with ${label}`);
+
+      // Reaches the handler and is refused on its own terms -- invalid_client,
+      // not invalid_origin. That distinction is the whole test.
+      const token = await fetch(`${base}/oauth/token`, form({ grant_type: 'authorization_code', client_id: 'nope' }));
+      const tokenWithOrigin = await fetch(`${base}/oauth/token`, {
+        ...form({ grant_type: 'authorization_code', client_id: 'nope' }),
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded', ...header(origin) },
+      });
+      assert.equal(tokenWithOrigin.status, 401, `/oauth/token with ${label}`);
+      assert.equal((await tokenWithOrigin.json()).error, 'invalid_client');
+      assert.equal(token.status, 401);
+
+      const revoked = await fetch(`${base}/oauth/revoke`, {
+        ...form({ token: 'whatever' }),
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded', ...header(origin) },
+      });
+      assert.equal(revoked.status, 200, `/oauth/revoke with ${label}`);
+    }
+  } finally { await close(); }
+});
+
+test('the page endpoint is tightened, not loosened: only its own origin, and not every configured host', async () => {
+  // `/oauth/authorize` used to accept anything in the deployment's host
+  // allow-list, in either scheme. It now accepts the issuer it was served as,
+  // loopback for a local instance, or nothing at all. That is STRICTER: the
+  // plaintext form of the issuer, and any second configured host, are gone.
+  const { base, close } = await boot();
+  const post = (origin) => fetch(`${base}/oauth/authorize`, {
+    method: 'POST', redirect: 'manual',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded', ...(origin === undefined ? {} : { Origin: origin }) },
+    body: 'request=x',
+  });
+  try {
+    // Reaches the handler: its own loopback origin, and no Origin at all.
+    for (const accepted of [undefined, new URL(base).origin]) {
+      assert.equal((await post(accepted)).status, 400, `${accepted ?? 'absent'} must reach the handler`);
+    }
+    // Refused, including the ones the old shared gate would have let through.
+    for (const refused of [
+      'null',
+      'https://chatgpt.com',
+      'https://attacker.test',
+      'http://mcp.unit-test.invalid',
+      `https://${new URL(base).host}`,
+    ]) {
+      assert.equal((await post(refused)).status, 403, `${refused} must be refused`);
+    }
+  } finally { await close(); }
+});
+
+test('the MCP endpoint keeps the gate it always had, unchanged', async () => {
+  // Nothing in this correction may touch the route the MCP specification's
+  // DNS-rebinding concern is about.
+  const { base, close } = await boot();
+  const call = (origin) => fetch(`${base}/mcp`, {
+    method: 'POST',
+    headers: {
+      Accept: 'application/json, text/event-stream', 'Content-Type': 'application/json',
+      ...(origin === undefined ? {} : { Origin: origin }),
+    },
+    body: JSON.stringify(INITIALIZE()),
+  });
+  try {
+    for (const refused of ['https://chatgpt.com', 'https://attacker.test', 'null']) {
+      const r = await call(refused);
+      assert.equal(r.status, 403, refused);
+      assert.deepEqual(await r.json(), { error: 'invalid_origin' }, 'and still machine-readable');
+    }
+    // Its own loopback origin and an absent Origin get past the gate, and are
+    // then refused by the CREDENTIAL check -- 401, not 403.
+    for (const accepted of [undefined, new URL(base).origin]) {
+      assert.equal((await call(accepted)).status, 401, `${accepted ?? 'absent'} must reach the credential gate`);
+    }
+  } finally { await close(); }
+});
+
+test('a flood of wrong secrets is refused without lying, and without evaluating the credential', async () => {
+  // Verification costs real CPU on purpose. It now runs in the thread pool
+  // instead of on the event loop -- a 50 ms block per attempt froze
+  // measurements in flight -- and the number in flight is capped. Over the
+  // cap the server says it is saturated; it must NOT say the secret was
+  // wrong, because it never looked.
+  const { base, close } = await boot();
+  try {
+    const { body: client, redirectUri } = await register(base);
+    const query = new URLSearchParams({
+      response_type: 'code', client_id: client.client_id, redirect_uri: redirectUri,
+      code_challenge: pkce().challenge, code_challenge_method: 'S256', scope: MEASURE_SCOPE,
+    });
+    const html = await (await fetch(`${base}/oauth/authorize?${query}`)).text();
+    const request = /name="request" value="([^"]+)"/.exec(html)[1];
+
+    const attempt = () => fetch(`${base}/oauth/authorize`, form({ request, participant: 'alpha', secret: 'faux' }));
+    const results = await Promise.all(Array.from({ length: 12 }, attempt));
+    const statuses = results.map((r) => r.status);
+
+    // Every answer is one of exactly two things, and never a success.
+    assert.ok(statuses.every((s) => s === 401 || s === 503), `unexpected statuses: ${[...new Set(statuses)]}`);
+    assert.equal(statuses.includes(302), false, 'no flood may produce an authorization code');
+
+    const saturated = results.filter((r) => r.status === 503);
+    for (const response of saturated) {
+      const body = await response.text();
+      assert.match(body, /saturé/);
+      // The apostrophe is HTML-escaped on the way out, so match around it.
+      assert.match(body, /pas été évalué/, 'a saturation answer must not be dressed up as a wrong secret');
+      assert.equal(/incorrect/.test(body), false, 'and must not claim the credential was wrong');
+    }
+    // And the real credential still works once the flood is over.
+    const ok = await authorizeTo(base, {
+      clientId: client.client_id, redirectUri, challenge: pkce().challenge,
+      participant: 'alpha', secret: SECRET_ALPHA,
+    });
+    assert.equal(ok.status, 302);
+  } finally { await close(); }
+});
+
+test('the origin gate still refuses what it should, including the null origin the bug produced', async () => {
+  // The fix must not have widened anything. `null` is what a sandboxed frame
+  // sends too, so accepting it would have been a real relaxation -- the point
+  // is that a correctly served page no longer produces it.
+  const { base, close } = await boot();
+  const post = (origin) => fetch(`${base}/oauth/authorize`, {
+    method: 'POST', redirect: 'manual',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded', ...(origin === undefined ? {} : { Origin: origin }) },
+    body: 'request=x',
+  });
+  try {
+    for (const refused of ['null', 'https://chatgpt.com', 'https://attacker.test', `http://evil.${new URL(base).host}`]) {
+      const response = await post(refused);
+      assert.equal(response.status, 403, `${refused} must be refused`);
+    }
+    // The server's own origin, and a request with no Origin at all, reach the
+    // handler -- which then refuses the bogus blob on its own terms, with 400
+    // and not 403.
+    for (const accepted of [undefined, new URL(base).origin]) {
+      const response = await post(accepted);
+      assert.equal(response.status, 400, `${accepted ?? 'absent Origin'} must reach the handler`);
+    }
+  } finally { await close(); }
+});
+
+test('a refused origin on an OAuth route explains itself instead of answering a page of JSON', async () => {
+  // Not a relaxation: still 403, still refused. The user who met this on
+  // 2026-11-02 saw `{"error":"invalid_origin"}` rendered as a page, naming a
+  // header they could not see on a request they did not know had one.
+  const { base, close } = await boot();
+  try {
+    const browser = await fetch(`${base}/oauth/authorize`, {
+      method: 'POST', redirect: 'manual',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded', Origin: 'null' },
+      body: 'request=x',
+    });
+    assert.equal(browser.status, 403);
+    assert.match(browser.headers.get('content-type'), /text\/html/);
+    const html = await browser.text();
+    assert.match(html, /origine/i);
+    assert.match(html, /origine absente|null/);
+
+    // The MCP endpoint keeps the machine-readable refusal: it is not a
+    // browser surface, and a JSON client should not have to parse HTML.
+    const api = await fetch(`${base}/mcp`, {
+      method: 'POST',
+      headers: { Origin: 'https://attacker.test', Accept: 'application/json, text/event-stream', 'Content-Type': 'application/json' },
+      body: JSON.stringify(INITIALIZE()),
+    });
+    assert.equal(api.status, 403);
+    assert.deepEqual(await api.json(), { error: 'invalid_origin' });
   } finally { await close(); }
 });
 
@@ -371,6 +705,9 @@ test('an unknown participant, a wrong secret and a suspended access are indistin
       assert.equal(result.status, 401, `${participant} must not be let in`);
       assert.equal(result.location, null, 'a failed sign-in redirects nowhere, so no code leaves');
       messages.add(/<p class="error">([^<]+)<\/p>/.exec(result.body)?.[1]);
+      // The re-render must keep the destination too, otherwise the SECOND
+      // attempt is the one a browser refuses to follow.
+      assert.match(result.page.headers.get('content-security-policy') ?? '', /form-action 'self'/);
     }
     assert.equal(messages.size, 1, `three different failures produced ${messages.size} different messages`);
   } finally { await close(); }

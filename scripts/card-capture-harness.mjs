@@ -42,7 +42,7 @@ const SYNTHETIC_ID = 'synthetique-aucun-appel-reel';
  */
 export const MEASURED = {
   adapter_error: null,
-  measurement_reference: { agreement: 'divergent', divergence_scope: 'sse_only' },
+  measurement_reference: { agreement: 'divergent', divergence_scope: null },
   presentation: {
     request_id: SYNTHETIC_ID,
     timestamp: '2026-11-01T00:00:00Z',
@@ -82,7 +82,14 @@ export const MEASURED = {
     model: 'mistral24b',
     provider: 'infomaniak',
     version_agreement: 'divergent',
-    version_scope: 'sse_only',
+    // The established statement, in the shape `reference.mjs` publishes it:
+    // per transport, never collapsed into one verdict.
+    version_scope: {
+      rest: 'identical',
+      sse: 'decision_may_differ',
+      summary: 'On the REST path the two versions are declared identical, so a series may be continued across them. On the streaming path the trajectory rules changed.',
+      unchanged_by_the_bump: 'Slicing invariance. The published series still varies with the network framing under both versions.',
+    },
     published_values: {
       'quality.coherence_score': 0.82,
       'metrics.semantic_instability_score': 0.17,
@@ -147,7 +154,40 @@ export const NO_CHECK = {
   },
 };
 
-export const PAYLOADS = Object.freeze({ measured: MEASURED, 'no-check': NO_CHECK });
+/** A measurement the instrument could only half see: one signal unmeasured
+ * with its cause, required signals missing, several fields returned null.
+ * This is the state a pasted answer with no prompt actually produces.
+ */
+export const PARTIAL = JSON.parse(JSON.stringify(MEASURED));
+PARTIAL.presentation.measurement_status = 'partial';
+PARTIAL.presentation.checks_succeeded = 2;
+PARTIAL.presentation.missing_required_signals = ['factual_hallucination_score'];
+PARTIAL.presentation.unmeasured = {
+  factual_hallucination_score: { cause: 'no_reference_supplied' },
+  stability_score: { cause: 'aggregate_withheld' },
+};
+delete PARTIAL.presentation.measured_signals.factual_hallucination_score;
+PARTIAL.presentation.coverage = null;
+PARTIAL.presentation.confidence_basis = null;
+PARTIAL.presentation.caveats = [
+  'Une mesure ne donne aucune autorisation d execution.',
+  'Sans prompt ni reference, l ancrage factuel ne peut pas etre evalue.',
+];
+
+/** A call that did not complete. Nothing on the card may read as a result. */
+export const ERROR = {
+  adapter_error: {
+    code: 'upstream_http_error',
+    message: 'The measurement service answered 502 and no measurement was produced.',
+    upstream: { classification: 'transport', billable: 'unknown', retry: 'not_attempted' },
+  },
+  measurement_reference: { agreement: 'not_declared', divergence_scope: null },
+  presentation: null,
+};
+
+export const PAYLOADS = Object.freeze({
+  measured: MEASURED, partial: PARTIAL, 'no-check': NO_CHECK, error: ERROR,
+});
 
 /** Inserts the host bridge before the card's own script, without touching a
  * byte of the card. The anchor is the root element the card creates; the

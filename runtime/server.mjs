@@ -5,7 +5,7 @@ import { loadConfiguration } from './config.mjs';
 import { isObject, owns, parseInputJson, scalar, toolDefinition } from './contract.mjs';
 import { measureExecution } from './adapter.mjs';
 import { CARD_RESOURCE_URI, cardResource } from './ui/card.mjs';
-import { MEASURE_SCOPE, challengeHeader, createAuthorizationServer, loadOAuthConfiguration } from './oauth.mjs';
+import { MEASURE_SCOPE, challengeHeader, createAuthorizationServer, loadOAuthConfiguration, originPolicy, originRefusedPage, pageOrigins } from './oauth.mjs';
 
 export const SUPPORTED_PROTOCOLS = Object.freeze(['2025-06-18', '2025-03-26']);
 const digest = (value) => createHash('sha256').update(value).digest();
@@ -108,15 +108,36 @@ export function createMcpServer({ config, oauth = { enabled: false }, registryRe
       ...loopbackHosts.map((host) => `http://${host}`),
       ...configuredHosts.flatMap((host) => [`https://${host}`, `http://${host}`]),
     ]);
-    if (origin !== undefined && !origins.has(origin)) {
-      send(response, 403, { error: 'invalid_origin' }); return;
+    const pathname = new URL(request.url, 'http://host.invalid').pathname;
+    // Three route classes, three rules. See `originPolicy` for why they are
+    // not the same rule: a protocol endpoint, a page that carries a secret,
+    // and a JSON-RPC API are protected by different things, and giving them
+    // one shared Origin gate both blocked the honest caller and protected
+    // nothing the protocol did not already protect.
+    const policy = authorizationServer ? originPolicy(pathname) : 'api';
+    if (policy !== 'protocol' && origin !== undefined) {
+      const accepted = policy === 'page' ? pageOrigins(oauth, loopbackHosts) : origins;
+      if (!accepted.has(origin)) {
+        // Refused either way. The only difference is that a person who
+        // arrived through a browser is told why: answering a browser with a
+        // page of JSON naming a header they cannot see is how a deployment
+        // looks broken without saying what broke.
+        if (policy === 'page') {
+          response.writeHead(403, {
+            'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff',
+            'Content-Type': 'text/html; charset=utf-8',
+          });
+          response.end(originRefusedPage(origin));
+          return;
+        }
+        send(response, 403, { error: 'invalid_origin' }); return;
+      }
     }
     // The OAuth surface sits IN FRONT of the credential gate, and has to.
     // Every one of its routes is something a client reads before it holds any
     // credential at all: the discovery documents, the registration endpoint,
     // the sign-in page, the token endpoint. Putting the bearer check in front
     // of them is precisely what made OAuth impossible here.
-    const pathname = new URL(request.url, 'http://host.invalid').pathname;
     if (authorizationServer && await authorizationServer.handle(request, response, pathname)) return;
 
     const authCount = request.rawHeaders.filter((_entry, i) => i % 2 === 0 && request.rawHeaders[i].toLowerCase() === 'authorization').length;
