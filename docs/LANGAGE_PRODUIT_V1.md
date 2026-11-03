@@ -106,6 +106,41 @@ exactement la faute que les limites existent pour empêcher.
 
 ---
 
+## 2 bis. Ce qui autorise une valeur à répondre à la question
+
+> **L'autorité est l'évaluateur, jamais la présence du nombre.**
+
+L'instance publie une valeur à `quality.<signal>` **même quand le contrôle n'a
+jamais tourné**. Sur les deux réponses enregistrées dont le fondement est
+`no_check_attempted`, `coherence_score` vaut **1,0** et `semantic_risk` vaut
+**0,0**, leurs évaluateurs déclarent `not_attempted`, et `unmeasured_signals`
+est **vide**. Le code du backend le dit de lui-même : quand la modération n'a
+pas tourné, le champ *« conserve le `raw_metrics.semantic_risk` déclaré par le
+client — cette valeur est l'entrée de l'appelant, pas une mesure du serveur »*.
+
+Affichées, ces deux valeurs répondaient *« la réponse est-elle en rapport avec
+la question ? »* par un score parfait, et *« contient-elle des éléments
+potentiellement dangereux ? »* par un zéro propre, **sur une réponse que rien
+n'avait examinée** — juste sous un anneau vide qui disait le contraire.
+
+L'état d'une lecture est donc pris dans `evaluators[<signal>].status` :
+
+| État | Condition | Ce que la carte montre |
+|---|---|---|
+| `measured` | l'évaluateur déclare `measured` **et** une valeur est publiée | **la valeur**, zéro compris |
+| `not_measured` | l'évaluateur existe et n'a pas mesuré — `not_measured`, `not_attempted`, une erreur, ou un statut à côté d'un `null` | **« Non mesuré »** et la cause |
+| `undeclared` | aucun évaluateur ne nomme ce signal | **« Non mesuré »**, et que rien ne l'atteste |
+
+**Rien n'est effacé.** `declared_value` conserve ce que l'instance a publié :
+un inspecteur voit toujours l'entrée de l'appelant pour ce qu'elle est. Elle
+n'est simplement pas autorisée à répondre à la question comme si NeoMundi
+l'avait mesurée.
+
+**Un zéro mesuré reste une mesure.** `semantic_risk` vaut `0.0` avec son
+évaluateur à `measured` sur toutes les réponses nominales : ce zéro est un
+**résultat**. Retenir une valeur non attestée ne doit jamais se mettre à
+retenir une vraie.
+
 ## 3. Rigueur : ce qui est tenu par un test
 
 | Règle | Comment elle est tenue |
@@ -115,6 +150,9 @@ exactement la faute que les limites existent pour empêcher.
 | Aucune valeur n'est remise à l'échelle, arrondie ni reformatée | un test compare la valeur de la carte à `quality.<signal>` de la réponse, sur les onze enregistrements |
 | L'indicateur global n'est pas un cinquième signal | un test vérifie qu'il est **hors** des lectures, et qu'il porte **les deux** échelles opposées |
 | Le vocabulaire ne prononce aucun verdict | la garde reste en place ; **une** clé est exemptée, celle de la sécurité, et elle doit rester **une question** dans les deux langues |
+| Aucune valeur non attestée n'est affichée | deux tests sur les deux réponses `no_check_attempted` : état `not_measured`, valeur `null`, et **ni 0 ni 1** |
+| Aucun score de l'appelant ne passe pour une mesure | un test parcourt les onze enregistrements : toute lecture affichée a un évaluateur à `measured` |
+| Un zéro mesuré survit à la règle ci-dessus | le même test exige au moins deux zéros mesurés réellement exercés, sinon il tombe |
 | La carte est exercée contre la forme réellement émise | les tests de lecture tournent sur les **onze** enregistrements, pas sur une charge écrite à la main |
 
 **Ce que ces règles ne donnent pas.** Aucune de ces cinq lectures n'est une
