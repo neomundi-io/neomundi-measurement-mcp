@@ -27,7 +27,7 @@ import { AGREEMENT } from '../reference.mjs';
 import { presentation } from '../presentation.mjs';
 import { toolDefinition } from '../contract.mjs';
 import {
-  CARD_SCHEMA, DEFAULT_LANGUAGE, LABELS, LANGUAGES, READING_KEYS, WEATHER, WEATHER_RULES,
+  CARD_SCHEMA, DEFAULT_LANGUAGE, LABELS, LANGUAGES, READING_KEYS, READING_STATE, WEATHER, WEATHER_RULES,
   buildCardModel, label, weatherState,
 } from '../ui/view-model.mjs';
 import {
@@ -595,15 +595,136 @@ test('the reading list is closed, and matches the signals the aid watches', () =
 });
 
 test('no reading value is rescaled, rounded or reformatted', { skip }, () => {
+  // Fidelity is asserted on `declared_value`, which carries what the instance
+  // published whatever its state, and separately on `value`, which carries it
+  // ONLY when an evaluator attests the measurement. Asserting fidelity on
+  // `value` alone would have required the card to display an unattested
+  // number, which is the defect this suite now forbids.
+  const view = (x) => (x === null || x === undefined ? null : JSON.parse(JSON.stringify(x)));
   for (const name of resolved.captures) {
     const response = recorded(name);
     const model = buildCardModel(envelope(response));
     for (const r of model.primary.readings) {
-      const raw = (response.quality ?? {})[r.signal];
-      const expected = raw === null || raw === undefined ? null : JSON.parse(JSON.stringify(raw));
-      const got = r.value === undefined ? null : JSON.parse(JSON.stringify(r.value));
-      assert.deepEqual(got, expected,
+      const raw = view((response.quality ?? {})[r.signal]);
+      assert.deepEqual(view(r.declared_value), raw,
         `${name}: ${r.signal} was altered between the response and the card`);
+      if (r.state === READING_STATE.MEASURED) {
+        assert.deepEqual(view(r.value), raw,
+          `${name}: ${r.signal} is measured, so the shown value must be the published one`);
+      } else {
+        assert.equal(r.value, null,
+          `${name}: ${r.signal} is ${r.state}, so no value may be shown`);
+      }
     }
   }
+});
+
+// --------------- a value is a measurement only when an evaluator says so
+//
+// THE DEFECT THESE TWO TESTS CLOSE. The instance publishes a number at
+// `quality.<signal>` even when the check never ran. On the two recorded
+// responses whose basis is `no_check_attempted`, `coherence_score` is 1.0 and
+// `semantic_risk` is 0.0 while both evaluators report `not_attempted` and
+// `unmeasured_signals` is EMPTY -- so there is no cause to find and nothing
+// marks them. The upstream code is explicit about the second one: when
+// moderation never ran, the field "keeps the client-declared
+// raw_metrics.semantic_risk -- that value is the caller's own input, not a
+// server measurement".
+//
+// Displayed as readings, those two answer "is the answer related to the
+// question?" with a perfect score and "does it contain dangerous material?"
+// with a clean zero, about an answer nothing ever examined, directly beneath
+// an empty sky saying the opposite. That is the failure the whole card exists
+// to prevent, in its most reassuring possible form.
+
+test('a published value with no measuring evaluator is never shown as a reading', { skip }, () => {
+  // Driven by the two real responses that carry the defect, not by a payload
+  // written to match the fix.
+  for (const name of ['tier02_04_aucun_controle.json', 'tier02_09_metriques_minimales.json']) {
+    const response = recorded(name);
+    const model = buildCardModel(envelope(response));
+
+    for (const signal of ['coherence_score', 'semantic_risk']) {
+      // `parseApiJson` keeps each number's original JSON spelling by wrapping
+      // it, so a raw value is normalised before any comparison.
+      const raw = JSON.parse(JSON.stringify((response.quality ?? {})[signal] ?? null));
+      // The premise: the instance really did publish a number here.
+      assert.notEqual(raw, null, `${name}: ${signal} premise changed — no value published`);
+      // And no evaluator attests it.
+      const evaluator = model.secondary.evaluators.find((e) => e.signal === signal);
+      assert.notEqual(evaluator.status.value, 'measured',
+        `${name}: ${signal} premise changed — the evaluator now reports measured`);
+
+      const reading = model.primary.readings.find((r) => r.signal === signal);
+      assert.equal(reading.state, READING_STATE.NOT_MEASURED, `${name}: ${signal} state`);
+      assert.equal(reading.published, false, `${name}: ${signal} was shown as published`);
+      assert.equal(reading.value, null, `${name}: ${signal} showed a value`);
+      // NOT a zero, and not the default either: the two numbers that caused
+      // this are 1.0 and 0.0, and neither may reach the reading.
+      assert.notEqual(reading.value, 0);
+      assert.notEqual(reading.value, 1);
+      // Nothing is erased: what the instance published stays readable.
+      assert.equal(reading.declared_value, raw, `${name}: ${signal} lost the published value`);
+    }
+
+    // And the card says WHY, in both languages, rather than leaving a blank.
+    for (const language of LANGUAGES) {
+      const said = label('read_unattested', language);
+      assert.ok(said.length > 0);
+      assert.match(said, /measur|mesur/i);
+    }
+  }
+});
+
+test('a measured zero stays a measurement, and the caller never supplies one', { skip }, () => {
+  // The other half of the invariant. Withholding unattested values must not
+  // start withholding real ones: `semantic_risk` is 0.0 on every nominal
+  // recording, measured, and a zero there is a RESULT.
+  let zeros = 0;
+  for (const name of resolved.captures) {
+    const response = recorded(name);
+    const model = buildCardModel(envelope(response));
+    for (const r of model.primary.readings) {
+      const evaluator = model.secondary.evaluators.find((e) => e.signal === r.signal);
+      const attested = evaluator !== undefined && evaluator.status.value === 'measured';
+      const raw = JSON.parse(JSON.stringify((response.quality ?? {})[r.signal] ?? null));
+
+      if (attested && raw !== null && raw !== undefined) {
+        assert.equal(r.state, READING_STATE.MEASURED, `${name}: ${r.signal} lost its measured state`);
+        assert.equal(r.published, true, `${name}: ${r.signal} is measured but was withheld`);
+        assert.equal(r.value, raw, `${name}: ${r.signal} is measured but its value changed`);
+        if (raw === 0) zeros++;
+      }
+    }
+  }
+  // The guard is worthless if no recording exercises it.
+  assert.ok(zeros >= 2, `only ${zeros} measured zeros exercised; the preservation rule is untested`);
+
+  // POINT 7, stated as an assertion rather than as a comment: across every
+  // recording, a value the card presents as a NeoMundi reading is always one
+  // its evaluator reports as measured. There is therefore no path by which a
+  // caller-declared score is presented as a measurement.
+  for (const name of resolved.captures) {
+    const model = buildCardModel(envelope(name === null ? {} : recorded(name)));
+    for (const r of model.primary.readings.filter((x) => x.published)) {
+      const evaluator = model.secondary.evaluators.find((e) => e.signal === r.signal);
+      assert.equal(evaluator?.status.value, 'measured',
+        `${name}: ${r.signal} is presented as a reading without a measuring evaluator`);
+    }
+  }
+});
+
+test('a signal with no evaluator record is undeclared, not measured', () => {
+  // Distinct from `not_measured`: nothing attests the number either way, and
+  // the card must not collapse the two into one sentence.
+  const model = buildCardModel(synthetic({
+    evaluators: [],
+    signal_readings: [{ signal: 'coherence_score', path: 'quality.coherence_score', value: 0.91 }],
+  }));
+  const reading = model.primary.readings.find((r) => r.signal === 'coherence_score');
+  assert.equal(reading.state, READING_STATE.UNDECLARED);
+  assert.equal(reading.published, false);
+  assert.equal(reading.value, null);
+  assert.equal(reading.declared_value, 0.91);
+  for (const language of LANGUAGES) assert.ok(label('read_undeclared', language).length > 0);
 });

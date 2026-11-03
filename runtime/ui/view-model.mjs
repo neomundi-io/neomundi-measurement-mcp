@@ -258,6 +258,19 @@ export const LABELS = Object.freeze({
     en: 'Not measured. An absence is not a favourable result, and it is not a zero.',
     fr: 'Non mesuré. Une absence n’est pas un résultat favorable, et ce n’est pas un zéro.',
   },
+  // Said when the instance published a number for this signal while no
+  // evaluator attests it was measured. The number is not shown: on the
+  // recorded no-check responses it is the engine's own default, or the value
+  // the CALLER sent, and either would answer the question as a NeoMundi
+  // measurement without one having been made.
+  read_unattested: {
+    en: 'Not measured. The instance published a value here, but no evaluator reports having measured it, so it is not shown as a reading.',
+    fr: 'Non mesuré. L’instance a publié une valeur ici, mais aucun évaluateur ne déclare l’avoir mesurée : elle n’est donc pas affichée comme une lecture.',
+  },
+  read_undeclared: {
+    en: 'Not measured. No evaluator was declared for this signal, so nothing attests what the published value is.',
+    fr: 'Non mesuré. Aucun évaluateur n’est déclaré pour ce signal : rien n’atteste ce que vaut la valeur publiée.',
+  },
   signals_none_unmeasured: {
     en: 'No signal was declared unmeasured.',
     fr: 'Aucun signal n’est déclaré non mesuré.',
@@ -334,6 +347,23 @@ export function label(key, language = DEFAULT_LANGUAGE) {
  * The four keys are the four `AID_REFERENCE.SEMANTIC_SIGNALS`, and the test
  * suite fails if the two lists ever diverge.
  */
+/** What a reading is, as a state rather than as a guess from its value.
+ *
+ * `measured`    the evaluator reported `measured` AND a value is published.
+ *               The value is shown, including a zero.
+ * `not_measured` the evaluator exists and did not measure -- `not_measured`,
+ *               `not_attempted`, an error, or a status beside a null value.
+ *               The value is withheld and the cause is named.
+ * `undeclared`  no evaluator record names this signal, so nothing attests the
+ *               number. Withheld too, and said to be undeclared rather than
+ *               absent: those are different facts.
+ */
+export const READING_STATE = Object.freeze({
+  MEASURED: 'measured',
+  NOT_MEASURED: 'not_measured',
+  UNDECLARED: 'undeclared',
+});
+
 export const READING_KEYS = Object.freeze({
   coherence_score: Object.freeze({
     question: 'read_relevance_q', scale: 'read_relevance_scale', limit: 'read_relevance_limit',
@@ -571,19 +601,59 @@ export function buildCardModel(output) {
     const hit = unmeasured.find((entry) => entry.name === name);
     return hit ? hit.cause : null;
   };
+  const evaluatorFor = (name) => evaluators.find((entry) => entry.signal === name) ?? null;
   const sourceReadings = Array.isArray(p.signal_readings)
     ? p.signal_readings.map((entry) => [isObject(entry) ? entry.signal : null, isObject(entry) ? entry.value : null])
     : isObject(p.signal_readings) ? Object.entries(p.signal_readings) : [];
   for (const [signal, value] of sourceReadings) {
     const keys = READING_KEYS[signal];
     if (!keys) continue;
+    const evaluator = evaluatorFor(signal);
+    const hasValue = value !== null && value !== undefined;
+    // THE AUTHORITY ON WHETHER A NUMBER IS A MEASUREMENT IS THE EVALUATOR,
+    // NEVER THE PRESENCE OF THE NUMBER.
+    //
+    // The instance publishes a value at `quality.<signal>` even when the check
+    // never ran. On both recorded responses whose basis is
+    // `no_check_attempted`, `coherence_score` is 1.0 and `semantic_risk` is
+    // 0.0 while their evaluators report `not_attempted` and
+    // `unmeasured_signals` is empty. The upstream code says so in its own
+    // words: when moderation never ran, the field "keeps the client-declared
+    // raw_metrics.semantic_risk -- that value is the caller's own input, not a
+    // server measurement".
+    //
+    // So 1.0 there is the engine's no-credit default and 0.0 is whatever the
+    // CALLER declared. Rendering either as a reading would answer "is the
+    // answer related to the question?" with a perfect score, and "does it
+    // contain dangerous material?" with a clean zero, about an answer nothing
+    // ever examined -- under an empty sky saying the opposite. The number is
+    // more specific than the picture, so the number is what a reader believes.
+    const state = evaluator === null
+      ? READING_STATE.UNDECLARED
+      : evaluator.status.value === 'measured' && hasValue
+        ? READING_STATE.MEASURED
+        : READING_STATE.NOT_MEASURED;
+    const measured = state === READING_STATE.MEASURED;
     readings.push({
       signal,
+      state,
       question_key: keys.question,
       scale_key: keys.scale,
       limit_key: keys.limit,
-      ...row(keys.question, value ?? null),
-      cause: value === null || value === undefined ? causeOf(signal) : null,
+      // A measured zero is a MEASUREMENT and stays one: `semantic_risk` is 0.0
+      // on every nominal recording with its evaluator reporting `measured`.
+      // Only an unattested value is withheld, and withholding is not
+      // substitution: nothing becomes zero, here or anywhere.
+      ...row(keys.question, measured ? value : null),
+      // Nothing is erased. What the instance published stays readable, so an
+      // inspector can see the caller's own declared input for what it is --
+      // it is simply not allowed to answer the question as if NeoMundi had
+      // measured it.
+      declared_value: hasValue ? value : null,
+      cause: measured
+        ? null
+        : causeOf(signal)
+          ?? (evaluator === null ? null : evaluator.reason.value ?? evaluator.status.value),
     });
   }
 

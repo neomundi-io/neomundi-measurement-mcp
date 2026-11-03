@@ -1,3 +1,16 @@
+# Current scope — a reading is a measurement only when an evaluator says so, 3 November 2026
+
+This addendum takes precedence over every entry below it.
+
+- **ML-022 is closed. A published value with no measuring evaluator is no longer shown as a reading.** The instance publishes a number at `quality.<signal>` even when the check never ran. On both recorded responses whose basis is `no_check_attempted`, `coherence_score` is **1.0** and `semantic_risk` is **0.0** while both evaluators report `not_attempted` and `unmeasured_signals` is **empty** — so no cause existed to mark them. The upstream code is explicit about the second: when moderation never ran the field "keeps the client-declared `raw_metrics.semantic_risk` — that value is the caller's own input, not a server measurement". Displayed as readings, those two answered *is the answer related to the question?* with a perfect score and *does it contain dangerous material?* with a clean zero, about an answer nothing had examined, directly beneath an empty sky saying the opposite. **A reading's state is now taken from `evaluators[<signal>].status`, never from the presence of a number.** Three states: `measured` (the value is shown, including a zero), `not_measured` (withheld, cause named), `undeclared` (no evaluator record attests it). Nothing is erased: `declared_value` keeps what the instance published, so an inspector still sees the caller's own input for what it is.
+- **The defect was introduced into VIEW by PR #22 and was LATENT before it.** Until 3 November no signal value was displayed at all, so the four unattested numbers were invisible. Making values visible made them dangerous. This is recorded because the sequence matters: the earlier change was correct and incomplete, not wrong.
+- **Measured zeros are preserved, and that is asserted rather than assumed.** `semantic_risk` is `0.0` with its evaluator reporting `measured` on every nominal recording; a zero there is a RESULT. Across the 11 recordings: **44 readings, 27 shown, 17 withheld, 4 changed by this correction, 15 measured zeros preserved, 0 invariant violations.**
+- **No caller-supplied score can be presented as a NeoMundi measurement.** Asserted test-side across every recording: a reading the card presents always has an evaluator reporting `measured`. The companion question — whether a supplied `raw_metrics.semantic_risk` can move the signal when moderation DID run — is answered by the served backend code: `effective_risk` takes the moderation override whenever one exists, and the override is absent only when moderation did not run, which is now the withheld case.
+- No change to the API, the engine, the thresholds, the decisions, the scores, the evaluators, the calculation rules or OAuth. Offline suite: **366 passed, 0 failed, 0 skipped** with the recordings present; **306 / 280 passed / 26 skipped** without them.
+- **Still not verified: the card inside ChatGPT.** Neither this change nor PR #22 has been seen in the host. Every proof here is local.
+
+---
+
 # Current scope — 0.3.0-rc.1 in production, 1 November 2026
 
 This addendum takes precedence over every entry below it.

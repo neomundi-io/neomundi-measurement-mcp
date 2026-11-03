@@ -312,7 +312,15 @@ function readings(parent, list) {
     if (r.published) {
       b.appendChild($('div', t('read_scale') + ' · ' + t(r.scale_key), 'sc'));
     } else {
-      b.appendChild($('div', t('read_not_measured'), 'sc'));
+      // Three ways not to be a measurement, and they are not the same fact.
+      // A value the instance published with nothing attesting it gets the
+      // sentence that says so, rather than the plain absence sentence: a
+      // reader who later sees that number in the raw output must be able to
+      // tell why it was not used.
+      var why = r.state === 'undeclared' ? 'read_undeclared'
+        : (r.declared_value !== null && r.declared_value !== undefined) ? 'read_unattested'
+          : 'read_not_measured';
+      b.appendChild($('div', t(why), 'sc'));
       if (r.cause !== null && r.cause !== undefined) {
         b.appendChild($('div', t('signal_cause') + ': ' + String(r.cause), 'sc'));
       }

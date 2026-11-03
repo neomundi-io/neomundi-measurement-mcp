@@ -82,6 +82,20 @@ pas.
 `judge_unavailable`, `aggregate_withheld`… — et sa case dit en toutes lettres
 qu'une absence n'est pas un résultat favorable.
 
+> ### Pourquoi une case peut dire « Non mesuré » alors qu'un nombre existe
+>
+> L'instrument publie parfois une valeur **sans l'avoir mesurée**. Quand aucun
+> contrôle n'a tourné, la pertinence sort à `1,0` — un réglage interne, pas une
+> observation — et la sécurité à `0,0`, qui est **la valeur transmise par
+> l'appelant**, pas un relevé.
+>
+> La carte ne les affiche donc pas. Elle écrit : *« l'instance a publié une
+> valeur ici, mais aucun évaluateur ne déclare l'avoir mesurée »*. **Un score
+> parfait que personne n'a mesuré est plus trompeur qu'une case vide.**
+>
+> La valeur n'est pas perdue : elle reste dans la sortie que l'assistant
+> reçoit, et dans le dépliant technique.
+
 **Une absence n'est jamais remplacée par un zéro.** C'est la règle qui compte
 le plus : un signal non mesuré et un signal mesuré à zéro sont deux faits
 différents, et la carte ne les confond jamais. La modération publie `0` pour un
