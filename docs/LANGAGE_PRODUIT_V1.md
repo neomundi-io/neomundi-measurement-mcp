@@ -2,6 +2,13 @@
 
 **Décision produit validée le 3 novembre 2026.**
 
+> **Périmètre gelé le 3 novembre 2026.** Ce document décrit les cinq lectures ;
+> `V1_PERIMETRE_GELE.md` décrit ce que la V1 fait et ne fait pas, et **prime en
+> cas de désaccord**. Deux points à retenir ici : `token_count` et `latency_ms`
+> restent **obligatoires** — l'exigence est celle de l'API, et ils ne sont
+> jamais comblés — et la mesure d'un contenu **collé**, sans exécution
+> observée, est en **backlog BL-V1-001**, pas dans la V1.
+
 > **Une question simple, une mesure réelle, une limite claire.**
 
 Ce document est la référence. La carte, le modèle de vue et les tests sont
