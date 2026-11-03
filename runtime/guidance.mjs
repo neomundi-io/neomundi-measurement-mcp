@@ -111,6 +111,31 @@ const SEMANTIC_SIGNALS = Object.freeze([
   'coherence_score', 'semantic_risk', 'factual_hallucination_score', 'semantic_instability_score',
 ]);
 
+/** Where each watched semantic signal publishes its own value.
+ *
+ * WHY THIS EXISTS. `AGGREGATE_PATHS` holds the aggregates and `SIGNAL_DERIVED`
+ * holds `v_score`. Neither holds the four signals themselves, so until now the
+ * projection carried no per-signal value at all and a reader could see which
+ * signals ran without ever seeing what they measured.
+ *
+ * ESTABLISHED, NOT ASSUMED. Verified across all 11 recorded responses: each of
+ * the four publishes under `quality.<name>`, at that path and no other, in
+ * every family — complete, partial, no-check-attempted and every-signal-down.
+ * When a signal was not measured the key is still there and its value is
+ * `null`, with the cause in `unmeasured_signals.<name>`. That is why these are
+ * read by path and the null is carried as a null: the absence is published, and
+ * publishing it as anything else — a zero above all — would invert the reading.
+ *
+ * NO SCALE IS DECLARED HERE. The scale is a statement for a reader, and this
+ * module may not author reader-facing prose: `presentation` carries values and
+ * declared paths only. The scales live beside the labels they belong to, in the
+ * card's own bilingual table.
+ */
+const SIGNAL_PATHS = Object.freeze(SEMANTIC_SIGNALS.map((signal) => Object.freeze({
+  signal,
+  path: `quality.${signal}`,
+})));
+
 /** Known backend limitations. `applies` is computed from THIS response only;
  * a limitation that cannot be observed here is reported as not observed rather
  * than omitted, so an agent sees the whole register either way.
@@ -294,5 +319,5 @@ export function readingAid(response, transport) {
  * restated in a second place that could drift from it.
  */
 export const AID_REFERENCE = Object.freeze({
-  HOMONYMS, AGGREGATE_PATHS, SIGNAL_DERIVED, SEMANTIC_SIGNALS, LIMITATIONS,
+  HOMONYMS, AGGREGATE_PATHS, SIGNAL_DERIVED, SEMANTIC_SIGNALS, SIGNAL_PATHS, LIMITATIONS,
 });

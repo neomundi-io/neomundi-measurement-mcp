@@ -143,6 +143,24 @@ li{margin:.1rem 0;overflow-wrap:anywhere}
 .chip.off .v{font-size:.84rem;font-style:italic;color:var(--nm-absent)}
 .chip .c{font-size:.74rem;color:var(--nm-muted);overflow-wrap:anywhere}
 
+.reads{display:grid;grid-template-columns:repeat(auto-fit,minmax(14rem,1fr));
+  gap:.5rem;margin:.2rem 0 0}
+.read{min-width:0;border:1px solid var(--nm-rule);border-radius:10px;
+  padding:.6rem .7rem;display:flex;flex-direction:column;gap:.3rem}
+.read .q{font-size:.82rem;line-height:1.35;font-weight:500}
+.read .rv{font-size:1.5rem;line-height:1.1;font-variant-numeric:tabular-nums;
+  overflow-wrap:anywhere}
+.read .rv2{display:flex;flex-wrap:wrap;align-items:baseline;gap:.4rem;
+  font-size:1.15rem;font-variant-numeric:tabular-nums}
+.read .sc{font-size:.74rem;line-height:1.35;color:var(--nm-muted);
+  overflow-wrap:anywhere;font-variant-numeric:normal}
+.read .lim{font-size:.74rem;line-height:1.35;color:var(--nm-muted);
+  border-top:1px solid var(--nm-rule);padding-top:.3rem;overflow-wrap:anywhere}
+.read.off{border-style:dashed}
+.read.off .rv{font-size:.9rem;font-style:italic;color:var(--nm-absent)}
+.read.derived{margin:.2rem 0 0;background:var(--nm-panel)}
+@media (max-width:30rem){ .reads{grid-template-columns:1fr} }
+
 details{margin:1.2rem 0 0;border-top:1px solid var(--nm-rule);padding-top:.6rem}
 summary{cursor:pointer;font-size:.82rem;color:var(--nm-muted);font-weight:500}
 summary::marker{color:var(--nm-absent)}
@@ -273,6 +291,59 @@ function signals(parent, s) {
   parent.appendChild(wrap);
 }
 
+/** The four readings. One question, one value with its scale, one limit.
+ *
+ * The value and the scale are rendered in the same block, always, and an
+ * unmeasured reading renders the sentence that says an absence is not a
+ * favourable result — never a blank and never a zero. The limit sits with its
+ * own reading rather than in a footnote, because a limit a reader has to go
+ * looking for has already failed.
+ */
+function readings(parent, list) {
+  if (!list || !list.length) return;
+  heading(parent, 'read_section');
+  var wrap = $('div', null, 'reads');
+  list.forEach(function (r) {
+    var b = $('div', null, r.published ? 'read' : 'read off');
+    b.appendChild($('div', t(r.question_key), 'q'));
+    var v = $('div', null, 'rv');
+    v.appendChild(valueNode(r));
+    b.appendChild(v);
+    if (r.published) {
+      b.appendChild($('div', t('read_scale') + ' · ' + t(r.scale_key), 'sc'));
+    } else {
+      b.appendChild($('div', t('read_not_measured'), 'sc'));
+      if (r.cause !== null && r.cause !== undefined) {
+        b.appendChild($('div', t('signal_cause') + ': ' + String(r.cause), 'sc'));
+      }
+    }
+    b.appendChild($('div', t('read_limit') + ' · ' + t(r.limit_key), 'lim'));
+    wrap.appendChild(b);
+  });
+  parent.appendChild(wrap);
+}
+
+/** The global indicator, apart from the four and marked as derived.
+ *
+ * BOTH published readings are shown, each with its own scale. They run in
+ * opposite directions under one name, so showing one alone is how a reader
+ * reaches the opposite conclusion from the one the number supports.
+ */
+function globalIndicator(parent, s) {
+  if (!s || !s.readings || !s.readings.length) return;
+  heading(parent, 'read_global_section');
+  var b = $('div', null, 'read derived');
+  b.appendChild($('div', t(s.question_key), 'q'));
+  s.readings.forEach(function (r) {
+    var line = $('div', null, 'rv2');
+    line.appendChild(valueNode(r));
+    line.appendChild($('span', t(r.scale_key), 'sc'));
+    b.appendChild(line);
+  });
+  b.appendChild($('div', t('read_limit') + ' · ' + t(s.limit_key), 'lim'));
+  parent.appendChild(b);
+}
+
 function details(root, m) {
   var d = document.createElement('details');
   d.appendChild($('summary', t('details_summary')));
@@ -362,6 +433,14 @@ function render(output) {
   m.banners.forEach(function (b) { root.appendChild($('p', t(b.key), 'banner')); });
 
   var p = m.primary;
+
+  // The reader arrived with questions. They are answered before the decision,
+  // because the decision is what the instrument concluded and these are what
+  // it measured — and the global indicator is kept apart from the four so it
+  // cannot read as a fifth instrument.
+  readings(root, p.readings);
+  globalIndicator(root, p.stability);
+
   heading(root, 'section_decision');
   rows(root, [p.decision.value, p.decision.basis, p.decision.is_measured]);
   bullets(root, 'decision_reasons', p.decision.reasons);

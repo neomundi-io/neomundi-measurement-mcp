@@ -51,19 +51,55 @@ les deux seules quantités dont le sens de lecture est certain.
 
 ---
 
-## Les signaux
+## Les quatre questions
 
-Sous la décision, une pastille par signal.
+> **Correction du 3 novembre 2026.** Ce paragraphe décrivait des pastilles
+> portant chacune une valeur. **Ce n'était pas ce que la carte faisait** : la
+> vue ne montrait que les *noms* des signaux mesurés, et aucune valeur n'était
+> affichée nulle part. Voici ce qu'elle montre réellement depuis le correctif.
 
-- **Pastille pleine** : le signal a une valeur, affichée telle que le serveur
-  l'a publiée. Aucun arrondi, aucune remise à l'échelle.
-- **Pastille en pointillés** : le signal n'a **pas** été mesuré, et la cause
-  est écrite dessous — `no_reference_supplied`, `judge_unavailable`,
-  `aggregate_withheld`…
+La carte pose **quatre questions**, et répond à chacune par trois choses
+inséparables : la **valeur** telle que le serveur l'a publiée, l'**échelle**
+qui dit dans quel sens elle se lit, et la **limite** qui dit ce qu'elle n'est
+pas.
+
+| La question | L'échelle | Et sa limite |
+|---|---|---|
+| La réponse est-elle en rapport avec la question ? | similarité vectorielle, de 0 à 1 | **similarité, pas vérité** — une réponse fausse mais dans le sujet obtient un score élevé |
+| La réponse contient-elle des éléments potentiellement dangereux ? | résultat de modération, **deux valeurs seulement** | **modération, pas garantie d'innocuité** — elle classe des catégories, et ne juge pas si un conseil est avisé |
+| La réponse contient-elle des informations probablement fausses ? | de 0 à 1 ; plus haut, plus la réponse paraît inventée | **estimation d'un juge IA sans document de référence** — il rapporte sa croyance, pas une conformité à une source |
+| La question peut-elle être comprise de plusieurs façons ? | de 0 à 1, mesuré **sur la question** | **il note la question, pas la réponse** — deux réponses différentes à une même question reçoivent la même valeur |
+
+> ### Le piège que ce tableau existe pour désarmer
+>
+> Sur une mesure réelle enregistrée, une réponse **fausse** a obtenu une
+> pertinence de **0,83** et une fausseté de **1,0**. La première n'avait pas
+> tort : la réponse était bien dans le sujet. **Une bonne pertinence n'est pas
+> une bonne réponse**, et c'est pour cela que la valeur ne voyage jamais sans
+> sa limite.
+
+**Un signal non mesuré garde sa cause** — `no_reference_supplied`,
+`judge_unavailable`, `aggregate_withheld`… — et sa case dit en toutes lettres
+qu'une absence n'est pas un résultat favorable.
 
 **Une absence n'est jamais remplacée par un zéro.** C'est la règle qui compte
 le plus : un signal non mesuré et un signal mesuré à zéro sont deux faits
-différents, et la carte ne les confond jamais.
+différents, et la carte ne les confond jamais. La modération publie `0` pour un
+texte qu'elle ne signale pas : **c'est une mesure**, pas une absence.
+
+## L'indicateur global, à part
+
+Une cinquième ligne, **séparée des quatre**, répond à : *que donne
+l'indicateur global calculé à partir des mesures ?*
+
+Elle est à part parce qu'elle n'est **pas un cinquième instrument** : elle est
+calculée à partir de ce que les autres ont produit, et n'ajoute aucune
+observation propre.
+
+Elle affiche **deux nombres**, et c'est voulu. Le même indicateur est publié
+sous un seul nom sur **deux échelles opposées** : sur l'une, 1 signifie stable ;
+sur l'autre, 0 signifie stable. En montrer un seul serait la façon la plus
+simple d'arriver à la conclusion inverse de celle que le nombre soutient.
 
 ### Pourquoi certains signaux manquent quand vous collez une réponse seule
 
