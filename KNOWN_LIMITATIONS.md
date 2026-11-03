@@ -1,3 +1,15 @@
+# Current scope — public journey PAUSED, 3 November 2026
+
+This addendum takes precedence over every entry below it.
+
+- **The plugin stays deployed and working. What is paused is the product journey** — *"I paste an answer, NeoMundi shows its weather"* — which is not reachable against API 3.3.1. Served revision unchanged: **`43482c0`**, `sha256:83f13cd3449e…`, since 14:18:45 UTC, 0 restarts.
+- **ML-024 — all three sources of `token_count` and `latency_ms` are closed, and the first one is closed by the protocol itself.** The MCP specification defines `tools/call` params as `name` and `arguments`, and nothing else: there is **no usage, token or latency field anywhere in the contract**, so ChatGPT does not withhold them — it has nowhere to put them. The OpenAI `_meta` keys run server→client, for the interface. The connector cannot reconstruct them either: counting tokens locally is an ESTIMATE, and **there is no honest value for latency when no execution took place**. And the API produces them only on `/v1/govern/stream`, which GENERATES rather than measures a supplied answer — a different journey, needing a provider credential and a billed generation, and where `token_count` counts CHUNKS rather than tokens by the code's own admission.
+- **"Estimate, then withhold it in the card" was examined and REFUSED, and the reason is not display.** The card can hide a number; it cannot unwrite the ledger. Supplied values are **persisted by the API** and `g_final` is computed and published from them, so the stored measurement would carry a latency that never happened. The contamination also travels: `delta_g` compares against the previous call on the same account (`BL-003`), so **one fabricated measurement falsifies the `delta_g` of the next real one**.
+- **BL-V1-001 remains the unblocking change, and it is an API contract change**: both fields `Optional[...] = None`, runtime family published as `null` with its cause, no substitution by zero. `G`, the four signals and the decision are already invariant to them. Out of scope by product decision.
+- Recovery, rollback and the exact technical state are recorded in `PAUSE_V1_20261103.md`. Rollback to `070fb6f` stays armed, with four deeper levels. **Never run `docker image prune`.**
+
+---
+
 # Current scope — V1 frozen against API 3.3.1, 3 November 2026
 
 This addendum takes precedence over every entry below it.
