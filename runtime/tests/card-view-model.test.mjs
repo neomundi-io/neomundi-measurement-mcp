@@ -27,7 +27,7 @@ import { AGREEMENT } from '../reference.mjs';
 import { presentation } from '../presentation.mjs';
 import { toolDefinition } from '../contract.mjs';
 import {
-  CARD_SCHEMA, DEFAULT_LANGUAGE, LABELS, LANGUAGES, WEATHER, WEATHER_RULES,
+  CARD_SCHEMA, DEFAULT_LANGUAGE, LABELS, LANGUAGES, READING_KEYS, WEATHER, WEATHER_RULES,
   buildCardModel, label, weatherState,
 } from '../ui/view-model.mjs';
 import {
@@ -272,6 +272,23 @@ test('the card vocabulary contains no verdict, severity or risk word, in either 
     'pass', 'fail', 'trustworthy', 'reliable', 'accurate', 'correct answer', 'verified',
     'sûr', 'dangereux', 'risqué', 'grave', 'critique', 'fiable', 'exact', 'vérifié', 'bon', 'mauvais',
   ];
+  // ONE key may name a risk word, and only because it ASKS rather than
+  // asserts. The invariant forbids the card from pronouncing a verdict; it
+  // does not forbid naming what an instrument looks for. The moderation
+  // reading has to be able to say what moderation is about, and the product
+  // decision of 2026-11-03 fixed its wording as a question.
+  //
+  // The exemption is kept honest two ways: the list is exactly one key, and
+  // that key must still END IN A QUESTION MARK in every language. An
+  // assertive label can therefore never slip through it.
+  const ASKS_RATHER_THAN_ASSERTS = new Set(['read_safety_q']);
+  for (const key of ASKS_RATHER_THAN_ASSERTS) {
+    for (const language of LANGUAGES) {
+      assert.match(LABELS[key][language].trim(), /\?$/,
+        `${key}.${language} is exempted from the vocabulary guard, so it must be a question`);
+    }
+  }
+
   for (const [key, entry] of Object.entries(LABELS)) {
     for (const language of LANGUAGES) {
       const text = (entry[language] ?? '').toLowerCase();
@@ -279,6 +296,7 @@ test('the card vocabulary contains no verdict, severity or risk word, in either 
         // `correct` appears only where the card says it does NOT know whether
         // the answer is correct, which is the opposite of a verdict.
         if (word === 'correct answer' || word === 'exact') continue;
+        if (ASKS_RATHER_THAN_ASSERTS.has(key)) continue;
         assert.equal(new RegExp(`\\b${word}\\b`).test(text), false,
           `${key}.${language} contains the ${word === text ? '' : 'forbidden '}word "${word}"`);
       }
@@ -432,5 +450,160 @@ test('the card model declares its own schema', () => {
   assert.equal(CARD_SCHEMA, 'neomundi-mcp-card/2');
   for (const model of [buildCardModel(null), buildCardModel(synthetic())]) {
     assert.equal(model.schema, CARD_SCHEMA);
+  }
+});
+
+// ------------------------------- the readings, against REAL responses
+//
+// WHY THESE EXIST, AND WHY THEY ARE DRIVEN BY RECORDINGS.
+//
+// Until 2026-11-03 the card showed no evaluator and no published value on ANY
+// real measurement, and the whole suite was green. The cause was a shape
+// mismatch: the contract declares `presentation.evaluators` and
+// `published_values` as ARRAYS, the card read them with a test that excludes
+// arrays, and every test above drives the card with a hand-built MAPPING. The
+// one recording-backed card test looked only at decision, weather and banners.
+//
+// So the rule these tests encode is not "check the disclosure". It is: THE
+// CARD IS EXERCISED AGAINST THE SHAPE THE INSTRUMENT ACTUALLY SENDS, on every
+// recording, for every field a reader depends on.
+
+test('every recording fills the disclosure: the array shape is read, not skipped', { skip }, () => {
+  for (const name of resolved.captures) {
+    const projected = envelope(recorded(name)).presentation;
+    const model = buildCardModel(envelope(recorded(name)));
+
+    // Not "non-empty by luck": exactly as many as the projection carries.
+    assert.equal(model.secondary.evaluators.length, (projected.evaluators ?? []).length,
+      `${name}: the card dropped evaluators the projection published`);
+    assert.equal(model.secondary.published_values.length, (projected.published_values ?? []).length,
+      `${name}: the card dropped published values the projection carried`);
+
+    // And each one names its own signal and path, rather than arriving as a
+    // row with a null label.
+    for (const e of model.secondary.evaluators) {
+      assert.ok(typeof e.signal === 'string' && e.signal.length > 0, `${name}: an evaluator lost its signal name`);
+    }
+    for (const v of model.secondary.published_values) {
+      assert.ok(typeof v.name === 'string' && v.name.length > 0, `${name}: a published value lost its path`);
+    }
+  }
+});
+
+test('the array and the mapping shape produce the same card', { skip }, () => {
+  // Both shapes are accepted, so neither may read differently from the other.
+  // A regression in one direction is as bad as in the other: the arrays are
+  // what production sends, the mappings are what the hand-built envelopes use.
+  const reference = { agreement: AGREEMENT.MATCH, divergence_scope: null };
+  const projected = envelope(recorded('tier02_01_complete_nominale.json')).presentation;
+  const asMapping = {
+    ...projected,
+    evaluators: Object.fromEntries(projected.evaluators.map((e) => [e.signal, e])),
+    published_values: Object.fromEntries(projected.published_values.map((v) => [v.path, v.value])),
+    signal_readings: Object.fromEntries(projected.signal_readings.map((r) => [r.signal, r.value])),
+  };
+  const fromArray = buildCardModel({ adapter_error: null, measurement_reference: reference, presentation: projected });
+  const fromMapping = buildCardModel({ adapter_error: null, measurement_reference: reference, presentation: asMapping });
+
+  assert.deepEqual(fromMapping.secondary.evaluators, fromArray.secondary.evaluators);
+  assert.deepEqual(fromMapping.secondary.published_values, fromArray.secondary.published_values);
+  assert.deepEqual(fromMapping.primary.readings, fromArray.primary.readings);
+});
+
+test('each watched signal present in the response gets a value AND a scale', { skip }, () => {
+  for (const name of resolved.captures) {
+    const response = recorded(name);
+    const model = buildCardModel(envelope(response));
+
+    // One reading per watched signal the response publishes a path for.
+    const published = AID_REFERENCE.SIGNAL_PATHS
+      .filter(({ signal }) => Object.hasOwn(response.quality ?? {}, signal))
+      .map(({ signal }) => signal);
+    assert.deepEqual(model.primary.readings.map((r) => r.signal).sort(), published.sort(),
+      `${name}: the readings do not match the signals the response published`);
+
+    for (const r of model.primary.readings) {
+      // A value never travels without the scale that says which way it reads.
+      for (const language of LANGUAGES) {
+        assert.ok(label(r.question_key, language).length > 0, `${name}: ${r.signal} has no question in ${language}`);
+        assert.ok(label(r.scale_key, language).length > 0, `${name}: ${r.signal} has no scale in ${language}`);
+        assert.ok(label(r.limit_key, language).length > 0, `${name}: ${r.signal} has no limit in ${language}`);
+      }
+    }
+  }
+});
+
+test('an unmeasured reading keeps its cause, and is never a zero', { skip }, () => {
+  // `degrade_01` has all four published as null, each with its own cause in
+  // `unmeasured_signals`. This is the exact shape where a zero would read as a
+  // favourable result.
+  const model = buildCardModel(envelope(recorded('degrade_01_complete_nominale.json')));
+  assert.equal(model.primary.readings.length, 4);
+
+  for (const r of model.primary.readings) {
+    assert.equal(r.published, false, `${r.signal} reported a value the server published as null`);
+    assert.equal(r.value, null);
+    assert.notEqual(r.value, 0);
+    assert.ok(typeof r.cause === 'string' && r.cause.length > 0,
+      `${r.signal} lost the cause the server named`);
+  }
+
+  // And a measured zero is not an absence: `semantic_risk` is 0 on the
+  // nominal response, and that is a measurement.
+  const nominal = buildCardModel(envelope(recorded('tier02_01_complete_nominale.json')));
+  const risk = nominal.primary.readings.find((r) => r.signal === 'semantic_risk');
+  assert.equal(risk.published, true);
+  assert.equal(risk.value, 0);
+  assert.equal(risk.cause, null);
+});
+
+test('the global indicator is kept apart from the four, and carries both opposite scales', { skip }, () => {
+  const model = buildCardModel(envelope(recorded('tier02_01_complete_nominale.json')));
+
+  // It is not one of the readings. Reading it as a fifth instrument is the
+  // mistake the separation exists to prevent: it is computed FROM the others.
+  assert.ok(!model.primary.readings.some((r) => r.signal === 'stability_score'));
+  assert.ok(model.primary.stability, 'the global indicator is absent');
+
+  const paths = model.primary.stability.readings.map((r) => r.path);
+  assert.deepEqual(paths.sort(), ['metrics.stability_score', 'quality.stability_score']);
+
+  // The two run in opposite directions, and each says so in its own scale.
+  const q = model.primary.stability.readings.find((r) => r.path === 'quality.stability_score');
+  const m = model.primary.stability.readings.find((r) => r.path === 'metrics.stability_score');
+  assert.notEqual(q.scale_key, m.scale_key);
+  assert.match(label(q.scale_key, 'en'), /1 means stable/);
+  assert.match(label(m.scale_key, 'en'), /OPPOSITE/);
+  // And the limit says it is derived rather than measured.
+  assert.match(label(model.primary.stability.limit_key, 'en'), /not an independent measurement/);
+  assert.match(label(model.primary.stability.limit_key, 'fr'), /pas une mesure ind/);
+});
+
+test('the reading list is closed, and matches the signals the aid watches', () => {
+  // A signal the instrument starts publishing tomorrow gets no invented
+  // question and no invented scale. It stays in the signal lists by name.
+  assert.deepEqual(Object.keys(READING_KEYS).sort(), [...AID_REFERENCE.SEMANTIC_SIGNALS].sort());
+  assert.deepEqual(
+    AID_REFERENCE.SIGNAL_PATHS.map((e) => e.signal).sort(),
+    [...AID_REFERENCE.SEMANTIC_SIGNALS].sort(),
+  );
+
+  const model = buildCardModel(synthetic({
+    signal_readings: [{ signal: 'a_signal_invented_upstream', path: 'quality.a_signal_invented_upstream', value: 0.42 }],
+  }));
+  assert.deepEqual(model.primary.readings, []);
+});
+
+test('no reading value is rescaled, rounded or reformatted', { skip }, () => {
+  for (const name of resolved.captures) {
+    const response = recorded(name);
+    const model = buildCardModel(envelope(response));
+    for (const r of model.primary.readings) {
+      const raw = (response.quality ?? {})[r.signal];
+      const expected = raw === null || raw === undefined ? null : JSON.parse(JSON.stringify(raw));
+      const got = r.value === undefined ? null : JSON.parse(JSON.stringify(r.value));
+      assert.deepEqual(got, expected,
+        `${name}: ${r.signal} was altered between the response and the card`);
+    }
   }
 });

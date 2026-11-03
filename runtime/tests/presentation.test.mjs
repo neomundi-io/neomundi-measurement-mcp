@@ -57,6 +57,7 @@ const SELF_AUTHORED = Object.freeze(['schema', 'statement', 'field_sources']);
 const DECLARED_PATHS = new Set([
   ...AID_REFERENCE.AGGREGATE_PATHS,
   ...AID_REFERENCE.SIGNAL_DERIVED.map((entry) => entry.path),
+  ...AID_REFERENCE.SIGNAL_PATHS.map((entry) => entry.path),
 ]);
 
 /** The limitation identifiers the projection may carry in `caveats`. Also a

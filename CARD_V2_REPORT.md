@@ -60,9 +60,31 @@ d'une valeur de signal ici : `quality.stability_score` a 1 = stable tandis que
 aucune échelle.
 
 **Une barre dessinée sur ces valeurs inventerait un sens pour la moitié
-d'entre elles.** Les valeurs sont donc imprimées, jamais dessinées — jusqu'à ce
-qu'un contrat d'échelle existe. Un test vérifie qu'aucune jauge ne bouge quand
-les valeurs changent.
+d'entre elles.** Les valeurs sont donc imprimées, jamais dessinées. Un test
+vérifie qu'aucune jauge ne bouge quand les valeurs changent.
+
+> ### 🔴 Correction du 3 novembre 2026
+>
+> Le paragraphe ci-dessus disait « les valeurs sont donc imprimées ».
+> **Elles ne l'étaient pas.** Sur les onze réponses enregistrées, la carte
+> n'affichait **aucune** valeur de signal — ni en vue produit, ni dans le
+> dépliant — et la provenance des évaluateurs était vide elle aussi.
+>
+> **Cause.** Le contrat déclare `presentation.evaluators` et
+> `published_values` comme **tableaux** ; le modèle les lisait avec un test qui
+> exclut les tableaux par définition. Tous les tests de carte passaient parce
+> qu'ils pilotaient le modèle avec une **table**, forme que l'instrument
+> n'émet jamais. Vert partout, vide à l'écran.
+>
+> **Levé par** la lecture des deux formes, et par `signal_readings` dans la
+> projection : les quatre signaux sémantiques y portent désormais leur valeur,
+> lue à `quality.<signal>`, chemin vérifié sur les onze enregistrements.
+>
+> **Et la phrase ci-dessus reste vraie en tant que règle** : les valeurs sont
+> imprimées avec leur échelle, jamais dessinées. Le contrat d'échelle que la
+> feuille de route attendait de l'instrument n'était pas nécessaire pour ces
+> quatre-là — la liste close existait déjà sous le nom
+> `AID_REFERENCE.SEMANTIC_SIGNALS`.
 
 ## 4. Deux niveaux de lecture
 

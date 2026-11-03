@@ -165,6 +165,99 @@ export const LABELS = Object.freeze({
   signals_measured: { en: 'Measured', fr: 'Mesurés' },
   signals_unmeasured: { en: 'Not measured', fr: 'Non mesurés' },
   signal_cause: { en: 'cause', fr: 'cause' },
+
+  // --- the five readings, as a question, a scale and a limit -------------
+  //
+  // PRODUCT DECISION of 2026-11-03: one plain question, one real measurement,
+  // one clear limit. The question is what a reader came with; the scale says
+  // which way the number reads; the limit says what the number is not. The
+  // three travel together, and a value is never shown without its scale —
+  // `stability_score` exists on two OPPOSITE scales under one name, so a bare
+  // number here would invert the reading rather than inform it.
+  //
+  // The limits are not disclaimers appended for safety. Each one is the
+  // established fact about its instrument: a cosine is not a truth test, a
+  // moderation pass is not a safety guarantee, a judge with no document is
+  // stating a belief, instability scores the PROMPT, and the global indicator
+  // is derived from the others rather than measured beside them.
+  read_relevance_q: {
+    en: 'Is the answer related to the question?',
+    fr: 'La réponse est-elle en rapport avec la question ?',
+  },
+  read_relevance_scale: {
+    en: 'Vector similarity between question and answer, 0 to 1. Higher means closer in meaning.',
+    fr: 'Similarité vectorielle entre la question et la réponse, de 0 à 1. Plus haut, plus proche de sens.',
+  },
+  read_relevance_limit: {
+    en: 'Similarity, not truth. A false answer that stays on topic scores high.',
+    fr: 'Similarité, pas vérité. Une réponse fausse mais dans le sujet obtient un score élevé.',
+  },
+
+  read_safety_q: {
+    en: 'Does the answer contain potentially dangerous material?',
+    fr: 'La réponse contient-elle des éléments potentiellement dangereux ?',
+  },
+  read_safety_scale: {
+    en: 'Moderation outcome. Two values only, and nothing between them.',
+    fr: 'Résultat de modération. Deux valeurs seulement, et rien entre elles.',
+  },
+  read_safety_limit: {
+    en: 'Moderation, not a guarantee of harmlessness. It classifies categories, and does not judge whether advice is sound.',
+    fr: 'Modération, pas garantie d’innocuité. Elle classe des catégories, et ne juge pas si un conseil est avisé.',
+  },
+
+  read_factuality_q: {
+    en: 'Does the answer contain information that is probably false?',
+    fr: 'La réponse contient-elle des informations probablement fausses ?',
+  },
+  read_factuality_scale: {
+    en: '0 to 1. Higher means more of the answer looks made up.',
+    fr: 'De 0 à 1. Plus haut, plus la réponse paraît inventée.',
+  },
+  read_factuality_limit: {
+    en: 'The estimate of an AI judge that received no reference document. It reports its own belief, not conformity to a source.',
+    fr: 'Estimation d’un juge IA qui n’a reçu aucun document de référence. Il rapporte sa croyance, pas une conformité à une source.',
+  },
+
+  read_ambiguity_q: {
+    en: 'Can the question be understood in more than one way?',
+    fr: 'La question peut-elle être comprise de plusieurs façons ?',
+  },
+  read_ambiguity_scale: {
+    en: '0 to 1, measured on the question.',
+    fr: 'De 0 à 1, mesuré sur la question.',
+  },
+  read_ambiguity_limit: {
+    en: 'It scores the question, not the answer. Two different answers to one question receive the same value.',
+    fr: 'Il note la question, pas la réponse. Deux réponses différentes à une même question reçoivent la même valeur.',
+  },
+
+  // The global indicator is shown apart from the four, because it is not a
+  // fifth instrument: it is computed from what the others produced.
+  read_global_q: {
+    en: 'What does the global indicator computed from the measurements give?',
+    fr: 'Que donne l’indicateur global calculé à partir des mesures ?',
+  },
+  read_global_limit: {
+    en: 'A derived indicator, not an independent measurement. It adds no observation of its own, and it is published on two opposite scales under one name.',
+    fr: 'Indicateur dérivé, pas une mesure indépendante. Il n’ajoute aucune observation propre, et il est publié sur deux échelles opposées sous un même nom.',
+  },
+  read_global_quality_scale: {
+    en: 'quality.stability_score — 1 means stable, 0 means unstable.',
+    fr: 'quality.stability_score — 1 signifie stable, 0 instable.',
+  },
+  read_global_metrics_scale: {
+    en: 'metrics.stability_score — the OPPOSITE scale: 0 means stable, 1 unstable.',
+    fr: 'metrics.stability_score — l’échelle INVERSE : 0 signifie stable, 1 instable.',
+  },
+  read_section: { en: 'What was measured, reading by reading', fr: 'Ce qui a été mesuré, lecture par lecture' },
+  read_global_section: { en: 'Global indicator', fr: 'Indicateur global' },
+  read_scale: { en: 'Scale', fr: 'Échelle' },
+  read_limit: { en: 'Limit', fr: 'Limite' },
+  read_not_measured: {
+    en: 'Not measured. An absence is not a favourable result, and it is not a zero.',
+    fr: 'Non mesuré. Une absence n’est pas un résultat favorable, et ce n’est pas un zéro.',
+  },
   signals_none_unmeasured: {
     en: 'No signal was declared unmeasured.',
     fr: 'Aucun signal n’est déclaré non mesuré.',
@@ -229,6 +322,32 @@ export function label(key, language = DEFAULT_LANGUAGE) {
   if (!entry) return '';
   return entry[language] ?? entry[DEFAULT_LANGUAGE] ?? '';
 }
+
+/** Which question, scale and limit belong to each measured signal.
+ *
+ * A CLOSED LIST, and that is the point. A signal the instrument starts
+ * publishing tomorrow has no question and no scale here, so it is carried in
+ * the signal lists by name and is NOT given a reading. Inventing a question
+ * for an unknown signal, or printing its number without a direction, would be
+ * exactly the failure the limits exist to prevent.
+ *
+ * The four keys are the four `AID_REFERENCE.SEMANTIC_SIGNALS`, and the test
+ * suite fails if the two lists ever diverge.
+ */
+export const READING_KEYS = Object.freeze({
+  coherence_score: Object.freeze({
+    question: 'read_relevance_q', scale: 'read_relevance_scale', limit: 'read_relevance_limit',
+  }),
+  semantic_risk: Object.freeze({
+    question: 'read_safety_q', scale: 'read_safety_scale', limit: 'read_safety_limit',
+  }),
+  factual_hallucination_score: Object.freeze({
+    question: 'read_factuality_q', scale: 'read_factuality_scale', limit: 'read_factuality_limit',
+  }),
+  semantic_instability_score: Object.freeze({
+    question: 'read_ambiguity_q', scale: 'read_ambiguity_scale', limit: 'read_ambiguity_limit',
+  }),
+});
 
 /** The weather, and the one thing it depicts.
  *
@@ -408,9 +527,19 @@ export function buildCardModel(output) {
     }
   }
 
+  // The contract declares `presentation.evaluators` an ARRAY of records that
+  // each name their own signal, and `published_values` an ARRAY of {path,
+  // value}. Both were read with `isObject`, which excludes arrays by
+  // definition — so both lists came out empty on every real measurement while
+  // every test, driving a hand-built MAPPING, passed. Read the declared shape
+  // first; keep the mapping, because the hand-built envelopes use one and the
+  // two must never read differently.
   const evaluators = [];
-  if (isObject(p.evaluators)) {
-    for (const [signal, record] of Object.entries(p.evaluators)) {
+  const evaluatorPairs = Array.isArray(p.evaluators)
+    ? p.evaluators.map((record) => [isObject(record) ? (record.signal ?? record.name ?? null) : null, record])
+    : isObject(p.evaluators) ? Object.entries(p.evaluators) : [];
+  {
+    for (const [signal, record] of evaluatorPairs) {
       const r = isObject(record) ? record : {};
       evaluators.push({
         signal,
@@ -423,9 +552,59 @@ export function buildCardModel(output) {
   }
 
   const published = [];
-  if (isObject(p.published_values)) {
+  if (Array.isArray(p.published_values)) {
+    for (const entry of p.published_values) {
+      if (isObject(entry)) published.push({ name: entry.path ?? entry.name ?? null, ...row('section_published', entry.value ?? null) });
+    }
+  } else if (isObject(p.published_values)) {
     for (const [path, value] of Object.entries(p.published_values)) published.push({ name: path, ...row('section_published', value ?? null) });
   }
+
+  // The four readings, each as the question a reader arrived with, the value
+  // the instrument published, the scale it reads on, and what it is not.
+  //
+  // A value and its scale travel together or neither travels. The cause of an
+  // absence is taken from `unmeasured`, so a signal that did not run keeps the
+  // reason it did not — never a zero, never a blank.
+  const readings = [];
+  const causeOf = (name) => {
+    const hit = unmeasured.find((entry) => entry.name === name);
+    return hit ? hit.cause : null;
+  };
+  const sourceReadings = Array.isArray(p.signal_readings)
+    ? p.signal_readings.map((entry) => [isObject(entry) ? entry.signal : null, isObject(entry) ? entry.value : null])
+    : isObject(p.signal_readings) ? Object.entries(p.signal_readings) : [];
+  for (const [signal, value] of sourceReadings) {
+    const keys = READING_KEYS[signal];
+    if (!keys) continue;
+    readings.push({
+      signal,
+      question_key: keys.question,
+      scale_key: keys.scale,
+      limit_key: keys.limit,
+      ...row(keys.question, value ?? null),
+      cause: value === null || value === undefined ? causeOf(signal) : null,
+    });
+  }
+
+  // The global indicator, kept apart from the four. Both published readings
+  // are carried, each with its own scale, because they run in OPPOSITE
+  // directions under the same name and showing one alone invites the wrong
+  // conclusion.
+  const valueAt = (path) => {
+    const hit = published.find((entry) => entry.name === path);
+    return hit ? { value: hit.value, published: hit.published } : null;
+  };
+  const q = valueAt('quality.stability_score');
+  const mx = valueAt('metrics.stability_score');
+  const stability = (q || mx) ? {
+    question_key: 'read_global_q',
+    limit_key: 'read_global_limit',
+    readings: [
+      q ? { path: 'quality.stability_score', scale_key: 'read_global_quality_scale', value: q.value, published: q.published } : null,
+      mx ? { path: 'metrics.stability_score', scale_key: 'read_global_metrics_scale', value: mx.value, published: mx.published } : null,
+    ].filter(Boolean),
+  } : null;
 
   const measurementRows = [
     row('measurement_status', p.measurement_status ?? null),
@@ -489,6 +668,8 @@ export function buildCardModel(output) {
         failed_checks: list(p.failed_checks),
       },
       signals: { measured, measured_names: measuredNames, unmeasured },
+      readings,
+      stability,
       version: {
         declared: row('version_declared', p.measurement_version ?? reference.received_measurement_version ?? null),
         expected: row('version_expected', reference.expected_measurement_version ?? null),

@@ -453,6 +453,10 @@
           "type": "array",
           "description": "The aggregate and signal-derived paths present in this response, each with its value as published. A withheld aggregate stays null and is never shown as zero."
         },
+        "signal_readings": {
+          "type": "array",
+          "description": "One entry per semantic signal the reading aid watches, read from quality.<signal>, with its value as published. A signal that was not measured keeps its entry with a null value and its cause in `unmeasured`; it is never shown as zero. These four sit on unrelated scales and may not be compared with one another or with an aggregate."
+        },
         "unmodelled_root_fields": {
           "type": "array",
           "items": {

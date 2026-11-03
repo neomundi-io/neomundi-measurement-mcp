@@ -28,7 +28,7 @@
  */
 import { isObject, owns, scalar } from './contract.mjs';
 
-export const PRESENTATION_SCHEMA = 'neomundi-mcp-presentation/1';
+export const PRESENTATION_SCHEMA = 'neomundi-mcp-presentation/2';
 
 /** Every field, and the exact path it is copied from.
  *
@@ -67,6 +67,7 @@ export const FIELD_SOURCES = Object.freeze({
   unmeasured: 'unmeasured_signals, as one entry per signal with its cause',
   evaluators: 'evaluators[<signal>] — NAMED SUBSET: evaluator, model_used, status, reason. The full record stays at response.evaluators[<signal>]',
   published_values: 'the aggregate and signal-derived paths the reading aid watches, each with its value as published',
+  signal_readings: 'quality.<signal> for each semantic signal the reading aid watches, with its value as published — null stays null, because the absence is what the server declared',
   unmodelled_root_fields: 'root keys of the response this connector does not model, listed by name',
   caveats: 'reading_aid.known_limitations, restricted to entries whose observable_here is true',
 });
@@ -188,6 +189,32 @@ function publishedValues(response, aidReference) {
   return values;
 }
 
+/** The four watched semantic signals, each with the value published at its own
+ * declared path.
+ *
+ * WHY IT IS SEPARATE FROM `publishedValues`. That one carries aggregates and
+ * `v_score`, and a reader may compare those with each other. These four are
+ * what the instruments actually measured, on four unrelated scales, and they
+ * may not be compared with each other or with an aggregate. Keeping them in
+ * their own list is the difference stated in the shape rather than in a note
+ * somebody has to read.
+ *
+ * AN ABSENT SIGNAL IS KEPT, WITH A NULL. Unlike `publishedValues`, a missing
+ * value does not drop the entry: the server publishes the key with `null` and
+ * names the cause in `unmeasured_signals`, so dropping it here would turn a
+ * declared absence into a silence. The entry is omitted only when the response
+ * does not carry the path at all, which is a different fact.
+ */
+function signalReadings(response, aidReference) {
+  const readings = [];
+  for (const { signal, path } of aidReference.SIGNAL_PATHS) {
+    const found = at(response, path);
+    if (!found.present) continue;
+    readings.push({ signal, path, value: scalar(found.value) });
+  }
+  return readings;
+}
+
 /** Root keys the connector does not model, by name and nothing else. */
 function unmodelledRootFields(response) {
   return Object.keys(response).filter((key) => !MODELLED_ROOT_KEYS.has(key));
@@ -255,6 +282,7 @@ export function presentation(response, { aid = null, reference = null, aidRefere
     unmeasured: unmeasuredEntries(response),
     evaluators: evaluatorEntries(response),
     published_values: publishedValues(response, aidReference),
+    signal_readings: signalReadings(response, aidReference),
 
     unmodelled_root_fields: unmodelledRootFields(response),
     caveats: Array.isArray(aid?.known_limitations)
