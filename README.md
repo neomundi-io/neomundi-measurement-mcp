@@ -2,6 +2,14 @@
 
 [English](README.md) · [Français](README_FR.md)
 
+NeoMundi product chain — INSTALL → TRACE → **MEASURE** → VERIFY → ACT. This repository is the **agent access path**: it lets an AI assistant measure an execution it just produced, and validates the response against the versioned wire contracts. It is an access interface to the instrument, not a stage of its own.
+
+[Product architecture](https://github.com/neomundi-io/.github/blob/main/docs/PRODUCT_ARCHITECTURE.md) · [Capability audit](https://github.com/neomundi-io/.github/blob/main/docs/V2_FUNCTIONAL_AUDIT_2026-11-15.md) · [All components](https://github.com/neomundi-io/.github)
+
+Measure an existing AI execution from an agent, or request a generation with measurements. `measure_execution` preserves server values, `null`, states and provenance — a successful transport can still carry an incomplete measurement.
+
+---
+
 **Next release: 0.3.0-rc.1.** Adds validation against versioned REST/SSE response schemas. **The backend companion change was deployed and qualified on 2026-11-15** (revision `03e2b344`): the REST contract now also declares whether an observation was recorded, and parity between the deployed schemas and the bundled bytes was re-measured as byte-identical on both documents. The bundled REST schema follows that deployment; the SSE schema is unchanged. That condition on a final release is therefore met — **the completed live test below still concerns 0.2.0**, and nothing here re-qualifies the plugin itself. [Response contracts and release steps](docs/RESPONSE_CONTRACTS.md).
 
 ![REST](https://img.shields.io/badge/API-REST-blue) ![SSE](https://img.shields.io/badge/API-SSE-blue) ![Plugin](https://img.shields.io/badge/plugin-local_pilot-orange)
