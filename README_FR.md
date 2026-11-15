@@ -2,6 +2,14 @@
 
 [Français](README_FR.md) · [English](README.md)
 
+Chaîne produit NeoMundi — INSTALL → TRACE → **MEASURE** → VERIFY → ACT. Ce dépôt est le **chemin d'accès pour agents** : il permet à un assistant d'IA de mesurer une exécution qu'il vient de produire, et valide la réponse contre les contrats de fil versionnés. C'est une interface d'accès à l'instrument, pas une étape à part entière.
+
+[Architecture produit](https://github.com/neomundi-io/.github/blob/main/docs/PRODUCT_ARCHITECTURE.md) · [Audit des capacités](https://github.com/neomundi-io/.github/blob/main/docs/V2_FUNCTIONAL_AUDIT_2026-11-15.md) · [Tous les composants](https://github.com/neomundi-io/.github)
+
+Mesurer une exécution d'IA depuis votre agent, ou demander une génération accompagnée de mesures. `measure_execution` conserve les valeurs, les états, les absences et la provenance rendus par NeoMundi — un transport réussi peut porter une mesure incomplète.
+
+---
+
 **Prochaine version : 0.3.0-rc.1.** Elle vérifie les contrats de réponse REST/SSE versionnés. **La correction API associée a été déployée et qualifiée le 2026-11-15** (révision `03e2b344`) : le contrat REST déclare désormais aussi si une observation a été enregistrée, et la parité entre les schémas déployés et les octets embarqués a été re-mesurée identique sur les deux documents. Le schéma REST embarqué suit ce déploiement ; le schéma SSE est inchangé. Cette condition pour la release finale est donc remplie — **le test réel ci-dessous concerne toujours la version 0.2.0**, et rien ici ne requalifie le plugin lui-même. [Contrats et étapes de livraison](docs/RESPONSE_CONTRACTS_FR.md).
 
 ![REST](https://img.shields.io/badge/API-REST-blue) ![SSE](https://img.shields.io/badge/API-SSE-blue) ![Plugin](https://img.shields.io/badge/plugin-local_pilote-orange)
