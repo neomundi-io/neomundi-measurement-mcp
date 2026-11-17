@@ -4,7 +4,7 @@
 
 NeoMundi product chain — INSTALL → TRACE → **MEASURE** → VERIFY → ACT. This repository is the **agent access path**: it lets an AI assistant measure an execution it just produced, and validates the response against the versioned wire contracts. It is an access interface to the instrument, not a stage of its own.
 
-[Product architecture](https://github.com/neomundi-io/.github/blob/main/docs/PRODUCT_ARCHITECTURE.md) · [Capability audit](https://github.com/neomundi-io/.github/blob/main/docs/V2_FUNCTIONAL_AUDIT_2026-11-15.md) · [All components](https://github.com/neomundi-io/.github)
+[Product architecture](https://github.com/neomundi-io/.github/blob/main/docs/PRODUCT_ARCHITECTURE.md) · [Capability audit](https://github.com/neomundi-io/.github/blob/main/docs/V2_FUNCTIONAL_AUDIT_2026-11-15.md) · [All components](https://github.com/orgs/neomundi-io/repositories)
 
 Measure an existing AI execution from an agent, or request a generation with measurements. `measure_execution` preserves server values, `null`, states and provenance — a successful transport can still carry an incomplete measurement.
 
