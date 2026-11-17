@@ -4,7 +4,7 @@
 
 Chaîne produit NeoMundi — INSTALL → TRACE → **MEASURE** → VERIFY → ACT. Ce dépôt est le **chemin d'accès pour agents** : il permet à un assistant d'IA de mesurer une exécution qu'il vient de produire, et valide la réponse contre les contrats de fil versionnés. C'est une interface d'accès à l'instrument, pas une étape à part entière.
 
-[Architecture produit](https://github.com/neomundi-io/.github/blob/main/docs/PRODUCT_ARCHITECTURE.md) · [Audit des capacités](https://github.com/neomundi-io/.github/blob/main/docs/V2_FUNCTIONAL_AUDIT_2026-11-15.md) · [Tous les composants](https://github.com/neomundi-io/.github)
+[Architecture produit](https://github.com/neomundi-io/.github/blob/main/docs/PRODUCT_ARCHITECTURE.md) · [Audit des capacités](https://github.com/neomundi-io/.github/blob/main/docs/V2_FUNCTIONAL_AUDIT_2026-11-15.md) · [Tous les composants](https://github.com/orgs/neomundi-io/repositories)
 
 Mesurer une exécution d'IA depuis votre agent, ou demander une génération accompagnée de mesures. `measure_execution` conserve les valeurs, les états, les absences et la provenance rendus par NeoMundi — un transport réussi peut porter une mesure incomplète.
 
