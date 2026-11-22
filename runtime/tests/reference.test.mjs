@@ -131,7 +131,7 @@ test('a failed call still reports what this code expected', async () => {
 
 test('invalid arguments report the expectation without contacting NeoMundi', async () => {
   const mock = apiMock(jsonReply('{}'));
-  const result = await measureExecution({ execution: { raw_metrics: {} } },
+  const result = await measureExecution({ execution: { raw_metrics: { token_count: -1 } } },
     { config: testConfig(), fetchImpl: mock.fetch });
   assert.equal(mock.calls.length, 0);
   assert.equal(result.adapter_error.code, 'INVALID_ARGUMENTS');

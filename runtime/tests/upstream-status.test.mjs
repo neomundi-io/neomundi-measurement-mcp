@@ -156,7 +156,7 @@ test('a non-HTTP failure carries no status classification at all', async () => {
   assert.equal(Object.hasOwn(view(network.adapter_error), 'upstream'), false);
   assert.equal(Object.hasOwn(view(network.adapter_error), 'http_status'), false);
 
-  const invalid = await measureExecution({ execution: { raw_metrics: {} } },
+  const invalid = await measureExecution({ execution: { raw_metrics: { token_count: -1 } } },
     { config: testConfig(), fetchImpl: apiMock(jsonReply('{}')).fetch });
   assert.equal(invalid.adapter_error.code, 'INVALID_ARGUMENTS');
   assert.equal(Object.hasOwn(view(invalid.adapter_error), 'upstream'), false);
