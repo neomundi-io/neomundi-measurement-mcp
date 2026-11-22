@@ -69,7 +69,11 @@ const invalidInputs = [
   { execution: { raw_metrics: { token_count: true, latency_ms: 0 } } },
   { execution: { raw_metrics: { token_count: '1', latency_ms: 0 } } },
   { execution: { raw_metrics: { token_count: 1.5, latency_ms: 0 } } },
-  { execution: { raw_metrics: { token_count: 1, latency_ms: null } } },
+  // BL-V1-001 : `latency_ms: null` a QUITTE cette liste le 2026-11-22.
+  // Declarer explicitement n'avoir pas observe une metrique est
+  // desormais valide -- l'API l'accepte, et le refuser poussait vers le
+  // `0` invente que BL-V1-001 existe pour empecher. Le cas accepte est
+  // verrouille dans `optional-metrics.test.mjs`.
   { execution: { raw_metrics: { token_count: -1, latency_ms: 0 } } },
   { execution: { raw_metrics: { token_count: 1, latency_ms: -0.5 } } },
   { execution: { raw_metrics: { token_count: 1, latency_ms: 0, semantic_risk: 1.01 } } },

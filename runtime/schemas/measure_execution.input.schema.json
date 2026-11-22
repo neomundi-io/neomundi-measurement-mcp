@@ -7,9 +7,6 @@
     "execution": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "raw_metrics"
-      ],
       "properties": {
         "source_type": {
           "type": "string",
@@ -80,18 +77,20 @@
         "raw_metrics": {
           "type": "object",
           "additionalProperties": false,
-          "required": [
-            "token_count",
-            "latency_ms"
-          ],
           "properties": {
             "token_count": {
-              "type": "integer",
+              "type": [
+                "integer",
+                "null"
+              ],
               "minimum": 0,
               "maximum": 9007199254740991
             },
             "latency_ms": {
-              "type": "number",
+              "type": [
+                "number",
+                "null"
+              ],
               "minimum": 0
             },
             "cost": {
