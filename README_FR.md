@@ -28,7 +28,7 @@ L'interface MCP restitue les valeurs, les états `null` et la provenance renvoy�
 
 **Prochaine version : 0.3.0-rc.1.** Elle vérifie les contrats de réponse REST/SSE versionnés. **La correction API associée a été déployée et qualifiée le 2026-11-15** (révision `03e2b344`) : le contrat REST déclare désormais aussi si une observation a été enregistrée, et la parité entre les schémas déployés et les octets embarqués a été re-mesurée identique sur les deux documents. Le schéma REST embarqué suit ce déploiement ; le schéma SSE est inchangé. Cette condition pour la release finale est donc remplie — **le test réel ci-dessous concerne toujours la version 0.2.0**, et rien ici ne requalifie le plugin lui-même. [Contrats et étapes de livraison](docs/RESPONSE_CONTRACTS_FR.md).
 
-![REST](https://img.shields.io/badge/API-REST-blue) ![SSE](https://img.shields.io/badge/API-SSE-blue) ![Plugin](https://img.shields.io/badge/plugin-local_pilote-orange)
+[![REST](https://img.shields.io/badge/API-REST-blue)](#installer-et-comprendre) [![SSE](https://img.shields.io/badge/API-SSE-blue)](#installer-et-comprendre) [![Plugin](https://img.shields.io/badge/plugin-local_pilote-orange)](docs/MCP_PLUGIN_AUDIT.md)
 
 **Mesurer depuis le parcours de l'agent. Conserver les preuves dans vos propres outils.**
 
