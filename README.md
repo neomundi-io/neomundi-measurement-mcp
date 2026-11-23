@@ -28,7 +28,7 @@ The MCP interface preserves server values, `null` states and provenance as retur
 
 **Next release: 0.3.0-rc.1.** Adds validation against versioned REST/SSE response schemas. **The backend companion change was deployed and qualified on 2026-11-15** (revision `03e2b344`): the REST contract now also declares whether an observation was recorded, and parity between the deployed schemas and the bundled bytes was re-measured as byte-identical on both documents. The bundled REST schema follows that deployment; the SSE schema is unchanged. That condition on a final release is therefore met — **the completed live test below still concerns 0.2.0**, and nothing here re-qualifies the plugin itself. [Response contracts and release steps](docs/RESPONSE_CONTRACTS.md).
 
-[![REST](https://img.shields.io/badge/API-REST-blue)](#choose-your-path) [![SSE](https://img.shields.io/badge/API-SSE-blue)](#choose-your-path) [![Plugin](https://img.shields.io/badge/plugin-local_pilot-orange)](docs/MCP_PLUGIN_AUDIT.md)
+[![REST](https://img.shields.io/badge/API-REST-blue)](#choose-your-path) [![SSE](https://img.shields.io/badge/API-SSE-blue)](#choose-your-path) [![Plugin](https://img.shields.io/badge/plugin-local_pilot-orange)](#where-we-stand)
 
 **Measure from the agent workflow. Keep evidence in your own workflow.**
 
