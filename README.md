@@ -1,6 +1,8 @@
-# NeoMundi Measurement for AI Agents
+<div align="center">
 
-[English](README.md) · [Français](README_FR.md)
+[![English](https://img.shields.io/badge/EN-English-2563eb?style=flat-square)](README.md) · [![Français](https://img.shields.io/badge/FR-Fran%C3%A7ais-2563eb?style=flat-square)](README_FR.md)
+
+# NeoMundi Measurement for AI Agents
 
 ### Give your AI agents access to measurable evidence.
 
@@ -16,6 +18,10 @@ NeoMundi product chain — INSTALL → TRACE → **MEASURE** → VERIFY → ACT.
 
 [Product architecture](https://github.com/neomundi-io/.github/blob/main/docs/PRODUCT_ARCHITECTURE.md) · [Capability audit](https://github.com/neomundi-io/.github/blob/main/docs/V2_FUNCTIONAL_AUDIT_2026-11-15.md) · [All components](https://github.com/orgs/neomundi-io/repositories)
 
+**[neomundi.io](https://neomundi.io/)**
+
+</div>
+
 The MCP interface preserves server values, `null` states and provenance as returned; the measurement and its interpretation remain separate.
 
 ---
@@ -27,6 +33,19 @@ The MCP interface preserves server values, `null` states and provenance as retur
 **Measure from the agent workflow. Keep evidence in your own workflow.**
 
 [Explore Station](https://github.com/neomundi-io/neomundi-station-public) for controlled observation campaigns and auditable records.
+
+## The agent-to-measurement journey
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/neomundi-io/neomundi-measurement-mcp/main/docs/assets/mcp-flow-en-dark.svg">
+    <img alt="MCP connector journey: an AI agent submits an existing answer or generation request; the MCP connector forwards to the REST or SSE measurement API; the resulting signals, status and provenance remain inspectable." src="https://raw.githubusercontent.com/neomundi-io/neomundi-measurement-mcp/main/docs/assets/mcp-flow-en-light.svg" width="100%">
+  </picture>
+</p>
+
+The connector does not decide whether an agent may act. Successful transport does not guarantee complete measurement or validated scientific claims. REST and SSE describe upstream API interfaces; MCP transport remains distinct.
+
+---
 
 ## Choose your path
 
