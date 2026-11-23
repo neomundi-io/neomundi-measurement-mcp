@@ -1,12 +1,22 @@
-# NeoMundi measurement MCP and plugin
+# NeoMundi Measurement for AI Agents
 
 [English](README.md) · [Français](README_FR.md)
+
+### Give your AI agents access to measurable evidence.
+
+**Your agents produce answers. NeoMundi makes their behavior measurable.**
+
+Measure an existing execution or generate with measurements through an MCP interface. Keep the signal, its status and its provenance available to the tools and workflows that need it.
+
+**One measurement primitive. Multiple applications. Multiple infrastructures.**
+
+**[Choose your path](#choose-your-path)** · **[Install and run](#install-and-run)** · **[See the verification record](#where-we-stand)**
 
 NeoMundi product chain — INSTALL → TRACE → **MEASURE** → VERIFY → ACT. This repository is the **agent access path**: it lets an AI assistant measure an execution it just produced, and validates the response against the versioned wire contracts. It is an access interface to the instrument, not a stage of its own.
 
 [Product architecture](https://github.com/neomundi-io/.github/blob/main/docs/PRODUCT_ARCHITECTURE.md) · [Capability audit](https://github.com/neomundi-io/.github/blob/main/docs/V2_FUNCTIONAL_AUDIT_2026-11-15.md) · [All components](https://github.com/orgs/neomundi-io/repositories)
 
-Measure an existing AI execution from an agent, or request a generation with measurements. `measure_execution` preserves server values, `null`, states and provenance — a successful transport can still carry an incomplete measurement.
+The MCP interface preserves server values, `null` states and provenance as returned; the measurement and its interpretation remain separate.
 
 ---
 
@@ -14,9 +24,9 @@ Measure an existing AI execution from an agent, or request a generation with mea
 
 ![REST](https://img.shields.io/badge/API-REST-blue) ![SSE](https://img.shields.io/badge/API-SSE-blue) ![Plugin](https://img.shields.io/badge/plugin-local_pilot-orange)
 
-Measure an existing AI execution from an agent, or request a generation with
-measurements. `measure_execution` preserves server values, null, states and
-provenance. [Explore Station](https://github.com/neomundi-io/neomundi-station-public).
+**Measure from the agent workflow. Keep evidence in your own workflow.**
+
+[Explore Station](https://github.com/neomundi-io/neomundi-station-public) for controlled observation campaigns and auditable records.
 
 ## Choose your path
 

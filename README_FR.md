@@ -1,12 +1,22 @@
-# NeoMundi — MCP et plugin
+# NeoMundi Measurement pour les agents IA
 
 [Français](README_FR.md) · [English](README.md)
+
+### Donnez à vos agents IA accès à des mesures documentées.
+
+**Vos agents produisent des réponses. NeoMundi rend leur comportement mesurable.**
+
+Mesurez une exécution existante ou générez avec des mesures via une interface MCP. Conservez le signal, son statut et sa provenance pour les outils et parcours qui en ont besoin.
+
+**Une primitive de mesure. Plusieurs applications. Plusieurs infrastructures.**
+
+**[Choisir son parcours](#choisir-son-parcours)** · **[Installer](#installer-et-comprendre)** · **[Consulter les vérifications](#validation-réelle-du-plugin)**
 
 Chaîne produit NeoMundi — INSTALL → TRACE → **MEASURE** → VERIFY → ACT. Ce dépôt est le **chemin d'accès pour agents** : il permet à un assistant d'IA de mesurer une exécution qu'il vient de produire, et valide la réponse contre les contrats de fil versionnés. C'est une interface d'accès à l'instrument, pas une étape à part entière.
 
 [Architecture produit](https://github.com/neomundi-io/.github/blob/main/docs/PRODUCT_ARCHITECTURE.md) · [Audit des capacités](https://github.com/neomundi-io/.github/blob/main/docs/V2_FUNCTIONAL_AUDIT_2026-11-15.md) · [Tous les composants](https://github.com/orgs/neomundi-io/repositories)
 
-Mesurer une exécution d'IA depuis votre agent, ou demander une génération accompagnée de mesures. `measure_execution` conserve les valeurs, les états, les absences et la provenance rendus par NeoMundi — un transport réussi peut porter une mesure incomplète.
+L'interface MCP restitue les valeurs, les états `null` et la provenance renvoyés par le serveur ; la mesure et son interprétation restent distinctes.
 
 ---
 
@@ -14,9 +24,9 @@ Mesurer une exécution d'IA depuis votre agent, ou demander une génération acc
 
 ![REST](https://img.shields.io/badge/API-REST-blue) ![SSE](https://img.shields.io/badge/API-SSE-blue) ![Plugin](https://img.shields.io/badge/plugin-local_pilote-orange)
 
-Mesurer une exécution d’IA depuis votre agent, ou demander une génération
-accompagnée de mesures. L’outil `measure_execution` conserve les valeurs,
-les états, les absences et la provenance retournés par NeoMundi.
+**Mesurer depuis le parcours de l'agent. Conserver les preuves dans vos propres outils.**
+
+[Découvrir Station](https://github.com/neomundi-io/neomundi-station-public) pour les campagnes d'observation contrôlées et les enregistrements auditables.
 
 | Votre besoin | Parcours |
 |---|---|
