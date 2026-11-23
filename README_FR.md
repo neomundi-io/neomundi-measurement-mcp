@@ -1,6 +1,8 @@
-# NeoMundi Measurement pour les agents IA
+<div align="center">
 
-[Français](README_FR.md) · [English](README.md)
+[![Français](https://img.shields.io/badge/FR-Fran%C3%A7ais-2563eb?style=flat-square)](README_FR.md) · [![English](https://img.shields.io/badge/EN-English-2563eb?style=flat-square)](README.md)
+
+# NeoMundi Measurement pour les agents IA
 
 ### Donnez à vos agents IA accès à des mesures documentées.
 
@@ -14,7 +16,11 @@ Mesurez une exécution existante ou générez avec des mesures via une interface
 
 Chaîne produit NeoMundi — INSTALL → TRACE → **MEASURE** → VERIFY → ACT. Ce dépôt est le **chemin d'accès pour agents** : il permet à un assistant d'IA de mesurer une exécution qu'il vient de produire, et valide la réponse contre les contrats de fil versionnés. C'est une interface d'accès à l'instrument, pas une étape à part entière.
 
-[Architecture produit](https://github.com/neomundi-io/.github/blob/main/docs/PRODUCT_ARCHITECTURE.md) · [Audit des capacités](https://github.com/neomundi-io/.github/blob/main/docs/V2_FUNCTIONAL_AUDIT_2026-11-15.md) · [Tous les composants](https://github.com/orgs/neomundi-io/repositories)
+[Architecture produit](https://github.com/neomundi-io/.github/blob/main/docs/PRODUCT_ARCHITECTURE.fr.md) · [Audit des capacités](https://github.com/neomundi-io/.github/blob/main/docs/V2_FUNCTIONAL_AUDIT_2026-11-15.md) · [Tous les composants](https://github.com/orgs/neomundi-io/repositories)
+
+**[neomundi.io](https://neomundi.io/)**
+
+</div>
 
 L'interface MCP restitue les valeurs, les états `null` et la provenance renvoyés par le serveur ; la mesure et son interprétation restent distinctes.
 
@@ -39,6 +45,19 @@ SSE désigne ici le flux entre l’API et le connecteur. L’agent reçoit le
 résultat final et les événements conservés ; l’interface n’est pas promise
 comme un affichage token par token. La mesure peut rester incomplète même
 si le transport a abouti.
+
+## Le parcours de mesure depuis un agent
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/neomundi-io/neomundi-measurement-mcp/main/docs/assets/mcp-flow-fr-dark.svg">
+    <img alt="Parcours du connecteur MCP : l'agent soumet une réponse ou une génération ; le connecteur transmet à l'API de mesure REST ou SSE ; les signaux, statuts et données de provenance restent examinables." src="https://raw.githubusercontent.com/neomundi-io/neomundi-measurement-mcp/main/docs/assets/mcp-flow-fr-light.svg" width="100%">
+  </picture>
+</p>
+
+Le connecteur n'autorise ni ne bloque l'exécution d'un agent. Un transport réussi ne garantit pas une mesure complète. REST et SSE désignent ici l'API en amont, pas le transport MCP.
+
+---
 
 ## Validation réelle du plugin
 
