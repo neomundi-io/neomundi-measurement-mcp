@@ -24,7 +24,7 @@ L'interface MCP restitue les valeurs, les états `null` et la provenance renvoy�
 
 ![REST](https://img.shields.io/badge/API-REST-blue) ![SSE](https://img.shields.io/badge/API-SSE-blue) ![Plugin](https://img.shields.io/badge/plugin-local_pilote-orange)
 
- **Mesurer depuis le parcours de l'agent. Conserver les preuves dans vos propres outils.**
+**Mesurer depuis le parcours de l'agent. Conserver les preuves dans vos propres outils.**
 
 [Découvrir Station](https://github.com/neomundi-io/neomundi-station-public) pour les campagnes d'observation contrôlées et les enregistrements auditables.
 
