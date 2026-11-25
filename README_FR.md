@@ -8,6 +8,10 @@
 
 **Vos agents produisent des réponses. NeoMundi rend leur comportement mesurable.**
 
+**Intégrez la mesure des IA en exécution aux workflows de vos agents via MCP.**
+
+Mesurez une exécution qui vient d'être produite ou utilisez l'interface de génération prise en charge ; rendez les signaux disponibles pour la surveillance et les décisions du workflow consommateur.
+
 Mesurez une exécution existante ou générez avec des mesures via une interface MCP. Conservez le signal, son statut et sa provenance pour les outils et parcours qui en ont besoin.
 
 **Une primitive de mesure. Plusieurs applications. Plusieurs infrastructures.**
