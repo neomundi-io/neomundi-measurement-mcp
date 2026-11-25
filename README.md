@@ -8,6 +8,10 @@
 
 **Your agents produce answers. NeoMundi makes their behavior measurable.**
 
+**Bring runtime AI measurement into agent workflows through MCP.**
+
+Measure an execution just produced or use the supported generation interface; make the resulting signals available for monitoring and decisions within the consuming workflow.
+
 Measure an existing execution or generate with measurements through an MCP interface. Keep the signal, its status and its provenance available to the tools and workflows that need it.
 
 **One measurement primitive. Multiple applications. Multiple infrastructures.**
