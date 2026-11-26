@@ -60,3 +60,54 @@ Une version de mesure divergente reste signalée par `measurement_reference`.
 
 Une publication dans un annuaire et la licence de distribution restent des décisions
 séparées. Cette candidate n'accorde aucun nouveau droit et ne vaut pas publication finale.
+
+## D'ou viennent ces schemas
+
+Les deux fichiers de `runtime/schemas/contracts/` sont la **copie publique
+des fichiers de contrat du backend**, pris dans
+`neomundi-io/Backend_plateforme_v2` sous
+`govern-v3/app/contracts/schemas/`. Ils ne sont pas transcrits d'une
+reponse HTTP observee : une reference tiree de la reponse qu'elle est
+censee verifier ne prouverait rien.
+
+| | |
+|---|---|
+| Revision source | `ec9a57646` — *merge(BL-V1) : porter BL-V1-001 et BL-V1-002 sur le code REELLEMENT en service*, 2026-11-21 |
+| `govern-rest-1.0.json` | 20189 octets · sha256 `8e27a9110298a9b9ff31d6379daefddb1f068fa0b17452ed7b65e341e16d84c3` |
+| `govern-sse-1.0.json` | 7991 octets · sha256 `d05caa8d48c6f64f0124a53f8977914e9e5fe0558ff6172031d3131d36c4c165` |
+
+Les deux sont identiques a l'octet a ce que `api.neomundi.io/v1/contracts/*`
+servait le 2026-11-26, et les deux blobs existent dans le depot backend sous
+ces identifiants d'objet git exacts — c'est ce qui rend la provenance
+verifiable au lieu d'affirmee.
+
+### Ce qui change par rapport au lot precedent
+
+Le lot remplace etait l'etat `03e2b344` du 2026-11-15, quand REST a gagne
+`log_persisted` et `log_write`. Les deux documents portent desormais aussi,
+dans `$defs/MeasurementBlock` :
+
+```json
+"absent_runtime_metrics": {
+  "anyOf": [ { "items": { "type": "string" }, "type": "array" },
+             { "type": "null" } ]
+}
+```
+
+Il vient de **BL-V1-001** (`26b3f34f7`, 2026-11-11), qui a rendu
+`token_count` et `latency_ms` facultatifs *sans substituer de valeur* :
+plutot que de publier un chiffre que personne n'a mesure, le contrat
+**nomme les metriques d'execution absentes**.
+
+Le changement est **strictement additif**, verifie dans chaque conteneur
+imbrique ou un schema 2020-12 peut loger un sous-schema — `$defs`,
+`properties`, `items`, `anyOf`/`allOf`/`oneOf` et les autres. Exactement
+trois feuilles de mot-cle ajoutees par document, aucune retiree, aucune
+nouvellement requise, aucun type restreint. La propriete optionnelle
+n'entre pas dans `required`, qui reste `status`, `checks_attempted`,
+`checks_succeeded`, `coverage`, `confidence_basis`.
+
+⚠ Un lecteur qui traite une propriete inconnue comme une erreur rejettera
+toujours une reponse courante. C'est une propriete du lecteur, pas du
+contrat : les deux documents autorisent par conception des champs
+supplementaires futurs.
