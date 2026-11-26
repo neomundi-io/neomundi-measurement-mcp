@@ -49,6 +49,56 @@ A schema-valid response may describe an incomplete measurement. Schema conforman
 does not establish scientific validity, prompt compliance or execution permission.
 `measurement_reference` still reports measurement-version divergence independently.
 
+## Where these schemas come from
+
+The two files under `runtime/schemas/contracts/` are the **public copy of
+the backend's own contract files**, taken from
+`neomundi-io/Backend_plateforme_v2` at
+`govern-v3/app/contracts/schemas/`. They are not transcribed from an
+observed HTTP response: a reference that came from the response it is meant
+to check would prove nothing.
+
+| | |
+|---|---|
+| Source revision | `ec9a57646` — *merge(BL-V1): porter BL-V1-001 et BL-V1-002 sur le code REELLEMENT en service*, 2026-11-21 |
+| `govern-rest-1.0.json` | 20189 bytes · sha256 `8e27a9110298a9b9ff31d6379daefddb1f068fa0b17452ed7b65e341e16d84c3` |
+| `govern-sse-1.0.json` | 7991 bytes · sha256 `d05caa8d48c6f64f0124a53f8977914e9e5fe0558ff6172031d3131d36c4c165` |
+
+Both are byte-identical to what `api.neomundi.io/v1/contracts/*` served on
+2026-11-26, and both blobs exist in the backend repository under those
+exact git object ids — which is what makes the provenance checkable rather
+than asserted.
+
+### What changed from the previous bundle
+
+The bundle this replaces was the `03e2b344` state of 2026-11-15, when REST
+gained `log_persisted` and `log_write`. Both documents now also carry, in
+`$defs/MeasurementBlock`:
+
+```json
+"absent_runtime_metrics": {
+  "anyOf": [ { "items": { "type": "string" }, "type": "array" },
+             { "type": "null" } ]
+}
+```
+
+It comes from **BL-V1-001** (`26b3f34f7`, 2026-11-11), which made
+`token_count` and `latency_ms` optional *without substituting a value*: so
+rather than reporting a figure nobody measured, the contract **names the
+runtime metrics that were absent**.
+
+The change is **strictly additive**, verified across every nested container
+a 2020-12 schema can hold a subschema in — `$defs`, `properties`, `items`,
+`anyOf`/`allOf`/`oneOf` and the rest. Exactly three keyword leaves were
+added to each document, none removed, none newly required, no type
+narrowed. The optional property is absent from `required`, which stays
+`status`, `checks_attempted`, `checks_succeeded`, `coverage`,
+`confidence_basis`.
+
+⚠ A reader that treats an unknown root or block property as an error will
+still reject a current response. That is a property of the reader, not of
+the contract: both documents allow additional future fields by design.
+
 ## Complete the release
 
 1. Pass and merge the companion API change, then deploy its identified commit.
